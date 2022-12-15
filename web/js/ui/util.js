@@ -129,3 +129,136 @@ function open_media_preview(url, type) {
 function close_media_preview() {
 	find_node("#media-preview").classList.add("closed");
 }
+
+function close_reply() {
+	const modal = document.querySelector("#reply-modal")
+	modal.classList.add("closed");
+}
+
+function press_logout() {
+	if (confirm("Are you sure you want to sign out?")) {
+		localStorage.clear();
+		const url = new URL(location.href)
+		url.searchParams.delete("pk")
+		window.location.href = url.toString()
+	}
+}
+
+function delete_post_confirm(evid) {
+	if (!confirm("Are you sure you want to delete this post?"))
+		return
+
+	const reason = (prompt("Why you are deleting this? Leave empty to not specify. Type CANCEL to cancel.") || "").trim()
+
+	if (reason.toLowerCase() === "cancel")
+		return
+
+	delete_post(evid, reason)
+}
+
+async function do_send_reply() {
+	const modal = document.querySelector("#reply-modal")
+	const replying_to = modal.querySelector("#replying-to")
+
+	const evid = replying_to.dataset.evid
+	const reply_content_el = document.querySelector("#reply-content")
+	const content = reply_content_el.value
+
+	await send_reply(content, evid)
+
+	reply_content_el.value = ""
+
+	close_reply()
+}
+
+function reply_to(evid) {
+	const modal = document.querySelector("#reply-modal")
+	const replybox = modal.querySelector("#reply-content")
+	modal.classList.remove("closed")
+	const replying_to = modal.querySelector("#replying-to")
+
+	replying_to.dataset.evid = evid
+
+	const ev = DAMUS.all_events[evid]
+	const view = get_current_view()
+	replying_to.innerHTML = render_event(DAMUS, view, ev, {is_composing: true, nobar: true, max_depth: 1})
+
+	replybox.focus()
+}
+
+function redraw_my_pfp(model, force = false) {
+	const p = model.profiles[model.pubkey]
+	if (!p) return;
+	const html = render_pfp(model.pubkey, p);
+	const el = document.querySelector(".my-userpic")
+	if (!force && el.dataset.loaded) return;
+	el.dataset.loaded = true;
+	el.innerHTML = html;
+}
+
+function update_favicon(path)
+{
+	let link = document.querySelector("link[rel~='icon']");
+	const head = document.getElementsByTagName('head')[0]
+
+	if (!link) {
+		link = document.createElement('link');
+		link.rel = 'icon';
+		head.appendChild(link);
+	}
+
+	link.href = path;
+}
+
+// update_title updates the document title & visual indicators based on if the
+// number of notifications that are unseen by the user.
+function update_title(model) {
+	// TODO rename update_title to update_notification_state or similar
+	// TODO only clear notifications once they have seen all targeted events
+	if (document.visibilityState === 'visible') {
+		model.notifications = 0
+	}
+
+	const num = model.notifications
+	const has_notes = num !== 0
+	document.title = has_notes ? `(${num}) Damus` : "Damus";
+	update_favicon(has_notes ? "img/damus_notif.svg" : "img/damus.svg");
+	update_notification_markers(has_notes)
+}
+
+async function get_pubkey() {
+	let pubkey = get_local_state('pubkey')
+	// qs pk overrides stored key
+	const qs_pk = get_qs().get("pk")
+	if (qs_pk)
+		return await handle_pubkey(qs_pk)
+	if (pubkey)
+		return pubkey
+	if (window.nostr && window.nostr.getPublicKey) {
+		console.log("calling window.nostr.getPublicKey()...")
+		const pubkey = await window.nostr.getPublicKey()
+		console.log("got %s pubkey from nos2x", pubkey)
+		return await handle_pubkey(pubkey)
+	}
+	pubkey = prompt("Enter nostr id (eg: jb55@jb55.com) or pubkey (hex or npub)")
+	if (!pubkey)
+		throw new Error("Need pubkey to continue")
+	return await handle_pubkey(pubkey)
+}
+
+function get_privkey() {
+	let privkey = get_local_state('privkey')
+	if (privkey)
+		return privkey
+	if (!privkey)
+		privkey = prompt("Enter private key")
+	if (!privkey)
+		throw new Error("can't get privkey")
+	if (privkey[0] === "n") {
+		privkey = bech32_decode(privkey)
+	}
+	set_local_state('privkey', privkey)
+	return privkey
+}
+
+
