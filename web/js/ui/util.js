@@ -113,3 +113,19 @@ function click_event(el) {
 	console.info(`thread to open: ${el.dataset.eid}`);
 	switch_view("thread");
 }
+
+/* open_media_preview presents a modal to display an image via "url".
+ */
+function open_media_preview(url, type) {
+	const el = find_node("#media-preview");
+	el.classList.remove("closed");
+	find_node("img", el).src = url;
+	// TODO handle different medias such as audio and video
+	// TODO add loading state & error checking
+}
+
+/* close_media_preview closes any present media modal.
+ */
+function close_media_preview() {
+	find_node("#media-preview").classList.add("closed");
+}

@@ -169,9 +169,7 @@ function linkify(text, show_media) {
 		let html;
 		if (show_media && is_img_url(parsed.pathname)) {
 			html = `
-			<a target="_blank" href="${url}">
-				<img class="inline-img" src="${url}"/>
-			</a>
+			<img class="inline-img clickable" src="${url}" onclick="open_media_preview('${url}', 'image')"/>
 			`;
 		} else if (show_media && is_video_url(parsed.pathname)) {
 			html = `
