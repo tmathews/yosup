@@ -8,13 +8,14 @@ const REACTION_REGEX = /^[#*0-9]\uFE0F?\u20E3|[\xA9\xAE\u203C\u2049\u2122\u2139\
 function log_error(fmt, ...args) {
 	console.error(fmt, ...args)
 }
-
 function log_debug(fmt, ...args) {
 	console.debug(fmt, ...args)
 }
-
 function log_info(fmt, ...args) {
 	console.info(fmt, ...args)
+}
+function log_warn(fmt, ...args) {
+	console.warn(fmt, ...args)
 }
 
 function safe_parse_json(data, message) {
@@ -128,34 +129,15 @@ function difficulty_to_prefix(d) {
 	return s
 }
 
-function calculate_pow(ev) {
-	const id_bits = leading_zero_bits(ev.id)
-	for (const tag of ev.tags) {
-		if (tag.length >= 3 && tag[0] === "nonce") {
-			const target = +tag[2]
-			if (isNaN(target))
-				return 0
-
-			// if our nonce target is smaller than the difficulty,
-			// then we use the nonce target as the actual difficulty
-			return min(target, id_bits)
-		}
-	}
-
-	// not a valid pow if we don't have a difficulty target
-	return 0
-}
-
-/* can_reply returns a boolean value based on if you can "reply" to the event
- * in the manner of a chat.
- */
 function can_reply(ev) {
-	return ev.kind === 1 || ev.kind === 42
+	log_debug("can_reply is deprecated, use event_can_reply");
+	return event_can_reply(ev);
 }
 
 function should_add_to_timeline(ev) {
 	// TODO rename should_add_to_timeline to is_timeline_event
-	return ev.kind === 1 || ev.kind === 42 || ev.kind === 6
+	log_debug("should_add_to_timeline is deprecated, use event_is_timeline");
+	return event_is_timeline(ev);
 }
 
 /* time_delta returns a string of the time of current since previous.
@@ -239,12 +221,6 @@ function get_picture(pk, profile) {
 	return profile.resolved_picture
 }
 
-function passes_spam_filter(contacts, ev, pow) {
-	if (contacts.friend_of_friends.has(ev.pubkey))
-		return true
-	return ev.pow >= pow
-}
-
 function debounce(f, interval) {
 	let timer = null;
 	let first = true;
@@ -256,4 +232,9 @@ function debounce(f, interval) {
 		});
 	};
 }
+
+function process_json_content(ev) {
+	ev.json_content = safe_parse_json(ev.content, "event json_content");
+}
+
 
