@@ -65,6 +65,7 @@ async function damus_web_init_ready() {
 	pool.on("event", on_pool_event);
 	pool.on("notice", on_pool_notice);
 	pool.on("eose", on_pool_eose);
+	pool.on("ok", on_pool_ok);
 	return pool
 }
 
@@ -83,11 +84,12 @@ function on_pool_open(relay) {
 }
 
 function on_pool_notice(relay, notice) {
-	console.info("notice", notice);
+	console.info("notice", relay.url, notice);
 	// DO NOTHING
 }
 
-// TODO document what EOSE is
+// on_pool_eose occurs when all storage from a relay has been sent to the 
+// client.
 async function on_pool_eose(relay, sub_id) {
 	console.info("eose", relay.url, sub_id);
 	const model = DAMUS;
@@ -100,16 +102,22 @@ async function on_pool_eose(relay, sub_id) {
 		case ids.profiles:
 			//const view = get_current_view()
 			//handle_profiles_loaded(ids, model, view, relay)
+			pool.unsubscribe(ids.profiles, relay);
 			break;
 		case ids.unknown:
 			// TODO document why we unsub from unknowns
 			pool.unsubscribe(ids.unknowns, relay);
 			break;
+		case ids.account:
+			break;
 	}
 }
 
+function on_pool_ok(relay) {
+	console.log("OK", arguments);
+}
+
 function on_pool_event(relay, sub_id, ev) {
-	console.info("event", relay.url, sub_id, ev);
 	const model = DAMUS;
 	const { ids, pool } = model;
 	
@@ -127,6 +135,21 @@ function on_pool_event(relay, sub_id, ev) {
 			break;
 	}
 
-	// TODO do smart view update logic here
+	// Refresh view
+	state.invalidated.push(ev.id);
+	clearTimeout(state.timer);
+	state.timer = setTimeout(() => {
+		view_timeline_update(model, state);
+	}, 1000);
+
+	// If it was metadata let's refresh the usernames and pics
+	if (ev.kind == 0) {
+		view_timeline_update_profiles(model, state, ev);
+	}
 }
+
+const state = {
+	invalidated: [],
+	timer: -1,
+};
 

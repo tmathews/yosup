@@ -97,7 +97,7 @@ function render_unknown_event(damus, ev) {
 }
 
 function render_share(damus, view, ev, opts) {
-	//todo validate content
+	// TODO validate content
 	const shared_ev = damus.all_events[ev.refs && ev.refs.root]
 	// share isn't resolved yet. that's ok, we can render this when we have
 	// the event
@@ -113,7 +113,7 @@ function render_share(damus, view, ev, opts) {
 
 function render_comment_body(damus, ev, opts) {
 	const can_delete = damus.pubkey === ev.pubkey;
-	const bar = !can_reply(ev) || opts.nobar? "" : render_action_bar(damus, ev, can_delete)
+	const bar = !can_reply(ev) || opts.nobar? "" : render_action_bar(damus, ev, {can_delete})
 	const show_media = !opts.is_composing
 
 	return `
@@ -165,11 +165,9 @@ function render_event(damus, view, ev, opts={}) {
 
 	view.rendered.add(ev.id)
 
-	const profile = damus.profiles[ev.pubkey]
-	const delta = time_delta(new Date().getTime(), ev.created_at*1000)
-
 	const has_bot_line = opts.is_reply
 	const reply_line_bot = (has_bot_line && render_reply_line_bot()) || ""
+	if (opts.is_composing) has_bot_line = true;
 
 	const deleted = is_deleted(damus, ev.id)
 	if (deleted && !opts.is_reply)
@@ -183,10 +181,30 @@ function render_event(damus, view, ev, opts={}) {
 	}
 
 	const has_top_line = replied_events !== ""
-	const border_bottom = opts.is_composing || has_bot_line ? "" : "bottom-border";
 	return `
 	${replied_events}
-	<div id="ev${ev.id}" class="event ${border_bottom}">
+	` + render_event2(damus, ev, {
+		deleted,
+		has_top_line,
+		has_bot_line,
+		reply_line_bot,
+	});
+}
+
+function render_event2(model, ev, opts={}) {
+	let { 
+		deleted,
+		has_bot_line, 
+		has_top_line, 
+		reply_line_bot,
+	} = opts
+
+	const profile = model.profiles[ev.pubkey]
+	const delta = time_delta(new Date().getTime(), ev.created_at*1000)
+	const border_bottom = has_bot_line ? "" : "bottom-border";
+	const body = deleted ? render_deleted_comment_body(ev, deleted) : render_comment_body(model, ev, opts)
+	if (!reply_line_bot) reply_line_bot = '';
+	return `<div id="ev${ev.id}" class="event ${border_bottom}">
 		<div class="userpic">
 			${render_reply_line_top(has_top_line)}
 			${deleted ? render_deleted_pfp() : render_pfp(ev.pubkey, profile)}
@@ -201,11 +219,10 @@ function render_event(damus, view, ev, opts={}) {
 				</button>
 			</div>
 			<div class="comment">
-				${deleted ? render_deleted_comment_body(ev, deleted) : render_comment_body(damus, ev, opts)}
+				${body}
 			</div>
 		</div>
-	</div>
-	`
+	</div>` 
 }
 
 function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
@@ -241,7 +258,8 @@ function render_reaction(model, reaction) {
 	return render_pfp(reaction.pubkey, profile)
 }
 
-function render_action_bar(damus, ev, can_delete) {
+function render_action_bar(model, ev, opts={}) {
+	let { can_delete } = opts;
 	let delete_html = ""
 	if (can_delete)
 		delete_html = `
@@ -249,10 +267,9 @@ function render_action_bar(damus, ev, can_delete) {
 		<img class="icon svg small" src="icon/event-delete.svg"/>
 	</button>`
 
-	const groups = get_reactions(damus, ev.id)
-	const like = "❤️"
-	const likes = groups[like] || {}
-	const react_onclick = render_react_onclick(damus.pubkey, ev.id, like, likes)
+	const groups = get_reactions(model, ev.id)
+	const react_onclick = render_react_onclick(model.pubkey, ev.id, 
+		"❤️", groups["❤️"] || {})
 	return `
 	<div class="action-bar">
 		<button class="icon" title="Reply" onclick="reply_to('${ev.id}')">
@@ -317,8 +334,12 @@ function render_mentioned_name(pk, profile) {
 
 function render_name(pk, profile, prefix="") {
 	return `
-	<span class="username clickable" onclick="show_profile('${pk}')" 
-		data-pk="${pk}">${prefix}${render_name_plain(profile)}
+	<span>
+	${prefix}
+	<span class="username clickable" data-pubkey="${pk}" 
+		onclick="show_profile('${pk}')">
+		${render_name_plain(profile)}
+	</span>
 	</span>`
 }
 
@@ -328,7 +349,7 @@ function render_deleted_name() {
 
 function render_pfp(pk, profile) {
 	const name = render_name_plain(profile)
-	return `<img class="pfp" title="${name}" 
+	return `<img class="pfp" data-pubkey="${pk}" title="${name}" 
 	onerror="this.onerror=null;this.src='${robohash(pk)}';" 
 	src="${get_picture(pk, profile)}">`
 }

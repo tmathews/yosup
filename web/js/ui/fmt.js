@@ -1,7 +1,12 @@
 function linkify(text, show_media) {
 	return text.replace(URL_REGEX, function(match, p1, p2, p3) {
-		const url = p2+p3
-		const parsed = new URL(url)
+		const url = p2+p3;
+		let parsed;
+		try {
+			parsed = new URL(url)
+		} catch (err) {
+			return match;
+		}
 		let html;
 		if (show_media && is_img_url(parsed.pathname)) {
 			html = `

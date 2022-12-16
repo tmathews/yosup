@@ -77,21 +77,6 @@ function event_get_tag_refs(tags) {
 	return {root, reply, pubkeys}
 }
 
-function events_insert_sorted(evs, new_ev) {
-	for (let i = 0; i < evs.length; i++) {
-		 const ev = evs[i]
-		 if (new_ev.id === ev.id) {
-		         return false
-		 }
-		 if (new_ev.created_at > ev.created_at) {
-		         evs.splice(i, 0, new_ev)
-		         return true
-		 }
-	}
-	evs.push(new_ev)
-	return true
-}
-
 function passes_spam_filter(contacts, ev, pow) {
 	log_warn("passes_spam_filter deprecated, use event_is_spam");
 	return !event_is_spam(ev, contacts, pow);
@@ -103,5 +88,11 @@ function event_is_spam(ev, contacts, pow) {
 	return ev.pow >= pow
 }
 
-
+function event_cmp_created(a, b) {
+	if (a.created_at > b.created_at)
+		return 1;
+	if (a.created_at < b.created_at)
+		return -1;
+	return 0;
+}
 

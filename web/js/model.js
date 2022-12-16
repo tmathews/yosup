@@ -198,6 +198,40 @@ function model_subscribe_defaults(model, relay) {
 	filters_subscribe(filters, model.pool, [relay]);
 }
 
+function test_model_events_arr() {
+	const arr = model_events_arr({all_events: {
+		"c": {name: "c", created_at: 2},
+		"a": {name: "a", created_at: 0},
+		"b": {name: "b", created_at: 1},
+		"e": {name: "e", created_at: 4},
+		"d": {name: "d", created_at: 3},
+	}});
+	let last;	
+	while(arr.length > 0) {
+		let ev = arr.pop();
+		log_debug("test:", ev.name, ev.created_at);
+		if (!last) {
+			last = ev;
+			continue;
+		}
+		if (ev.created_at > last.created_at) {
+			log_error(`ev ${ev.name} should be before ${last.name}`);
+		}
+		last = ev;
+	}
+}
+
+function model_events_arr(model) {
+	const events = model.all_events;
+	let arr = [];
+	for (const evid in events) {
+		const ev = events[evid];
+		const i = arr_bsearch_insert(arr, ev, event_cmp_created); 
+		arr.splice(i, 0, ev);
+	}
+	return arr;
+}
+
 function new_model() {
 	return {
 		done_init: {},

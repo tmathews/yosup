@@ -50,6 +50,25 @@ function shuffle(arr) {
 	return arr;
 }
 
+/* arr_bsearch_insert finds the point in the array that an item should be 
+ * inserted at based on the 'cmp' function used.
+ */
+function arr_bsearch_insert(arr, item, cmp) {
+	let start = 0;
+	let end = arr.length - 1;
+	while (start <= end) {
+		let middle = parseInt((start + end) / 2);
+		let x = cmp(item, arr[middle])
+		if (x > 0)
+			start = middle + 1;
+		else if (x < 0)
+			end = middle - 1;
+		else 
+			return middle;
+	}
+	return start;
+}
+
 function is_valid_time(now_sec, created_at) {
 	// don't count events far in the future
 	if (created_at - now_sec >= 120) {
@@ -127,17 +146,6 @@ function difficulty_to_prefix(d) {
 		s += "0"
 	}
 	return s
-}
-
-function can_reply(ev) {
-	log_debug("can_reply is deprecated, use event_can_reply");
-	return event_can_reply(ev);
-}
-
-function should_add_to_timeline(ev) {
-	// TODO rename should_add_to_timeline to is_timeline_event
-	log_debug("should_add_to_timeline is deprecated, use event_is_timeline");
-	return event_is_timeline(ev);
 }
 
 /* time_delta returns a string of the time of current since previous.

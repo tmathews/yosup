@@ -114,3 +114,84 @@ function get_current_view()
 	return DAMUS.views[DAMUS.current_view]
 }
 
+function view_timeline_update_profiles(model, state, ev) {
+	let xs, html;
+	const el = find_node("#view #home-view .events");
+	const pk = ev.pubkey;
+	const p = model.profiles[pk];
+
+	// If it's my pubkey let's redraw my pfp that is not located in the view
+	if (pk == model.pubkey) {
+		redraw_my_pfp(model);
+	}
+
+	// Update displayed names
+	xs = el.querySelectorAll(`.username[data-pubkey='${pk}']`)
+	html = render_name_plain(p);
+	for (const x of xs) {
+		x.innerText = html;
+	}
+
+	// Update profile pictures
+	xs = el.querySelectorAll(`img.pfp[data-pubkey='${pk}']`);
+	html = get_picture(pk, p)
+	for (const x of xs) {
+		x.src = html;
+	}
+}
+
+function view_timeline_update(model, state) {
+	const el = find_node("#view #home-view .events");
+
+	// for each event not rendered, go through the list and render it marking 
+	// it as rendered and adding it to the appropriate fragment. fragments are
+	// created based on slices in the existing timeline. fragments are started
+	// at the previous event
+	// const fragments = {};
+	// const cache = {};
+
+	// Dumb function to insert needed events
+	const all = model_events_arr(model);
+	while (state.invalidated.length > 0) {
+		var evid = state.invalidated.pop();
+		var ev = model.all_events[evid];
+		if (!event_is_renderable(ev)) {
+			// TODO check deleted
+			let x = find_node("#ev"+evid, el);
+			if (x) el.removeChild(x);
+			continue;
+		}
+
+		// TODO if event is not viewable for page, simply hide it
+
+		// if event is in el already, do nothing or update?
+		let ev_el = find_node("#ev"+evid, el);
+		if (ev_el) {
+			continue;
+		} else {
+			let div = document.createElement("div");
+			div.innerHTML = render_event2(model, ev, {});
+			ev_el = div.firstChild;
+		}
+
+		// find prior event element and insert it before that
+		let prior_el;
+		let prior_idx = arr_bsearch_insert(all, ev, event_cmp_created);
+		while (prior_idx > 0 && !prior_el) {
+			prior_el = find_node("#ev"+all[prior_idx].id, el);
+			prior_idx--;
+		}
+		if (!prior_el) {
+			el.appendChild(ev_el);
+		} else {
+			el.insertBefore(ev_el, prior_el);
+		}
+	}
+}
+
+function event_is_renderable(ev={}) {
+	if (ev.is_spam) return false;
+	if (ev.kind != 1) return false;
+	return true;
+}
+
