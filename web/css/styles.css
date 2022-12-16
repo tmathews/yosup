@@ -137,7 +137,7 @@ button.nav > img.icon {
 	position: sticky;
 	top: 0;
 	z-index: var(--zHeader);
-	background: var(--clrBg);
+	backdrop-filter: blur(20px);
 }
 #view header > label {
 	padding: 15px;
@@ -147,6 +147,13 @@ button.nav > img.icon {
 }
 
 /* Events & Content */
+.events {
+	display: flex;
+	flex-direction: column;
+}
+.events.reverse {
+	flex-direction: column-reverse;
+}
 .event {
 	display: flex;
 	flex-direction: row;
@@ -303,8 +310,8 @@ button.nav > img.icon {
 .action-bar button.icon:hover {
 	opacity: 1;
 }
-.action-bar button.heart:hover {
-	/* TODO fix heart color */
+.action-bar button.heart.liked {
+	opacity: 1;
 }
 
 details.cw summary {
@@ -337,6 +344,7 @@ details.cw summary {
 	background: rgba(0,0,0,0.4);
 	opacity: 1;
 	transition: opacity 0.2s linear;
+	backdrop-filter: blur(20px);
 }
 .modal.closed {
 	opacity: 0;
@@ -440,19 +448,11 @@ label[role="profile-nip5"] {
 
 /* Media Preview */
 
-.bg-blur {
-	backdrop-filter: blur(20px);
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	z-index: var(--zModal);
-}
 .modal .media-container {
 	text-align: center;
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	z-index: calc(var(--zModal) + 1);
 }
 .modal .media-container > img {
 	object-fit: scale-down;
@@ -464,6 +464,9 @@ label[role="profile-nip5"] {
 @media (prefers-color-scheme: dark) {
 	.icon.svg {
 		filter: invert(1);
+	}
+	.icon.svg.dark-noinvert {
+		filter: invert(0);
 	}
 }
 

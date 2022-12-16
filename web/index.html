@@ -17,6 +17,13 @@
 		<script defer src="js/bech32.js?v=1"></script>
 		<script defer src="js/nostr.js?v=7"></script>
 		<script defer src="js/core.js?v=1"></script>
+		<script defer src="js/cache.js?v=1"></script>
+		<script defer src="js/model.js?v=1"></script>
+		<script defer src="js/filters.js?v=1"></script>
+		<script defer src="js/contacts.js?v=1"></script>
+		<script defer src="js/event.js?v=1"></script>
+		<script defer src="js/unknowns.js?v=1"></script>
+		<script defer src="js/lib.js?v=1"></script>
 		<script defer src="js/damus.js?v=92"></script>
 	</head>
 	<body>
@@ -33,7 +40,7 @@
 			<button class="icon" role="open-gnav" title="Open Menu" onclick="toggle_gnav(this)">
 				<img class="icon svg invert" src="icon/logo.svg"/>
 			</button>
-			<button class="icon" role="home" title="Home" onclick="switch_view('home')">
+			<button class="icon" role="home" title="Home" onclick="switch_view('friends')">
 				<img class="icon svg invert" src="icon/home.svg"/>
 			</button>
 			<button class="icon" role="explore" title="Explore" onclick="switch_view('explore')">
@@ -56,7 +63,7 @@
 						<img class="icon svg" title="Damus" src="icon/logo-inverted.svg"/>
 					</div>
 					<button role="home" class="nav icon" 
-						title="Home" onclick="switch_view('home')">
+						title="Home" onclick="switch_view('friends')">
 						<img class="icon svg inactive" src="icon/home.svg"/>
 						<img class="icon svg active" src="icon/home-active.svg"/>
 					</button>
@@ -77,7 +84,7 @@
 				</div>
 			</div>
 			<div id="view">
-				<div id="home-view">
+				<div>
 					<header>
 						<label>Home</label>
 					</header>
@@ -100,31 +107,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="events"></div>
-				</div>
-				<div id="explore-view" class="hide">
-					<header>
-						<label>Explore</label>
-					</header>
-					<div class="events"></div>
-				</div>
-				<div id="notifications-view" class="hide">
-					<header>
-						<label>Notifications</label>
-					</header>
-					<div class="events"></div>
-				</div>
-				<div id="thread-view" class="hide">
-					<header>
-						<label>Thread</label>
-					</header>
-					<div class="events"></div>
-				</div>
-				<div id="profile-view" class="hide">
-					<header>
-						<label role="profile-name">Profile</label>
-					</header>
-					<div role="profile-info" class="bottom-border">
+					<div role="profile-info" class="bottom-border hide">
 						<div class="flex">
 							<img role="profile-image" class="pfp jumbo" src="" />
 							<div class="profile-tools">
@@ -144,14 +127,18 @@
 							<p role="profile-desc"></p>
 						</div>
 					</div>
-					<div class="events"></div>
+					<div class="loading-events">
+						<div class="loader" title="Loading...">
+							<img class="dark-invert" src="icon/loader-fragment.svg"/>
+						</div>
+					</div>
+					<div id="timeline" class="events"></div>
 				</div>
 			</div>
 			<div class="flex-fill vertical-hide"></div>
 		</div>
 
 		<div class="modal closed" id="media-preview">
-			<div class="bg-blur"></div>
 			<div class="media-container">
 				<img onclick="close_media_preview()" src=""/>
 			</div>

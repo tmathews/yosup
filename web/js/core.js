@@ -1,3 +1,23 @@
+const KIND_METADATA = 0;
+const KIND_NOTE     = 1;
+const KIND_RELAY    = 2;
+const KIND_CONTACT  = 3;
+const KIND_DM       = 4;
+const KIND_DELETE   = 5;
+const KIND_REACTION = 7;
+const KIND_CHATROOM = 42;
+
+const TAG_P = "#p";
+const TAG_E = "#e";
+
+const R_HEART = "❤️";
+
+const STANDARD_KINDS = [
+	KIND_NOTE,
+	KIND_DELETE,
+	KIND_REACTION,
+];
+
 function get_local_state(key) {
 	if (DAMUS[key] != null)
 		return DAMUS[key]
@@ -144,6 +164,22 @@ async function delete_post(id, reason) {
 	broadcast_event(del)
 }
 
+function model_get_reacts_to(model, pubkey, evid, emoji) {
+	const r = model.reactions_to[evid];
+	if (!r)
+		return;
+	for (const id of r.keys()) {
+		if (is_deleted(model, id))
+			continue;
+		const reaction = model.all_events[id];
+		if (!reaction || reaction.pubkey != pubkey)
+			continue;
+		if (emoji == get_reaction_emoji(reaction))
+			return reaction;
+	}
+	return;
+}
+
 function get_reactions(model, evid) {
 	const reactions_set = model.reactions_to[evid]
 	if (!reactions_set)
@@ -197,17 +233,13 @@ function gather_reply_tags(pubkey, from) {
 	return tags
 }
 
-function get_tag_event(tag)
-{
+function get_tag_event(tag) {
 	if (tag.length < 2)
 		return null
-
 	if (tag[0] === "e")
 		return DAMUS.all_events[tag[1]]
-
 	if (tag[0] === "p")
 		return DAMUS.all_events[DAMUS.profile_events[tag[1]]]
-
 	return null
 }
 

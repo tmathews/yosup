@@ -1,7 +1,12 @@
 function linkify(text, show_media) {
 	return text.replace(URL_REGEX, function(match, p1, p2, p3) {
-		const url = p2+p3
-		const parsed = new URL(url)
+		const url = p2+p3;
+		let parsed;
+		try {
+			parsed = new URL(url)
+		} catch (err) {
+			return match;
+		}
 		let html;
 		if (show_media && is_img_url(parsed.pathname)) {
 			html = `
@@ -26,10 +31,8 @@ function format_content(ev, show_media) {
 			return "❤️"
 		return sanitize(ev.content.trim())
 	}
-
 	const content = ev.content.trim()
 	const body = convert_quote_blocks(content, show_media)
-
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
 		let cwHTML = "Content Warning"
@@ -38,15 +41,13 @@ function format_content(ev, show_media) {
 		} else {
 			cwHTML += `: "<span>${cw}</span>".`
 		}
-		const open = !!DAMUS.cw_open[ev.id]? "open" : ""
 		return `
-		<details ontoggle="toggle_content_warning(this)" class="cw" id="cw_${ev.id}" ${open}>
+		<details class="cw">
 		  <summary class="event-message">${cwHTML}</summary>
 		  ${body}
 		</details>
 		`
 	}
-
 	return body
 }
 
@@ -71,4 +72,22 @@ function convert_quote_blocks(content, show_media)
 		return str + "<br/>"
 	}, "")
 }
+
+/* format_profile_name takes in a profile and tries it's best to return a string
+ * that is best suited for the profile. It also assigns the sanitized_name to
+ * the profile.
+ */
+function fmt_profile_name(profile={}, fallback="Anonymous") {
+	if (profile.sanitized_name)
+		return profile.sanitized_name
+	const name = profile.display_name || profile.user || profile.name || 
+		fallback	
+	profile.sanitized_name = sanitize(name)
+	return profile.sanitized_name
+}
+
+function fmt_pubkey(pk) {
+	return pk.slice(-8)
+}
+
 

@@ -2,7 +2,7 @@
 // is done by simple string manipulations & templates. If you need to write
 // loops simply write it in code and return strings.
 
-function render_timeline_event(damus, view, ev)
+/*function render_timeline_event(damus, view, ev)
 {
 	const root_id = get_thread_root_id(damus, ev.id)
 	const max_depth = root_id ? get_thread_max_depth(damus, view, root_id) : get_default_max_depth(damus, view)
@@ -12,12 +12,7 @@ function render_timeline_event(damus, view, ev)
 
 	return render_event(damus, view, ev, {max_depth})
 }
-
-function render_events(damus, view) {
-	return view.events
-		.filter((ev, i) => i < 140)
-		.map((ev) => render_timeline_event(damus, view, ev)).join("\n")
-}
+*/
 
 function render_reply_line_top(has_top_line) {
 	const classes = has_top_line ? "" : "invisible"
@@ -78,12 +73,13 @@ function render_replying_to(model, ev) {
 	if (pubkeys.length === 0 && ev.refs.reply) {
 		const replying_to = model.all_events[ev.refs.reply]
 		if (!replying_to)
-			return `<div class="replying-to small-txt">reply to ${ev.refs.reply}</div>`
-
+			return `<div class="replying-to small-txt">reply to ${ev.refs.reply}</div>`;
 		pubkeys = [replying_to.pubkey]
 	}
 
-	const names = ev.refs.pubkeys.map(pk => render_mentioned_name(pk, model.profiles[pk])).join(", ")
+	const names = pubkeys.map((pk) => {
+		return render_mentioned_name(pk, model.profiles[pk]);
+	}).join(", ")
 
 	return `
 	<span class="replying-to small-txt">
@@ -97,7 +93,7 @@ function render_unknown_event(damus, ev) {
 }
 
 function render_share(damus, view, ev, opts) {
-	//todo validate content
+	// TODO validate content
 	const shared_ev = damus.all_events[ev.refs && ev.refs.root]
 	// share isn't resolved yet. that's ok, we can render this when we have
 	// the event
@@ -113,9 +109,9 @@ function render_share(damus, view, ev, opts) {
 
 function render_comment_body(damus, ev, opts) {
 	const can_delete = damus.pubkey === ev.pubkey;
-	const bar = !can_reply(ev) || opts.nobar? "" : render_action_bar(damus, ev, can_delete)
+	const bar = !event_can_reply(ev) || opts.nobar ? 
+		"" : render_action_bar(damus, ev, {can_delete});
 	const show_media = !opts.is_composing
-
 	return `
 	<div>
 	${render_replying_to(damus, ev)}
@@ -141,71 +137,57 @@ function render_shared_by(ev, opts) {
 	`
 }
 
-function render_deleted_comment_body(ev, deleted) {
-	if (deleted.content) {
-		return `
-		<div class="deleted-comment event-message">
-			This content was deleted with reason: 	
-			<div class="quote">${format_content(deleted, false)}</div>
-		</div>
-		`
-	}
-	return `
-	<div class="deleted-comment event-message">
-		This content was deleted.
-	</div>
-	`
-}
+function render_event(model, ev, opts={}) {
+	let { 
+		has_bot_line, 
+		has_top_line, 
+		reply_line_bot,
+	} = opts
 
-function render_event(damus, view, ev, opts={}) {
-	if (ev.kind === 6)
-		return render_share(damus, view, ev, opts)
-	if (shouldnt_render_event(damus.pubkey, view, ev, opts))
-		return ""
-
-	view.rendered.add(ev.id)
-
-	const profile = damus.profiles[ev.pubkey]
-	const delta = time_delta(new Date().getTime(), ev.created_at*1000)
-
-	const has_bot_line = opts.is_reply
-	const reply_line_bot = (has_bot_line && render_reply_line_bot()) || ""
-
-	const deleted = is_deleted(damus, ev.id)
-	if (deleted && !opts.is_reply)
-		return ""
-
-	const replied_events = render_replied_events(damus, view, ev, opts)
-
-	let name = ""
-	if (!deleted) {
-		name = render_name_plain(profile)
-	}
-
-	const has_top_line = replied_events !== ""
+	const thread_root = (ev.refs && ev.refs.root) || ev.id;
+	const profile = model.profiles[ev.pubkey];
+	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
 	const border_bottom = opts.is_composing || has_bot_line ? "" : "bottom-border";
-	return `
-	${replied_events}
-	<div id="ev${ev.id}" class="event ${border_bottom}">
+	let thread_btn = "";
+	if (!reply_line_bot) reply_line_bot = '';
+	return `<div id="ev${ev.id}" class="event ${border_bottom}">
 		<div class="userpic">
 			${render_reply_line_top(has_top_line)}
-			${deleted ? render_deleted_pfp() : render_pfp(ev.pubkey, profile)}
+			${render_pfp(ev.pubkey, profile)}
 			${reply_line_bot}
 		</div>	
 		<div class="event-content">
 			<div class="info">
 				${render_name(ev.pubkey, profile)}
-				<span class="timestamp">${delta}</span>
-				<button class="icon" title="View Thread" role="view-event" data-eid="${ev.id}" onclick="click_event(this)">
+				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
+				<button class="icon" title="View Thread" role="view-event" onclick="open_thread('${thread_root}')">
 					<img class="icon svg small" src="icon/open-thread.svg"/>
 				</button>
 			</div>
 			<div class="comment">
-				${deleted ? render_deleted_comment_body(ev, deleted) : render_comment_body(damus, ev, opts)}
+				${render_comment_body(model, ev, opts)}
 			</div>
 		</div>
-	</div>
-	`
+	</div>` 
+}
+
+function render_event_nointeract(model, ev, opts={}) {
+	const profile = model.profiles[ev.pubkey];
+	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
+	return `<div class="event border-bottom">
+		<div class="userpic">
+			${render_pfp(ev.pubkey, profile)}
+		</div>	
+		<div class="event-content">
+			<div class="info">
+				${render_name(ev.pubkey, profile)}
+				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
+			</div>
+			<div class="comment">
+				${render_comment_body(model, ev, opts)}
+			</div>
+		</div>
+	</div>`
 }
 
 function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
@@ -218,48 +200,55 @@ function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
 }
 
 function render_reaction_group(model, emoji, reactions, reacting_to) {
-	const pfps = Object.keys(reactions).map((pk) => render_reaction(model, reactions[pk]))
-
-	let onclick = render_react_onclick(model.pubkey, reacting_to.id, emoji, reactions)
-
+	let count = 0;
+	let str = "";
+	for (const k in reactions) {
+		count++;
+		if (count > 5) {
+			str = `${count}`;
+			break;
+		}
+		const pubkey = reactions[k].pubkey;
+		str += render_pfp(pubkey, model.profiles[pubkey], {noclick:true});
+	}
+	let onclick = render_react_onclick(model.pubkey, 
+		reacting_to.id, emoji, reactions);
 	return `
 	<span ${onclick} class="reaction-group clickable">
-	  <span class="reaction-emoji">
-	  ${emoji}
-	  </span>
-	  ${pfps.join("\n")}
-	</span>
-	`
+		<span class="reaction-emoji">
+		${emoji}
+		</span>
+		${str}
+	</span>`;
 }
 
-function render_reaction(model, reaction) {
-	const profile = model.profiles[reaction.pubkey]
-	let emoji = reaction.content[0]
-	if (reaction.content === "+" || reaction.content === "")
-		emoji = "❤️"
-
-	return render_pfp(reaction.pubkey, profile)
-}
-
-function render_action_bar(damus, ev, can_delete) {
+function render_action_bar(model, ev, opts={}) {
+	const { pubkey } = model;
+	let { can_delete } = opts;
 	let delete_html = ""
-	if (can_delete)
+	if (can_delete) {
 		delete_html = `
 	<button class="icon" title="Delete" onclick="delete_post_confirm('${ev.id}')">
 		<img class="icon svg small" src="icon/event-delete.svg"/>
 	</button>`
+	}
 
-	const groups = get_reactions(damus, ev.id)
-	const like = "❤️"
-	const likes = groups[like] || {}
-	const react_onclick = render_react_onclick(damus.pubkey, ev.id, like, likes)
+	// TODO rewrite all of the toggle heart code. It's mine & I hate it.
+	const reaction = model_get_reacts_to(model, pubkey, ev.id, R_HEART);
+	const liked = !!reaction;
+	const reaction_id = reaction ? reaction.id : "";
 	return `
 	<div class="action-bar">
 		<button class="icon" title="Reply" onclick="reply_to('${ev.id}')">
 			<img class="icon svg small" src="icon/event-reply.svg"/>
 		</button>
-		<button class="icon react heart" ${react_onclick} title="Like">
-			<img class="icon svg small" src="icon/event-like.svg"/>
+		<button class="icon react heart ${ab(liked, 'liked', '')}" 
+			onclick="click_toggle_like(this)"
+			data-reaction-id="${reaction_id}"
+			data-reacting-to="${ev.id}"
+			title="${ab(liked, 'Unlike', 'Like')}">
+			<img class="icon svg small ${ab(liked, 'dark-noinvert', '')}" 
+				src="${ab(liked, IMG_EVENT_LIKED, IMG_EVENT_LIKE)}"/>
 		</button>
 		<!--<button class="icon" title="Share" onclick=""><i class="fa fa-fw fa-link"></i></a>-->
 		${delete_html}	
@@ -268,41 +257,27 @@ function render_action_bar(damus, ev, can_delete) {
 	`
 }
 
-function render_reactions(model, ev) {
+function render_reactions_inner(model, ev) {
 	const groups = get_reactions(model, ev.id)
 	let str = ""
-
 	for (const emoji of Object.keys(groups)) {
 		str += render_reaction_group(model, emoji, groups[emoji], ev)
 	}
+	return str;
+}
 
+function render_reactions(model, ev) {
 	return `
 	<div class="reactions">
-	  ${str}
+	  ${render_reactions_inner(model, ev)}
 	</div>
 	`
 }
 
 // Utility Methods
 
-/* render_name_plain takes in a profile and tries it's best to return a string
- * that is best suited for the profile.
- */
-function render_name_plain(profile=DEFAULT_PROFILE) {
-	if (profile.sanitized_name)
-		return profile.sanitized_name
-
-	const display_name = profile.display_name || profile.user
-	const username = profile.name || "anon"
-	const name = display_name || username
-
-	profile.sanitized_name = sanitize(name)
-	return profile.sanitized_name
-}
-
-function render_pubkey(pk)
-{
-	return pk.slice(-8)
+function render_pubkey(pk) {
+	return fmt_pubkey(pk);
 }
 
 function render_username(pk, profile)
@@ -312,36 +287,33 @@ function render_username(pk, profile)
 
 function render_mentioned_name(pk, profile) {
 	return render_name(pk, profile, "@");
-	//return `<span class="username">@${render_username(pk, profile)}</span>`
 }
 
 function render_name(pk, profile, prefix="") {
 	return `
-	<span class="username clickable" onclick="show_profile('${pk}')" 
-		data-pk="${pk}">${prefix}${render_name_plain(profile)}
+	<span>
+	${prefix}
+	<span class="username clickable" data-pubkey="${pk}" 
+		onclick="open_profile('${pk}')">
+		${fmt_profile_name(profile, fmt_pubkey(pk))}
+	</span>
 	</span>`
 }
 
-function render_deleted_name() {
-	return ""
-}
-
-function render_pfp(pk, profile) {
-	const name = render_name_plain(profile)
-	return `<img class="pfp" title="${name}" 
+function render_pfp(pk, profile, opts={}) {
+	const name = fmt_profile_name(profile, fmt_pubkey(pk));
+	let str = `class="pfp clickable" onclick="open_profile('${pk}')"`;
+	if (opts.noclick)
+		str = "class='pfp'";
+	return `<img 
+	${str}
+	data-pubkey="${pk}" 
+	title="${name}" 
 	onerror="this.onerror=null;this.src='${robohash(pk)}';" 
-	src="${get_picture(pk, profile)}">`
+	src="${get_picture(pk, profile)}"/>`
 }
 
-function render_deleted_pfp() {
-	return `
-	<div class="pfp deleted">
-		<i class="fa-solid fa-fw fa-ghost"></i>
-	</div>`
-}
-
-function render_loading_spinner()
-{
+function render_loading_spinner() {
 	return `
 	<div class="loading-events">
 		<div class="loader" title="Loading...">

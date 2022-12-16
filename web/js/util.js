@@ -8,23 +8,29 @@ const REACTION_REGEX = /^[#*0-9]\uFE0F?\u20E3|[\xA9\xAE\u203C\u2049\u2122\u2139\
 function log_error(fmt, ...args) {
 	console.error(fmt, ...args)
 }
-
 function log_debug(fmt, ...args) {
 	console.debug(fmt, ...args)
 }
-
 function log_info(fmt, ...args) {
 	console.info(fmt, ...args)
+}
+function log_warn(fmt, ...args) {
+	console.warn(fmt, ...args)
 }
 
 function safe_parse_json(data, message) {
 	let value = undefined;
 	try {
 		value = JSON.parse(data);
-	} catch (e) {
+	} catch (err) {
 		log_error(`${message} : unable to parse JSON`, err, data);
 	}
 	return value;
+}
+
+function ab(condition, a, b) {
+	if (condition) return a;
+	return b;
 }
 
 function max(a, b) {
@@ -47,6 +53,25 @@ function shuffle(arr) {
 		[arr[randIndex], arr[i]] = [arr[i], arr[randIndex]];
 	}
 	return arr;
+}
+
+/* arr_bsearch_insert finds the point in the array that an item should be 
+ * inserted at based on the 'cmp' function used.
+ */
+function arr_bsearch_insert(arr, item, cmp) {
+	let start = 0;
+	let end = arr.length - 1;
+	while (start <= end) {
+		let middle = parseInt((start + end) / 2);
+		let x = cmp(item, arr[middle])
+		if (x > 0)
+			start = middle + 1;
+		else if (x < 0)
+			end = middle - 1;
+		else 
+			return middle;
+	}
+	return start;
 }
 
 function is_valid_time(now_sec, created_at) {
@@ -128,39 +153,14 @@ function difficulty_to_prefix(d) {
 	return s
 }
 
-function calculate_pow(ev) {
-	const id_bits = leading_zero_bits(ev.id)
-	for (const tag of ev.tags) {
-		if (tag.length >= 3 && tag[0] === "nonce") {
-			const target = +tag[2]
-			if (isNaN(target))
-				return 0
-
-			// if our nonce target is smaller than the difficulty,
-			// then we use the nonce target as the actual difficulty
-			return min(target, id_bits)
-		}
-	}
-
-	// not a valid pow if we don't have a difficulty target
-	return 0
-}
-
-/* can_reply returns a boolean value based on if you can "reply" to the event
- * in the manner of a chat.
- */
-function can_reply(ev) {
-	return ev.kind === 1 || ev.kind === 42
-}
-
-function should_add_to_timeline(ev) {
-	// TODO rename should_add_to_timeline to is_timeline_event
-	return ev.kind === 1 || ev.kind === 42 || ev.kind === 6
-}
-
 /* time_delta returns a string of the time of current since previous.
  */
 function time_delta(current, previous) {
+	log_warn("time_delta deprecated, use fmt_since_str");
+	fmt_since_str(current, previous);
+}
+
+function fmt_since_str(current, previous) {
     var msPerMinute = 60 * 1000;
     var msPerHour = msPerMinute * 60;
     var msPerDay = msPerHour * 24;
@@ -239,12 +239,6 @@ function get_picture(pk, profile) {
 	return profile.resolved_picture
 }
 
-function passes_spam_filter(contacts, ev, pow) {
-	if (contacts.friend_of_friends.has(ev.pubkey))
-		return true
-	return ev.pow >= pow
-}
-
 function debounce(f, interval) {
 	let timer = null;
 	let first = true;
@@ -255,5 +249,9 @@ function debounce(f, interval) {
 			first = false
 		});
 	};
+}
+
+function process_json_content(ev) {
+	ev.json_content = safe_parse_json(ev.content, "event json_content");
 }
 
