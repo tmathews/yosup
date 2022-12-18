@@ -51,7 +51,6 @@ function event_get_tag_refs(tags) {
 	let ids = []
 	let pubkeys = []
 	let root, reply
-	let i = 0
 	for (const tag of tags) {
 		if (tag.length >= 4 && tag[0] == "e") {
 			ids.push(tag[1])
@@ -65,7 +64,6 @@ function event_get_tag_refs(tags) {
 		} else if (tag.length >= 2 && tag[0] == "p") {
 			pubkeys.push(tag[1])
 		}
-		i++
 	}
 	if (!(root && reply) && ids.length > 0) {
 		if (ids.length === 1)
@@ -75,11 +73,6 @@ function event_get_tag_refs(tags) {
 		return {pubkeys}
 	}
 	return {root, reply, pubkeys}
-}
-
-function passes_spam_filter(contacts, ev, pow) {
-	log_warn("passes_spam_filter deprecated, use event_is_spam");
-	return !event_is_spam(ev, contacts, pow);
 }
 
 function event_is_spam(ev, contacts, pow) {
@@ -94,5 +87,36 @@ function event_cmp_created(a, b) {
 	if (a.created_at < b.created_at)
 		return -1;
 	return 0;
+}
+
+/* event_refs_event checks if event A references event B in its tags.
+ */
+function event_refs_event(a, b) {
+	for (const tag of a.tags) {
+		if (tag.length >= 2 && tag[0] === "e" && tag[1] == b.id)
+			return true;
+	}
+	return false;
+}
+
+function event_get_last_tags(ev) {
+	let o = {};
+	for (const tag of ev.tags) {
+		if (tag.length >= 2 && (tag[0] === "e" || tag[0] === "p"))
+			o[tag[0]] = tag[1];
+	}
+	return o;
+}
+
+/* event_get_reacted_to returns the reacted to event & pubkey (e, p). Returns 
+ * undefined if invalid or incomplete.
+ */
+function event_parse_reaction(ev) {
+	if (!is_valid_reaction_content(ev.content) || ev.kind != 7)
+		return;
+	const o = event_get_last_tags(ev);	
+	if (o["e"] && o["p"]) {
+		return o;
+	}
 }
 

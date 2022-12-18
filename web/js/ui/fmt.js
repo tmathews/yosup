@@ -31,10 +31,8 @@ function format_content(ev, show_media) {
 			return "❤️"
 		return sanitize(ev.content.trim())
 	}
-
 	const content = ev.content.trim()
 	const body = convert_quote_blocks(content, show_media)
-
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
 		let cwHTML = "Content Warning"
@@ -43,15 +41,13 @@ function format_content(ev, show_media) {
 		} else {
 			cwHTML += `: "<span>${cw}</span>".`
 		}
-		const open = !!DAMUS.cw_open[ev.id]? "open" : ""
 		return `
-		<details ontoggle="toggle_content_warning(this)" class="cw" id="cw_${ev.id}" ${open}>
+		<details class="cw">
 		  <summary class="event-message">${cwHTML}</summary>
 		  ${body}
 		</details>
 		`
 	}
-
 	return body
 }
 

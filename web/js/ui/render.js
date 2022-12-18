@@ -2,7 +2,7 @@
 // is done by simple string manipulations & templates. If you need to write
 // loops simply write it in code and return strings.
 
-function render_timeline_event(damus, view, ev)
+/*function render_timeline_event(damus, view, ev)
 {
 	const root_id = get_thread_root_id(damus, ev.id)
 	const max_depth = root_id ? get_thread_max_depth(damus, view, root_id) : get_default_max_depth(damus, view)
@@ -17,7 +17,7 @@ function render_events(damus, view) {
 	return view.events
 		.filter((ev, i) => i < 140)
 		.map((ev) => render_timeline_event(damus, view, ev)).join("\n")
-}
+}*/
 
 function render_reply_line_top(has_top_line) {
 	const classes = has_top_line ? "" : "invisible"
@@ -113,7 +113,7 @@ function render_share(damus, view, ev, opts) {
 
 function render_comment_body(damus, ev, opts) {
 	const can_delete = damus.pubkey === ev.pubkey;
-	const bar = !can_reply(ev) || opts.nobar? "" : render_action_bar(damus, ev, {can_delete})
+	const bar = !can_reply(ev) || opts.nobar ? "" : render_action_bar(damus, ev, {can_delete})
 	const show_media = !opts.is_composing
 
 	return `
@@ -157,7 +157,7 @@ function render_deleted_comment_body(ev, deleted) {
 	`
 }
 
-function render_event(damus, view, ev, opts={}) {
+/*function render_event(damus, view, ev, opts={}) {
 	if (ev.kind === 6)
 		return render_share(damus, view, ev, opts)
 	if (shouldnt_render_event(damus.pubkey, view, ev, opts))
@@ -189,40 +189,59 @@ function render_event(damus, view, ev, opts={}) {
 		has_bot_line,
 		reply_line_bot,
 	});
-}
+}*/
 
-function render_event2(model, ev, opts={}) {
+function render_event(model, ev, opts={}) {
 	let { 
-		deleted,
 		has_bot_line, 
 		has_top_line, 
 		reply_line_bot,
 	} = opts
 
-	const profile = model.profiles[ev.pubkey]
-	const delta = time_delta(new Date().getTime(), ev.created_at*1000)
-	const border_bottom = has_bot_line ? "" : "bottom-border";
-	const body = deleted ? render_deleted_comment_body(ev, deleted) : render_comment_body(model, ev, opts)
+	const thread_root = (ev.refs && ev.refs.root) || ev.id;
+	const profile = model.profiles[ev.pubkey];
+	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
+	const border_bottom = opts.is_composing || has_bot_line ? "" : "bottom-border";
+	let thread_btn = "";
 	if (!reply_line_bot) reply_line_bot = '';
 	return `<div id="ev${ev.id}" class="event ${border_bottom}">
 		<div class="userpic">
 			${render_reply_line_top(has_top_line)}
-			${deleted ? render_deleted_pfp() : render_pfp(ev.pubkey, profile)}
+			${render_pfp(ev.pubkey, profile)}
 			${reply_line_bot}
 		</div>	
 		<div class="event-content">
 			<div class="info">
 				${render_name(ev.pubkey, profile)}
-				<span class="timestamp">${delta}</span>
-				<button class="icon" title="View Thread" role="view-event" data-eid="${ev.id}" onclick="click_event(this)">
+				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
+				<button class="icon" title="View Thread" role="view-event" onclick="open_thread('${thread_root}')">
 					<img class="icon svg small" src="icon/open-thread.svg"/>
 				</button>
 			</div>
 			<div class="comment">
-				${body}
+				${render_comment_body(model, ev, opts)}
 			</div>
 		</div>
 	</div>` 
+}
+
+function render_event_nointeract(model, ev, opts={}) {
+	const profile = model.profiles[ev.pubkey];
+	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
+	return `<div class="event border-bottom">
+		<div class="userpic">
+			${render_pfp(ev.pubkey, profile)}
+		</div>	
+		<div class="event-content">
+			<div class="info">
+				${render_name(ev.pubkey, profile)}
+				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
+			</div>
+			<div class="comment">
+				${render_comment_body(model, ev, opts)}
+			</div>
+		</div>
+	</div>`
 }
 
 function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
@@ -337,7 +356,7 @@ function render_name(pk, profile, prefix="") {
 	<span>
 	${prefix}
 	<span class="username clickable" data-pubkey="${pk}" 
-		onclick="show_profile('${pk}')">
+		onclick="open_profile('${pk}')">
 		${render_name_plain(profile)}
 	</span>
 	</span>`
@@ -349,9 +368,13 @@ function render_deleted_name() {
 
 function render_pfp(pk, profile) {
 	const name = render_name_plain(profile)
-	return `<img class="pfp" data-pubkey="${pk}" title="${name}" 
+	return `<img 
+	class="pfp clickable" 
+	onclick="open_profile('${pk}')" 
+	data-pubkey="${pk}" 
+	title="${name}" 
 	onerror="this.onerror=null;this.src='${robohash(pk)}';" 
-	src="${get_picture(pk, profile)}">`
+	src="${get_picture(pk, profile)}"/>`
 }
 
 function render_deleted_pfp() {
@@ -361,8 +384,7 @@ function render_deleted_pfp() {
 	</div>`
 }
 
-function render_loading_spinner()
-{
+function render_loading_spinner() {
 	return `
 	<div class="loading-events">
 		<div class="loader" title="Loading...">

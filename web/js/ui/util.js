@@ -172,17 +172,16 @@ async function do_send_reply() {
 }
 
 function reply_to(evid) {
+	const ev = DAMUS.all_events[evid]
 	const modal = document.querySelector("#reply-modal")
 	const replybox = modal.querySelector("#reply-content")
-	modal.classList.remove("closed")
 	const replying_to = modal.querySelector("#replying-to")
-
 	replying_to.dataset.evid = evid
-
-	const ev = DAMUS.all_events[evid]
-	const view = get_current_view()
-	replying_to.innerHTML = render_event(DAMUS, view, ev, {is_composing: true, nobar: true, max_depth: 1})
-
+	replying_to.innerHTML = render_event_nointeract(DAMUS, ev, {
+		is_composing: true, 
+		nobar: true
+	});
+	modal.classList.remove("closed")
 	replybox.focus()
 }
 
@@ -190,7 +189,7 @@ function redraw_my_pfp(model, force = false) {
 	const p = model.profiles[model.pubkey]
 	if (!p) return;
 	const html = render_pfp(model.pubkey, p);
-	const el = document.querySelector(".my-userpic")
+	const el = document.querySelector(".my-userpic");
 	if (!force && el.dataset.loaded) return;
 	el.dataset.loaded = true;
 	el.innerHTML = html;
@@ -261,4 +260,35 @@ function get_privkey() {
 	return privkey
 }
 
+function open_thread(thread_id) {
+	view_timeline_apply_mode(DAMUS, VM_THREAD, { thread_id });
+}
 
+function open_profile(pubkey) {
+	view_timeline_apply_mode(DAMUS, VM_USER, { pubkey });
+
+	const profile = DAMUS.profiles[pubkey];
+	const el = find_node("[role='profile-info']");
+	// TODO show loading indicator then render
+	
+	find_node("[role='profile-image']", el).src = get_picture(pubkey, profile); 
+	find_nodes("[role='profile-name']", el).forEach(el => {
+		el.innerText = render_name_plain(profile);
+	});
+	
+	const el_nip5 = find_node("[role='profile-nip5']", el)
+	el_nip5.innerText = profile.nip05;
+	el_nip5.classList.toggle("hide", !profile.nip05);
+	
+	const el_desc = find_node("[role='profile-desc']", el)
+	el_desc.innerHTML = newlines_to_br(profile.about);
+	el_desc.classList.toggle("hide", !profile.about);
+	
+	find_node("button[role='copy-pk']", el).dataset.pk = pubkey;
+	
+	const btn_follow = find_node("button[role='follow-user']", el)
+	btn_follow.dataset.pk = pubkey;
+	// TODO check follow status
+	btn_follow.innerText = contact_is_friend(DAMUS.contacts, pubkey) ? "Unfollow" : "Follow";
+	btn_follow.classList.toggle("hide", pubkey == DAMUS.pubkey);
+}

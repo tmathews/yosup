@@ -3,8 +3,10 @@
  * and fetching of unknown pubkey profiles.
  */
 function model_process_event(model, ev) {
-	ev.refs = event_get_tag_refs(ev.tags)
-	ev.pow = event_calculate_pow(ev)
+	ev.refs = event_get_tag_refs(ev.tags);
+	ev.pow = event_calculate_pow(ev);
+	
+	// TODO this doesn't actually work because of async nature
 	ev.is_spam = !event_is_spam(ev, model.contacts, model.pow);
 
 	// Process specific event needs based on it's kind. Not using a map because
@@ -47,7 +49,15 @@ function model_process_event(model, ev) {
 	// If we find some unknown ids lets schedule their subscription for info
 	if (model_event_has_unknown_ids(model, ev))
 		schedule_unknown_refetch(model);
+
+	// Refresh timeline
+	model.invalidated.push(ev.id);
+	clearTimeout(inv_timer);
+	inv_timer = setTimeout(() => {
+		view_timeline_update(model);
+	}, 1000);
 }
+let inv_timer;
 
 //function process_chatroom_event(model, ev) {
 //	model.chatrooms[ev.id] = safe_parse_json(ev.content, 
@@ -63,22 +73,19 @@ function model_process_event_profile(model, ev) {
 		return
 	model.profile_events[ev.pubkey] = ev.id
 	model.profiles[ev.pubkey] = safe_parse_json(ev.content, "profile contents")
+	view_timeline_update_profiles(model, ev);
 }
 
 /* model_process_event_reaction updates the reactions dictionary
  */
 function model_process_event_reaction(model, ev) {
-	if (!is_valid_reaction_content(ev.content))
-		return
-	let last = {}
-	for (const tag of ev.tags) {
-		if (tag.length >= 2 && (tag[0] === "e" || tag[0] === "p"))
-			last[tag[0]] = tag[1]
-	}
-	if (last.e) {
-		model.reactions_to[last.e] = model.reactions_to[last.e] || new Set()
-		model.reactions_to[last.e].add(ev.id)
-	}
+	let reaction = event_parse_reaction(ev);
+	if (!reaction)
+		return;
+	if (!model.reactions_to[reaction.e])
+		model.reactions_to[reaction.e] = new Set();
+	model.reactions_to[reaction.e].add(ev.id);	
+	view_timeline_update_reaction(model, ev);
 }
 
 function model_process_event_contact(model, ev) {
@@ -244,20 +251,6 @@ function new_model() {
 		unknown_pks: {},
 		deletions: {},
 		but_wait_theres_more: 0,
-		cw_open: {},
-		views: {
-			home: new_timeline('home'),
-			explore: {
-				...new_timeline('explore'),
-				seen: new Set(),
-			},
-			notifications: {
-				...new_timeline('notifications'),
-				max_depth: 1,
-			},
-			profile: new_timeline('profile'),
-			thread: new_timeline('thread'),
-		},
 		pow: 0, // pow difficulty target
 		deleted: {},
 		profiles: {},
@@ -268,15 +261,6 @@ function new_model() {
 			friends: new Set(),
 			friend_of_friends: new Set(),
 		},
-	}
-}
-
-function new_timeline(name) {
-	return {
-		name,
-		events: [],
-		rendered: new Set(),
-		depths: {},
-		expanded: new Set(),
+		invalidated: [],
 	}
 }

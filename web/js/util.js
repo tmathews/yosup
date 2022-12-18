@@ -22,7 +22,7 @@ function safe_parse_json(data, message) {
 	let value = undefined;
 	try {
 		value = JSON.parse(data);
-	} catch (e) {
+	} catch (err) {
 		log_error(`${message} : unable to parse JSON`, err, data);
 	}
 	return value;
@@ -151,6 +151,11 @@ function difficulty_to_prefix(d) {
 /* time_delta returns a string of the time of current since previous.
  */
 function time_delta(current, previous) {
+	log_warn("time_delta deprecated, use fmt_since_str");
+	fmt_since_str(current, previous);
+}
+
+function fmt_since_str(current, previous) {
     var msPerMinute = 60 * 1000;
     var msPerHour = msPerMinute * 60;
     var msPerDay = msPerHour * 24;

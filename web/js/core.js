@@ -1,3 +1,8 @@
+const KIND_METADATA = 0;
+const KIND_NOTE     = 1;
+const KIND_SERVER   = 2;
+const KIND_REACTION = 7;
+
 function get_local_state(key) {
 	if (DAMUS[key] != null)
 		return DAMUS[key]
@@ -197,17 +202,13 @@ function gather_reply_tags(pubkey, from) {
 	return tags
 }
 
-function get_tag_event(tag)
-{
+function get_tag_event(tag) {
 	if (tag.length < 2)
 		return null
-
 	if (tag[0] === "e")
 		return DAMUS.all_events[tag[1]]
-
 	if (tag[0] === "p")
 		return DAMUS.all_events[DAMUS.profile_events[tag[1]]]
-
 	return null
 }
 
