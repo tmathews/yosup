@@ -4,6 +4,7 @@ const KIND_RELAY    = 2;
 const KIND_CONTACT  = 3;
 const KIND_DM       = 4;
 const KIND_DELETE   = 5;
+const KIND_SHARE    = 6;
 const KIND_REACTION = 7;
 const KIND_CHATROOM = 42;
 
@@ -16,6 +17,7 @@ const STANDARD_KINDS = [
 	KIND_NOTE,
 	KIND_DELETE,
 	KIND_REACTION,
+	KIND_SHARE,
 ];
 
 function get_local_state(key) {
@@ -60,7 +62,7 @@ function broadcast_event(ev) {
 	DAMUS.pool.send(["EVENT", ev])
 }
 
-/*async function update_profile() {
+async function update_profile() {
 	const kind = 0 
 	const created_at = new_creation_time()
 	const pubkey = await get_pubkey()
@@ -74,9 +76,9 @@ function broadcast_event(ev) {
 	let ev = { pubkey, content, created_at, kind }
 	ev.id = await nostrjs.calculate_id(ev)
 	ev = await sign_event(ev)
-	broadcast_event(ev)
+	model_get_my_relay(DAMUS, );
 	// TODO add error checking on updating profile
-}*/
+}
 
 async function sign_event(ev) {
 	if (window.nostr && window.nostr.signEvent) {

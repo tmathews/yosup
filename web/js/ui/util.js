@@ -103,7 +103,16 @@ function click_copy_pk(el) {
  * to the target public key of the element's dataset.pk field.
  */
 function click_toggle_follow_user(el) {
-	alert("sorry not implemented");
+	const { contacts } = DAMUS;
+	const pubkey = el.dataset.pk;
+	const is_friend = contacts.friends.has(pubkey);
+	if (is_friend) {
+		contacts.friends.delete(pubkey);
+	} else {
+		contacts.friends.add(pubkey);
+	}
+	el.innerText = is_friend ? "Follow" : "Unfollow";
+	contacts_save();
 }
 
 /* click_event opens the thread view from the element's specified element id
@@ -156,29 +165,22 @@ function press_logout() {
 
 function delete_post_confirm(evid) {
 	if (!confirm("Are you sure you want to delete this post?"))
-		return
-
+		return;
 	const reason = (prompt("Why you are deleting this? Leave empty to not specify. Type CANCEL to cancel.") || "").trim()
-
 	if (reason.toLowerCase() === "cancel")
-		return
-
+		return;
 	delete_post(evid, reason)
 }
 
 async function do_send_reply() {
-	const modal = document.querySelector("#reply-modal")
-	const replying_to = modal.querySelector("#replying-to")
-
-	const evid = replying_to.dataset.evid
-	const reply_content_el = document.querySelector("#reply-content")
-	const content = reply_content_el.value
-
-	await send_reply(content, evid)
-
-	reply_content_el.value = ""
-
-	close_reply()
+	const modal = document.querySelector("#reply-modal");
+	const replying_to = modal.querySelector("#replying-to");
+	const evid = replying_to.dataset.evid;
+	const reply_content_el = document.querySelector("#reply-content");
+	const content = reply_content_el.value;
+	await send_reply(content, evid);
+	reply_content_el.value = "";
+	close_reply();
 }
 
 function reply_to(evid) {
@@ -290,7 +292,7 @@ function open_profile(pubkey) {
 	el_nip5.classList.toggle("hide", !profile.nip05);
 	
 	const el_desc = find_node("[role='profile-desc']", el)
-	el_desc.innerHTML = newlines_to_br(profile.about);
+	el_desc.innerHTML = newlines_to_br(linkify(profile.about));
 	el_desc.classList.toggle("hide", !profile.about);
 	
 	find_node("button[role='copy-pk']", el).dataset.pk = pubkey;

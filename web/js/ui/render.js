@@ -35,19 +35,15 @@ function render_thread_collapsed(model, ev, opts)
 	</div>`
 }
 
-function render_replied_events(damus, view, ev, opts)
-{
+/*function render_replied_events(damus, view, ev, opts) {
 	if (!(ev.refs && ev.refs.reply))
-		return ""
-
+		return "";
 	const reply_ev = damus.all_events[ev.refs.reply]
 	if (!reply_ev)
-		return ""
-
+		return "";
 	opts.replies = opts.replies == null ? 1 : opts.replies + 1
 	if (!(opts.max_depth == null || opts.replies < opts.max_depth))
-		return render_thread_collapsed(damus, ev, opts)
-
+		return render_thread_collapsed(damus, ev, opts);
 	opts.is_reply = true
 	return render_event(damus, view, reply_ev, opts)
 }
@@ -60,15 +56,13 @@ function render_replying_to_chat(damus, ev) {
 	const to_users = pks.length === 0 ? "" : ` to ${names}`
 
 	return `<div class="replying-to">replying${to_users} in <span class="chatroom-name">${roomname}</span></div>`
-}
+}*/
 
 function render_replying_to(model, ev) {
 	if (!(ev.refs && ev.refs.reply))
-		return ""
-
-	if (ev.kind === 42)
-		return render_replying_to_chat(model, ev)
-
+		return "";
+	if (ev.kind === KIND_CHATROOM)
+		return render_replying_to_chat(model, ev);
 	let pubkeys = ev.refs.pubkeys || []
 	if (pubkeys.length === 0 && ev.refs.reply) {
 		const replying_to = model.all_events[ev.refs.reply]
@@ -76,11 +70,9 @@ function render_replying_to(model, ev) {
 			return `<div class="replying-to small-txt">reply to ${ev.refs.reply}</div>`;
 		pubkeys = [replying_to.pubkey]
 	}
-
 	const names = pubkeys.map((pk) => {
 		return render_mentioned_name(pk, model.profiles[pk]);
 	}).join(", ")
-
 	return `
 	<span class="replying-to small-txt">
 		replying to ${names}
@@ -88,53 +80,44 @@ function render_replying_to(model, ev) {
 	`
 }
 
-function render_unknown_event(damus, ev) {
-	return "Unknown event " + ev.kind
-}
-
 function render_share(damus, view, ev, opts) {
-	// TODO validate content
 	const shared_ev = damus.all_events[ev.refs && ev.refs.root]
-	// share isn't resolved yet. that's ok, we can render this when we have
-	// the event
-	if (!shared_ev)
-		return ""
-	
+	// If the shared event hasn't been resolved or leads to a circular event 
+	// kind we will skip out on it.
+	if (!shared_ev || shared_ev.kind == KIND_SHARE)
+		return "";
 	opts.shared = {
 		pubkey: ev.pubkey,
 		profile: damus.profiles[ev.pubkey]
 	}
-	return render_event(damus, view, shared_ev, opts)
+	return render_event(damus, shared_ev, opts)
 }
 
-function render_comment_body(damus, ev, opts) {
-	const can_delete = damus.pubkey === ev.pubkey;
+function render_comment_body(model, ev, opts) {
+	const can_delete = model.pubkey === ev.pubkey;
 	const bar = !event_can_reply(ev) || opts.nobar ? 
-		"" : render_action_bar(damus, ev, {can_delete});
-	const show_media = !opts.is_composing
+		"" : render_action_bar(model, ev, {can_delete});
+	// Only show media for content that is by friends.
+	const show_media = !opts.is_composing &&  
+		model.contacts.friends.has(ev.pubkey); 
 	return `
 	<div>
-	${render_replying_to(damus, ev)}
+	${render_replying_to(model, ev)}
 	${render_shared_by(ev, opts)}
 	</div>
 	<p>
 	${format_content(ev, show_media)}
 	</p>
-	${render_reactions(damus, ev)}
-	${bar}
-	`
+	${render_reactions(model, ev)}
+	${bar}`
 }
 
 function render_shared_by(ev, opts) {
-	const b = opts.shared
-	if (!b) {
-		return ""
-	}
-	return `
-	<div class="shared-by">
-		Shared by ${render_name(b.pubkey, b.profile)}
-	</div>
-	`
+	if (!opts.shared)
+		return "";
+	const { profile, pubkey } = opts.shared
+	return `<div class="shared-by">Shared by ${render_name(pubkey, profile)}
+		</div>`
 }
 
 function render_event(model, ev, opts={}) {
@@ -143,6 +126,10 @@ function render_event(model, ev, opts={}) {
 		has_top_line, 
 		reply_line_bot,
 	} = opts
+
+	if (ev.kind == KIND_SHARE) {
+		return render_share(model, ev, opts);
+	}
 
 	const thread_root = (ev.refs && ev.refs.root) || ev.id;
 	const profile = model.profiles[ev.pubkey];
@@ -267,11 +254,7 @@ function render_reactions_inner(model, ev) {
 }
 
 function render_reactions(model, ev) {
-	return `
-	<div class="reactions">
-	  ${render_reactions_inner(model, ev)}
-	</div>
-	`
+	return `<div class="reactions">${render_reactions_inner(model, ev)}</div>`
 }
 
 // Utility Methods
@@ -286,18 +269,14 @@ function render_username(pk, profile)
 }
 
 function render_mentioned_name(pk, profile) {
-	return render_name(pk, profile, "@");
+	return render_name(pk, profile, "");
 }
 
 function render_name(pk, profile, prefix="") {
-	return `
-	<span>
-	${prefix}
-	<span class="username clickable" data-pubkey="${pk}" 
-		onclick="open_profile('${pk}')">
-		${fmt_profile_name(profile, fmt_pubkey(pk))}
-	</span>
-	</span>`
+	// Beware of whitespace.
+	return `<span>${prefix}<span class="username clickable" data-pubkey="${pk}" 
+		onclick="open_profile('${pk}')"
+		>${fmt_profile_name(profile, fmt_pubkey(pk))}</span></span>`
 }
 
 function render_pfp(pk, profile, opts={}) {

@@ -58,8 +58,7 @@ function model_process_event_profile(model, ev) {
 }
 
 function model_process_event_contact(model, ev) {
-	add_contact_if_friend(model.contacts, ev)
-	load_our_contacts(model.contacts, model.pubkey, ev)
+	contacts_process_event(model.contacts, model.pubkey, ev)
 	load_our_relays(model.pubkey, model.pool, ev)
 }
 
@@ -230,26 +229,26 @@ function model_events_arr(model) {
 
 function new_model() {
 	return {
+		all_events: {},
 		done_init: {},
 		notifications: 0,
 		max_depth: 2,
-		all_events: {},
 		reactions_to: {},
 		chatrooms: {},
 		unknown_ids: {},
 		unknown_pks: {},
 		deletions: {},
-		but_wait_theres_more: 0,
-		pow: 0, // pow difficulty target
 		deleted: {},
-		profiles: {},
-		profile_events: {},
+		but_wait_theres_more: 0,
 		last_event_of_kind: {},
+		pow: 0, // pow difficulty target
+		profiles: {}, // pubkey => profile data
+		profile_events: {}, // pubkey => event id - use with all_events
 		contacts: {
 			event: null,
 			friends: new Set(),
 			friend_of_friends: new Set(),
 		},
-		invalidated: [],
+		invalidated: [], // event ids which should be added/removed
 	};
 }

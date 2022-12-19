@@ -75,6 +75,7 @@ function view_timeline_update(model) {
 	// Dumb function to insert needed events
 	let visible_count = 0;
 	const all = model_events_arr(model);
+	const left_overs = [];
 	while (model.invalidated.length > 0) {
 		var evid = model.invalidated.pop();
 		var ev = model.all_events[evid];
@@ -84,13 +85,19 @@ function view_timeline_update(model) {
 			continue;
 		}
 
-		// if event is in el already, do nothing or update?
+		// If event is in el already, do nothing or update?
 		let ev_el = find_node("#ev"+evid, el);
 		if (ev_el) {
 			continue;
 		} else {
-			let div = document.createElement("div");
-			div.innerHTML = render_event(model, ev, {});
+			const html = render_event(model, ev, {});
+			// Put it back on the stack to re-render if it's not ready.
+			if (html == "") {
+				left_overs.push(evid);
+				continue;
+			}
+			const div = document.createElement("div");
+			div.innerHTML = html;
 			ev_el = div.firstChild;
 			if (!view_mode_contains_event(model, ev, mode, opts)) {
 				ev_el.classList.add("hide");
@@ -112,6 +119,7 @@ function view_timeline_update(model) {
 			el.insertBefore(ev_el, prior_el);
 		}
 	}
+	model.invalidated = model.invalidated.concat(left_overs);
 	
 	if (visible_count > 0)
 		find_node("#view .loading-events").classList.add("hide");
@@ -206,7 +214,7 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 }
 
 function event_is_renderable(ev={}) {
-	return ev.kind == KIND_NOTE;
+	return ev.kind == KIND_NOTE || ev.kind == KIND_SHARE;
 	return ev.kind == KIND_NOTE || 
 		ev.kind == KIND_REACTION || 
 		ev.kind == KIND_DELETE;

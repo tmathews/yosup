@@ -6,7 +6,7 @@ function filters_subscribe(filters, pool, relays=undefined) {
 
 function filters_new_default(model) {
 	const { pubkey, ids, contacts } = model;
-	const friends = contacts_friend_list(contacts);	
+	const friends = Array.from(contacts);	
 	friends.push(pubkey);
 	const f = {};
 	f[ids.home] = filters_new_friends(friends);

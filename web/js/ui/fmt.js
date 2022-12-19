@@ -1,4 +1,4 @@
-function linkify(text, show_media) {
+function linkify(text="", show_media=false) {
 	return text.replace(URL_REGEX, function(match, p1, p2, p3) {
 		const url = p2+p3;
 		let parsed;

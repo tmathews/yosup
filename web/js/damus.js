@@ -2,11 +2,12 @@ let DAMUS
 
 const BOOTSTRAP_RELAYS = [
 	"wss://nostr.rdfriedl.com",
-	//"wss://relay.damus.io",
+	"wss://relay.damus.io",
 	"wss://nostr-relay.wlvs.space",
 	"wss://nostr-pub.wellorder.net"
 ]
 
+// TODO autogenerate these constants with a bash script
 const IMG_EVENT_LIKED = "icon/event-liked.svg";
 const IMG_EVENT_LIKE  = "icon/event-like.svg";
 
@@ -15,8 +16,8 @@ async function damus_web_init() {
 	let tries = 0;
 	function init() {
 		// only wait for 500ms max
-		const max_wait = 500
-		const interval = 20
+		const max_wait = 500;
+		const interval = 20;
 		if (window.nostr || tries >= (max_wait/interval)) {
 			console.info("init after", tries);
 			damus_web_init_ready();
@@ -131,24 +132,27 @@ function on_pool_event(relay, sub_id, ev) {
 	const model = DAMUS;
 	const { ids, pool } = model;
 
+	if (new Date(ev.created_at * 1000) > new Date()) {
+		// Simply ignore any events that happened in the future.
+		return;	
+	}
+
 	// Process event and apply side effects
 	if (!model.all_events[ev.id]) {
 		model.all_events[ev.id] = ev;
 		model_process_event(model, ev);
-		// schedule_save_events(model);
 	}
 }
 
 function on_eose_profiles(ids, model, relay) {
 	const prefix = difficulty_to_prefix(model.pow);
 	const fofs = Array.from(model.contacts.friend_of_friends);
-	const standard_kinds = [1,42,5,6,7];
-	let pow_filter = {kinds: standard_kinds, limit: 50};
+	let pow_filter = {kinds: STANDARD_KINDS, limit: 50};
 	if (model.pow > 0)
 		pow_filter.ids = [ prefix ];
 	let explore_filters = [ pow_filter ];
 	if (fofs.length > 0)
-		explore_filters.push({kinds: standard_kinds, authors: fofs, limit: 50});
+		explore_filters.push({kinds: STANDARD_KINDS, authors: fofs, limit: 50});
 	model.pool.subscribe(ids.explore, explore_filters, relay);
 }
 
@@ -163,9 +167,12 @@ function on_eose_comments(ids, model, events, relay) {
 		}
 		return s;
 	}, new Set());
-	const authors = Array.from(pubkeys)
 	// load profiles and noticed chatrooms
-	const profile_filter = {kinds: [0,3], authors: authors};
+	const authors = Array.from(pubkeys)
+	const profile_filter = {
+		kinds: [KIND_METADATA, KIND_CONTACT], 
+		authors: authors
+	};
 	let filters = [];
 	if (authors.length > 0)
 		filters.push(profile_filter);
