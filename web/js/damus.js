@@ -35,6 +35,7 @@ async function damus_web_init_ready() {
 	model.pubkey = await get_pubkey()
 	if (!model.pubkey)
 		return
+
 	const {RelayPool} = nostrjs
 	const pool = RelayPool(BOOTSTRAP_RELAYS)
 	const ids = {
@@ -48,6 +49,12 @@ async function damus_web_init_ready() {
 		notifications: "notifications",
 		unknowns:      "unknowns",
 		dms:           "dms",
+	}
+
+	let err;
+	err = await contacts_load(model);
+	if (err) {
+		window.alert("Unable to load contacts.");
 	}
 
 	model.ids = ids

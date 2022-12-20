@@ -23,6 +23,69 @@ function contacts_push_relay(contacts, relay) {
 
 /* contacts_save commits the contacts data to storage.
  */
-function contacts_save(contacts) {
-	log_warn("contacts_save not implemented");
+async function contacts_save(contacts) {
+	function _contacts_save(ev, resolve, reject) {
+		const db = ev.target.result;
+		let tx = db.transaction("friends", "readwrite");
+		let store = tx.objectStore("friends");
+		contacts.friends.forEach((pubkey) => {
+			//log_debug("storing", pubkey);
+			store.put({pubkey});
+		});
+		tx.oncomplete = (ev) => {
+			db.close();
+			resolve();
+			log_debug("contacts saved successfully", contacts.friends.size);
+		}
+		tx.onerror = (ev) => {
+			db.close();
+			log_error(`tx errorCode: ${ev.request.errorCode}`);
+			window.alert("An error occured saving contacts. Check console.");
+			reject(ev);
+		};
+	};
+	return dbcall(_contacts_save);
+}
+
+async function contacts_load(model) {
+	function _contacts_load(ev, resolve, reject) {
+		const db = ev.target.result;
+		const tx = db.transaction("friends", "readonly");
+		const store = tx.objectStore("friends");
+		const cursor = store.openCursor();
+		cursor.onsuccess = (ev)=> {
+			var cursor = ev.target.result;
+			if (cursor) {
+				//log_debug("cursor val", cursor.value);
+				model.contacts.friends.add(cursor.value.pubkey);
+				cursor.continue();
+			} else {
+				db.close();
+				resolve();
+				log_debug("contacts loaded successfully");
+			}
+		}
+		cursor.onerror = (ev) => {
+			db.close();
+			reject(ev);
+			log_error("Could not load contacts.");
+		}
+	}
+	return dbcall(_contacts_load);
+}
+
+async function dbcall(fn) {
+	return new Promise((resolve, reject) => {
+		var open = indexedDB.open("damus", 2);
+		open.onupgradeneeded = (ev) => {
+			const db = ev.target.result;
+			const os = db.createObjectStore("friends", {keyPath: "pubkey"});
+		};
+		open.onsuccess = (ev) => {
+			fn(ev, resolve, reject); 
+		}
+		open.onerror = (ev) => {
+			reject(err);	
+		};
+	});
 }

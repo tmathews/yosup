@@ -112,7 +112,7 @@ function click_toggle_follow_user(el) {
 		contacts.friends.add(pubkey);
 	}
 	el.innerText = is_friend ? "Follow" : "Unfollow";
-	contacts_save();
+	contacts_save(contacts);
 }
 
 /* click_event opens the thread view from the element's specified element id
