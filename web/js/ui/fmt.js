@@ -10,14 +10,13 @@ function linkify(text="", show_media=false) {
 		let markup;
 		if (show_media && is_img_url(parsed.pathname)) {
 			markup = html`
-			<img class="inline-img clickable" src="${url}" onclick="open_media_preview('${url}', 'image')"/>
-			`;
+			<img class="inline-img clickable" src="${url}" 
+			onclick="open_media_preview('${url}', 'image')"/>`;
 		} else if (show_media && is_video_url(parsed.pathname)) {
 			markup = html`
 			<video controls class="inline-img" />
 			  <source src="${url}">
-			</video>
-			`;
+			</video>`;
 		} else {
 			markup = html`<a target="_blank" rel="noopener noreferrer" href="${url}">${url}</a>`;
 		}
@@ -32,7 +31,7 @@ function format_content(ev, show_media) {
 		return html`${ev.content.trim()}`;
 	}
 	const content = ev.content.trim();
-	const body = convert_quote_blocks(content, show_media)
+	const body = fmt_body(content, show_media);
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
 		let cwHTML = "Content Warning"
@@ -41,18 +40,18 @@ function format_content(ev, show_media) {
 		} else {
 			cwHTML += html`: "<span>${cw}</span>".`
 		}
-		return html`
+		return `
 		<details class="cw">
 		  <summary class="event-message">${cwHTML}</summary>
 		  ${body}
-		</details>
-		`
+		</details>`;
 	}
-	return body
+	return body;
 }
 
-function convert_quote_blocks(content, show_media)
-{
+/* fmt_body will parse images, blockquotes, and sanitize the content.
+ */
+function fmt_body(content, show_media) {
 	const split = content.split("\n")
 	let blockin = false
 	return split.reduce((str, line) => {
@@ -61,13 +60,13 @@ function convert_quote_blocks(content, show_media)
 				str += "<span class='quote'>"
 				blockin = true
 			}
-			str += linkify(line.slice(1), show_media)
+			str += linkify(html`${line.slice(1)}`, show_media)
 		} else {
 			if (blockin) {
 				blockin = false
 				str += "</span>"
 			}
-			str += linkify(line, show_media)
+			str += linkify(html`${line}`, show_media)
 		}
 		return str + "<br/>"
 	}, "")
