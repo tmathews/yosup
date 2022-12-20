@@ -132,7 +132,7 @@ async function on_pool_eose(relay, sub_id) {
 }
 
 function on_pool_ok(relay) {
-	console.log(`OK(${relay.url})`, arguments);
+	log_info(`OK(${relay.url})`, arguments);
 }
 
 function on_pool_event(relay, sub_id, ev) {
