@@ -95,7 +95,7 @@ function on_timer_invalidations() {
  * relative REQ as needed.
  */
 function on_pool_open(relay) {
-	log_info("opened relay", relay);
+	log_info(`OPEN(${relay.url})`);
 	const model = DAMUS;
 	relay.subscribe(model.ids.account, filter_new_initial(model.pk));
 }
@@ -132,7 +132,7 @@ async function on_pool_eose(relay, sub_id) {
 }
 
 function on_pool_ok(relay) {
-	console.log("OK", arguments);
+	console.log(`OK(${relay.url})`, arguments);
 }
 
 function on_pool_event(relay, sub_id, ev) {
