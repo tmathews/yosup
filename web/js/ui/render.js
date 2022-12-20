@@ -73,7 +73,7 @@ function render_replying_to(model, ev) {
 	const names = pubkeys.map((pk) => {
 		return render_mentioned_name(pk, model.profiles[pk]);
 	}).join(", ")
-	return html`
+	return `
 	<span class="replying-to small-txt">
 		replying to ${names}
 	</span>
@@ -100,23 +100,23 @@ function render_comment_body(model, ev, opts) {
 	// Only show media for content that is by friends.
 	const show_media = !opts.is_composing &&  
 		model.contacts.friends.has(ev.pubkey); 
-	return html`
+	return `
 	<div>
-	$${render_replying_to(model, ev)}
-	$${render_shared_by(ev, opts)}
+	${render_replying_to(model, ev)}
+	${render_shared_by(ev, opts)}
 	</div>
 	<p>
-	$${format_content(ev, show_media)}
+	${format_content(ev, show_media)}
 	</p>
-	$${render_reactions(model, ev)}
-	$${bar}`
+	${render_reactions(model, ev)}
+	${bar}`
 }
 
 function render_shared_by(ev, opts) {
 	if (!opts.shared)
 		return "";
 	const { profile, pubkey } = opts.shared
-	return html`<div class="shared-by">Shared by $${render_name(pubkey, profile)}
+	return `<div class="shared-by">Shared by ${render_name(pubkey, profile)}
 		</div>`
 }
 
@@ -254,7 +254,7 @@ function render_reactions_inner(model, ev) {
 }
 
 function render_reactions(model, ev) {
-	return html`<div class="reactions">${render_reactions_inner(model, ev)}</div>`
+	return html`<div class="reactions">$${render_reactions_inner(model, ev)}</div>`
 }
 
 // Utility Methods
@@ -281,11 +281,11 @@ function render_name(pk, profile, prefix="") {
 
 function render_pfp(pk, profile, opts={}) {
 	const name = fmt_profile_name(profile, fmt_pubkey(pk));
-	let str = `class="pfp clickable" onclick="open_profile('${pk}')"`;
+	let str = html`class="pfp clickable" onclick="open_profile('${pk}')"`;
 	if (opts.noclick)
 		str = "class='pfp'";
 	return html`<img 
-	${str}
+	$${str}
 	data-pubkey="${pk}" 
 	title="${name}" 
 	onerror="this.onerror=null;this.src='${robohash(pk)}';" 

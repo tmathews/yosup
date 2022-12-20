@@ -31,7 +31,7 @@ function format_content(ev, show_media) {
 			return "❤️"
 		return sanitize(ev.content.trim());
 	}
-	const content = sanitize(ev.content.trim());
+	const content = ev.content.trim();
 	const body = convert_quote_blocks(content, show_media)
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
@@ -39,9 +39,9 @@ function format_content(ev, show_media) {
 		if (cw === "") {
 			cwHTML += "."
 		} else {
-			cwHTML += `: "<span>${cw}</span>".`
+			cwHTML += html`: "<span>${cw}</span>".`
 		}
-		return `
+		return html`
 		<details class="cw">
 		  <summary class="event-message">${cwHTML}</summary>
 		  ${body}
@@ -78,16 +78,12 @@ function convert_quote_blocks(content, show_media)
  * the profile.
  */
 function fmt_profile_name(profile={}, fallback="Anonymous") {
-	if (profile.sanitized_name)
-		return profile.sanitized_name
 	const name = profile.display_name || profile.user || profile.name || 
 		fallback	
-	profile.sanitized_name = sanitize(name)
-	return profile.sanitized_name
+	return html`${name}`;
 }
 
 function fmt_pubkey(pk) {
 	return pk.slice(-8)
 }
-
 

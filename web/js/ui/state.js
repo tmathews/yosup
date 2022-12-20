@@ -109,14 +109,16 @@ function view_timeline_update(model) {
 		// find prior event element and insert it before that
 		let prior_el;
 		let prior_idx = arr_bsearch_insert(all, ev, event_cmp_created);
-		while (prior_idx > 0 && !prior_el) {
+		while (prior_idx >= 0 && !prior_el) {
 			prior_el = find_node("#ev"+all[prior_idx].id, el);
 			prior_idx--;
 		}
-		if (!prior_el) {
+		if (prior_el) {
+			el.insertBefore(ev_el, prior_el);
+		} else if (el.childElementCount == 0) {
 			el.appendChild(ev_el);
 		} else {
-			el.insertBefore(ev_el, prior_el);
+			left_overs.push(evid);
 		}
 	}
 	model.invalidated = model.invalidated.concat(left_overs);
