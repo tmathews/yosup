@@ -29,9 +29,9 @@ function format_content(ev, show_media) {
 	if (ev.kind === 7) {
 		if (ev.content === "" || ev.content === "+")
 			return "❤️"
-		return sanitize(ev.content.trim())
+		return sanitize(ev.content.trim());
 	}
-	const content = ev.content.trim()
+	const content = sanitize(ev.content.trim());
 	const body = convert_quote_blocks(content, show_media)
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {

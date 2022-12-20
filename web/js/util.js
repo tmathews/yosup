@@ -188,10 +188,10 @@ function fmt_since_str(current, previous) {
     }
 }
 
-function sanitize(content) {
-	if (!content)
+function sanitize(str) {
+	if (!str)
 		return ""
-	return content.replaceAll("<","&lt;").replaceAll(">","&gt;")
+	return str.replaceAll("<","&lt;").replaceAll(">","&gt;")
 }
 
 function robohash(str) {
