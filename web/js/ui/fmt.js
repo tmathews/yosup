@@ -29,7 +29,7 @@ function format_content(ev, show_media) {
 	if (ev.kind === 7) {
 		if (ev.content === "" || ev.content === "+")
 			return "❤️"
-		return sanitize(ev.content.trim());
+		return html`${ev.content.trim()}`;
 	}
 	const content = ev.content.trim();
 	const body = convert_quote_blocks(content, show_media)
@@ -61,21 +61,20 @@ function convert_quote_blocks(content, show_media)
 				str += "<span class='quote'>"
 				blockin = true
 			}
-			str += linkify(sanitize(line.slice(1)), show_media)
+			str += linkify(line.slice(1), show_media)
 		} else {
 			if (blockin) {
 				blockin = false
 				str += "</span>"
 			}
-			str += linkify(sanitize(line), show_media)
+			str += linkify(line, show_media)
 		}
 		return str + "<br/>"
 	}, "")
 }
 
 /* format_profile_name takes in a profile and tries it's best to return a string
- * that is best suited for the profile. It also assigns the sanitized_name to
- * the profile.
+ * that is best suited for the profile. 
  */
 function fmt_profile_name(profile={}, fallback="Anonymous") {
 	const name = profile.display_name || profile.user || profile.name || 

@@ -188,12 +188,6 @@ function fmt_since_str(current, previous) {
     }
 }
 
-function sanitize(str) {
-	if (!str)
-		return ""
-	return str.replaceAll("<","&lt;").replaceAll(">","&gt;")
-}
-
 function robohash(str) {
 	return "https://robohash.org/" + str
 }
@@ -235,7 +229,7 @@ function get_picture(pk, profile) {
 		return robohash(pk)
 	if (profile.resolved_picture)
 		return profile.resolved_picture
-	profile.resolved_picture = sanitize(profile.picture) || robohash(pk)
+	profile.resolved_picture = html`${profile.picture}` || robohash(pk)
 	return profile.resolved_picture
 }
 
