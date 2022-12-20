@@ -67,13 +67,13 @@ function render_replying_to(model, ev) {
 	if (pubkeys.length === 0 && ev.refs.reply) {
 		const replying_to = model.all_events[ev.refs.reply]
 		if (!replying_to)
-			return `<div class="replying-to small-txt">reply to ${ev.refs.reply}</div>`;
+			return html`<div class="replying-to small-txt">reply to ${ev.refs.reply}</div>`;
 		pubkeys = [replying_to.pubkey]
 	}
 	const names = pubkeys.map((pk) => {
 		return render_mentioned_name(pk, model.profiles[pk]);
 	}).join(", ")
-	return `
+	return html`
 	<span class="replying-to small-txt">
 		replying to ${names}
 	</span>
@@ -100,23 +100,23 @@ function render_comment_body(model, ev, opts) {
 	// Only show media for content that is by friends.
 	const show_media = !opts.is_composing &&  
 		model.contacts.friends.has(ev.pubkey); 
-	return `
+	return html`
 	<div>
-	${render_replying_to(model, ev)}
-	${render_shared_by(ev, opts)}
+	$${render_replying_to(model, ev)}
+	$${render_shared_by(ev, opts)}
 	</div>
 	<p>
-	${format_content(ev, show_media)}
+	$${format_content(ev, show_media)}
 	</p>
-	${render_reactions(model, ev)}
-	${bar}`
+	$${render_reactions(model, ev)}
+	$${bar}`
 }
 
 function render_shared_by(ev, opts) {
 	if (!opts.shared)
 		return "";
 	const { profile, pubkey } = opts.shared
-	return `<div class="shared-by">Shared by ${render_name(pubkey, profile)}
+	return html`<div class="shared-by">Shared by $${render_name(pubkey, profile)}
 		</div>`
 }
 
@@ -137,22 +137,22 @@ function render_event(model, ev, opts={}) {
 	const border_bottom = opts.is_composing || has_bot_line ? "" : "bottom-border";
 	let thread_btn = "";
 	if (!reply_line_bot) reply_line_bot = '';
-	return `<div id="ev${ev.id}" class="event ${border_bottom}">
+	return html`<div id="ev${ev.id}" class="event ${border_bottom}">
 		<div class="userpic">
-			${render_reply_line_top(has_top_line)}
-			${render_pfp(ev.pubkey, profile)}
-			${reply_line_bot}
+			$${render_reply_line_top(has_top_line)}
+			$${render_pfp(ev.pubkey, profile)}
+			$${reply_line_bot}
 		</div>	
 		<div class="event-content">
 			<div class="info">
-				${render_name(ev.pubkey, profile)}
+				$${render_name(ev.pubkey, profile)}
 				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
 				<button class="icon" title="View Thread" role="view-event" onclick="open_thread('${thread_root}')">
 					<img class="icon svg small" src="icon/open-thread.svg"/>
 				</button>
 			</div>
 			<div class="comment">
-				${render_comment_body(model, ev, opts)}
+				$${render_comment_body(model, ev, opts)}
 			</div>
 		</div>
 	</div>` 
@@ -161,17 +161,17 @@ function render_event(model, ev, opts={}) {
 function render_event_nointeract(model, ev, opts={}) {
 	const profile = model.profiles[ev.pubkey];
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
-	return `<div class="event border-bottom">
+	return html`<div class="event border-bottom">
 		<div class="userpic">
-			${render_pfp(ev.pubkey, profile)}
+			$${render_pfp(ev.pubkey, profile)}
 		</div>	
 		<div class="event-content">
 			<div class="info">
-				${render_name(ev.pubkey, profile)}
+				$${render_name(ev.pubkey, profile)}
 				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
 			</div>
 			<div class="comment">
-				${render_comment_body(model, ev, opts)}
+				$${render_comment_body(model, ev, opts)}
 			</div>
 		</div>
 	</div>`
@@ -180,9 +180,9 @@ function render_event_nointeract(model, ev, opts={}) {
 function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
 	const reaction = reactions[our_pubkey]
 	if (!reaction) {
-		return `onclick="send_reply('${emoji}', '${reacting_to}')"`
+		return html`onclick="send_reply('${emoji}', '${reacting_to}')"`
 	} else {
-		return `onclick="delete_post('${reaction.id}')"`
+		return html`onclick="delete_post('${reaction.id}')"`
 	}
 }
 
@@ -200,12 +200,12 @@ function render_reaction_group(model, emoji, reactions, reacting_to) {
 	}
 	let onclick = render_react_onclick(model.pubkey, 
 		reacting_to.id, emoji, reactions);
-	return `
-	<span ${onclick} class="reaction-group clickable">
+	return html`
+	<span $${onclick} class="reaction-group clickable">
 		<span class="reaction-emoji">
 		${emoji}
 		</span>
-		${str}
+		$${str}
 	</span>`;
 }
 
@@ -214,7 +214,7 @@ function render_action_bar(model, ev, opts={}) {
 	let { can_delete } = opts;
 	let delete_html = ""
 	if (can_delete) {
-		delete_html = `
+		delete_html = html`
 	<button class="icon" title="Delete" onclick="delete_post_confirm('${ev.id}')">
 		<img class="icon svg small" src="icon/event-delete.svg"/>
 	</button>`
@@ -224,7 +224,7 @@ function render_action_bar(model, ev, opts={}) {
 	const reaction = model_get_reacts_to(model, pubkey, ev.id, R_HEART);
 	const liked = !!reaction;
 	const reaction_id = reaction ? reaction.id : "";
-	return `
+	return html`
 	<div class="action-bar">
 		<button class="icon" title="Reply" onclick="reply_to('${ev.id}')">
 			<img class="icon svg small" src="icon/event-reply.svg"/>
@@ -233,12 +233,12 @@ function render_action_bar(model, ev, opts={}) {
 			onclick="click_toggle_like(this)"
 			data-reaction-id="${reaction_id}"
 			data-reacting-to="${ev.id}"
-			title="${ab(liked, 'Unlike', 'Like')}">
+			title="$${ab(liked, 'Unlike', 'Like')}">
 			<img class="icon svg small ${ab(liked, 'dark-noinvert', '')}" 
-				src="${ab(liked, IMG_EVENT_LIKED, IMG_EVENT_LIKE)}"/>
+				src="$${ab(liked, IMG_EVENT_LIKED, IMG_EVENT_LIKE)}"/>
 		</button>
 		<!--<button class="icon" title="Share" onclick=""><i class="fa fa-fw fa-link"></i></a>-->
-		${delete_html}	
+		$${delete_html}	
 		<!--<button class="icon" title="View raw Nostr event." onclick=""><i class="fa-solid fa-fw fa-code"></i></a>-->
 	</div>
 	`
@@ -254,7 +254,7 @@ function render_reactions_inner(model, ev) {
 }
 
 function render_reactions(model, ev) {
-	return `<div class="reactions">${render_reactions_inner(model, ev)}</div>`
+	return html`<div class="reactions">${render_reactions_inner(model, ev)}</div>`
 }
 
 // Utility Methods
@@ -274,7 +274,7 @@ function render_mentioned_name(pk, profile) {
 
 function render_name(pk, profile, prefix="") {
 	// Beware of whitespace.
-	return `<span>${prefix}<span class="username clickable" data-pubkey="${pk}" 
+	return html`<span>${prefix}<span class="username clickable" data-pubkey="${pk}" 
 		onclick="open_profile('${pk}')"
 		>${fmt_profile_name(profile, fmt_pubkey(pk))}</span></span>`
 }
@@ -284,7 +284,7 @@ function render_pfp(pk, profile, opts={}) {
 	let str = `class="pfp clickable" onclick="open_profile('${pk}')"`;
 	if (opts.noclick)
 		str = "class='pfp'";
-	return `<img 
+	return html`<img 
 	${str}
 	data-pubkey="${pk}" 
 	title="${name}" 
@@ -293,7 +293,7 @@ function render_pfp(pk, profile, opts={}) {
 }
 
 function render_loading_spinner() {
-	return `
+	return html`
 	<div class="loading-events">
 		<div class="loader" title="Loading...">
 			<img class="dark-invert" src="icon/loader-fragment.svg"/>
