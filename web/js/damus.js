@@ -2,8 +2,8 @@ let DAMUS
 
 const BOOTSTRAP_RELAYS = [
 	"wss://relay.damus.io",
-	"wss://nostr-relay.wlvs.space",
-	"wss://nostr-pub.wellorder.net"
+	//"wss://nostr-relay.wlvs.space",
+	//"wss://nostr-pub.wellorder.net"
 ]
 
 // TODO autogenerate these constants with a bash script
@@ -35,9 +35,7 @@ async function damus_web_init_ready() {
 	if (!model.pubkey)
 		return
 
-	const {RelayPool} = nostrjs
-	const pool = RelayPool(BOOTSTRAP_RELAYS)
-	const ids = {
+	model.ids = {
 		comments:      "comments",
 		profiles:      "profiles",
 		explore:       "explore",
@@ -49,9 +47,15 @@ async function damus_web_init_ready() {
 		unknowns:      "unknowns",
 		dms:           "dms",
 	}
-	model.ids = ids
-	model.pool = pool
 
+	const pool = nostrjs.RelayPool(BOOTSTRAP_RELAYS);
+	pool.on("open", on_pool_open);
+	pool.on("event", on_pool_event);
+	pool.on("notice", on_pool_notice);
+	pool.on("eose", on_pool_eose);
+	pool.on("ok", on_pool_ok);
+	model.pool = pool
+	
 	let err;
 	err = await contacts_load(model);
 	if (err) {
@@ -71,12 +75,8 @@ async function damus_web_init_ready() {
 	on_timer_timestamps();
 	on_timer_invalidations();
 	on_timer_save();
-	pool.on("open", on_pool_open);
-	pool.on("event", on_pool_event);
-	pool.on("notice", on_pool_notice);
-	pool.on("eose", on_pool_eose);
-	pool.on("ok", on_pool_ok);
-	return pool
+	
+	return pool;
 }
 
 function on_timer_timestamps() {
@@ -97,6 +97,7 @@ function on_timer_invalidations() {
 function on_timer_save() {
 	setTimeout(() => {
 		model_save_events(DAMUS);
+		contacts_save(DAMUS.contacts);
 		on_timer_invalidations();
 	}, 10 * 1000);
 }
@@ -133,7 +134,6 @@ async function on_pool_eose(relay, sub_id) {
 			break;
 		case ids.profiles:
 			model.pool.unsubscribe(ids.profiles, relay);
-			on_eose_profiles(ids, model, relay)
 			break;
 		case ids.unknown:
 			pool.unsubscribe(ids.unknowns, relay);

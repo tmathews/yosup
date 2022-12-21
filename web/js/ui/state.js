@@ -49,7 +49,7 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	let count = 0;
 	const evs = model_events_arr(model)
 	const fragment = new DocumentFragment();
-	for (let i = evs.length - 1; i >= 0 && count < 50000; i--) {
+	for (let i = evs.length - 1; i >= 0 && count < 1000; i--) {
 		const ev = evs[i];
 		if (!view_mode_contains_event(model, ev, mode, opts))
 			continue;

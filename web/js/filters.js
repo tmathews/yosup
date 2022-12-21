@@ -14,6 +14,7 @@ function filters_new_default(model) {
 	f[ids.contacts] = filters_new_contacts(friends);
 	f[ids.dms] = filters_new_dms(pubkey);
 	f[ids.notifications] = filters_new_notifications(pubkey);
+	f[ids.explore] = [{kinds: STANDARD_KINDS, limit: 500}];
 	return f;
 }
 
