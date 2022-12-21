@@ -60,13 +60,16 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		count++;
 	}
 	if (count > 0) {
-		find_node("#view .loading-events").classList.add("hide");
 		el.append(fragment);
 		view_set_show_count(0);
 		view_timeline_update_timestamps();
 	}
 
 	return mode;
+}
+
+function view_show_spinner(show=true) {
+	find_node("#view .loading-events").classList.toggle("hide", !show);
 }
 
 /* view_timeline_update iterates through invalidated event ids and either adds
@@ -114,7 +117,7 @@ function view_timeline_update(model) {
 		// If we have things to show and we have initted and we don't have
 		// anything update the current view
 		if (!latest_ev && model.inited) {
-			view_timeline_show_new(model);	
+			view_timeline_show_new(model);
 		}
 		view_set_show_count(count, true, !model.inited);	
 	}
@@ -156,7 +159,6 @@ function view_timeline_show_new(model) {
 		count++;
 	}
 	if (count > 0) {
-		find_node("#view .loading-events").classList.add("hide");
 		el.prepend(fragment);
 	}
 	view_set_show_count(-count, true);

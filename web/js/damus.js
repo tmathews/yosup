@@ -57,14 +57,16 @@ async function damus_web_init_ready() {
 	if (err) {
 		window.alert("Unable to load contacts.");
 	}
-
 	await model_load_events(model, (ev)=> {
 		model_process_event(model, ev);
 	});
 
+	log_debug("loaded events", Object.keys(model.all_events).length);
+	view_timeline_update(model);
 	view_timeline_apply_mode(model, VM_FRIENDS);
+	view_show_spinner(true);
 	document.addEventListener('visibilitychange', () => {
-		update_title(model)
+		update_title(model);
 	});
 	on_timer_timestamps();
 	on_timer_invalidations();
@@ -127,6 +129,7 @@ async function on_pool_eose(relay, sub_id) {
 			if (!model.inited) {
 				model.inited = true;
 			}
+			view_show_spinner(false);
 			break;
 		case ids.profiles:
 			model.pool.unsubscribe(ids.profiles, relay);
