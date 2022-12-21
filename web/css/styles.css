@@ -138,6 +138,7 @@ button.nav > img.icon {
 	top: 0;
 	z-index: var(--zHeader);
 	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
 }
 #view header > label {
 	padding: 15px;
@@ -184,6 +185,18 @@ button.nav > img.icon {
     100% { 
         transform: rotate(360deg); 
     } 
+}
+.show-new {
+	text-align: center;
+}
+.show-new > button {
+	color: var(--clrText);
+	border: none;
+	padding: 15px;
+	background: transparent;
+	width: 100%;
+	font-size: var(--fsNormal);
+	font-weight: bold;
 }
 .userpic { /* TODO remove .userpic and use helper class */
 	flex-shrink: 1;

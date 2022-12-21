@@ -41,7 +41,7 @@ function model_process_event(model, ev) {
 	if (model_event_has_unknown_ids(model, ev))
 		schedule_unknown_refetch(model);
 
-	// Refresh timeline
+	// Queue event for rendering  
 	model.invalidated.push(ev.id);	
 }
 
@@ -250,5 +250,6 @@ function new_model() {
 			friend_of_friends: new Set(),
 		},
 		invalidated: [], // event ids which should be added/removed
+		elements: {}, 
 	};
 }

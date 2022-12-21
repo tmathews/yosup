@@ -42,13 +42,28 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	find_node("#newpost").classList.toggle("hide", mode != VM_FRIENDS);
 	find_node("#timeline").classList.toggle("reverse", mode == VM_THREAD);
 
-	// Show or hide all applicable events related to the mode.
-	xs = el.querySelectorAll(".event");
-	for (const x of xs) {
-		let evid = x.id.substr(2);
-		let ev = model.all_events[evid];
-		x.classList.toggle("hide", 
-			!view_mode_contains_event(model, ev, mode, opts));
+	// Remove all 
+	// This is faster than removing one by one
+	el.innerHTML = "";
+	// Build DOM fragment and render it 
+	let count = 0;
+	const evs = model_events_arr(model)
+	const fragment = new DocumentFragment();
+	for (let i = evs.length - 1; i >= 0 && count < 50000; i--) {
+		const ev = evs[i];
+		if (!view_mode_contains_event(model, ev, mode, opts))
+			continue;
+		let ev_el = model.elements[ev.id];
+		if (!ev_el)
+			continue;
+		fragment.appendChild(ev_el);
+		count++;
+	}
+	if (count > 0) {
+		find_node("#view .loading-events").classList.add("hide");
+		el.append(fragment);
+		view_set_show_count(0);
+		view_timeline_update_timestamps();
 	}
 
 	return mode;
@@ -65,19 +80,15 @@ function view_timeline_update(model) {
 		pubkey: el.dataset.pubkey,
 	};
 
-	// for each event not rendered, go through the list and render it marking 
-	// it as rendered and adding it to the appropriate fragment. fragments are
-	// created based on slices in the existing timeline. fragments are started
-	// at the previous event
-	// const fragments = {};
-	// const cache = {};
-
-	// Dumb function to insert needed events
-	let visible_count = 0;
+	let count = 0;
+	const latest_ev = el.firstChild ? 
+		model.all_events[el.firstChild.id.slice(2)] : undefined;
 	const all = model_events_arr(model);
 	const left_overs = [];
 	while (model.invalidated.length > 0) {
 		var evid = model.invalidated.pop();
+		if (model.elements[evid])
+			continue;
 		var ev = model.all_events[evid];
 		if (!event_is_renderable(ev) || model_is_event_deleted(model, evid)) {
 			let x = find_node("#ev"+evid, el);
@@ -85,46 +96,71 @@ function view_timeline_update(model) {
 			continue;
 		}
 
-		// If event is in el already, do nothing or update?
-		let ev_el = find_node("#ev"+evid, el);
-		if (ev_el) {
-			continue;
-		} else {
-			const html = render_event(model, ev, {});
-			// Put it back on the stack to re-render if it's not ready.
-			if (html == "") {
-				left_overs.push(evid);
-				continue;
-			}
-			const div = document.createElement("div");
-			div.innerHTML = html;
-			ev_el = div.firstChild;
-			if (!view_mode_contains_event(model, ev, mode, opts)) {
-				ev_el.classList.add("hide");
-			} else {
-				visible_count++;
-			}
-		}
-
-		// find prior event element and insert it before that
-		let prior_el;
-		let prior_idx = arr_bsearch_insert(all, ev, event_cmp_created);
-		while (prior_idx >= 0 && !prior_el) {
-			prior_el = find_node("#ev"+all[prior_idx].id, el);
-			prior_idx--;
-		}
-		if (prior_el) {
-			el.insertBefore(ev_el, prior_el);
-		} else if (el.childElementCount == 0) {
-			el.appendChild(ev_el);
-		} else {
+		const html = render_event(model, ev, {});
+		// Put it back on the stack to re-render if it's not ready.
+		if (html == "") {
 			left_overs.push(evid);
+			continue;
+		}
+		const div = document.createElement("div");
+		div.innerHTML = html;
+		ev_el = div.firstChild;
+		model.elements[evid] = ev_el;
+
+		// If the new element is newer than the latest & is viewable then
+		// we want to increase the count of how many to add to view
+		if (event_cmp_created(ev, latest_ev) >= 0 && view_mode_contains_event(model, ev, mode, opts)) {
+			count++;
 		}
 	}
 	model.invalidated = model.invalidated.concat(left_overs);
-	
-	if (visible_count > 0)
+
+	if (count > 0) {
+		view_set_show_count(count, true);	
+	}
+}
+
+function view_set_show_count(count, add) {
+	const show_el = find_node("#show-new")
+	const num_el = find_node("#show-new span", show_el);
+	if (add) {
+		count += parseInt(num_el.innerText || 0)
+	}
+	num_el.innerText = count;
+	show_el.classList.toggle("hide", count <= 0);
+}
+
+function view_timeline_show_new(model) {
+	const el = view_get_timeline_el();
+	const mode = el.dataset.mode;
+	const opts = {
+		thread_id: el.dataset.threadId,
+		pubkey: el.dataset.pubkey,
+	};
+	const latest_evid = el.firstChild ? el.firstChild.id.slice(2) : undefined;
+
+	let count = 0;
+	const evs = model_events_arr(model)
+	const fragment = new DocumentFragment();
+	for (let i = evs.length - 1; i >= 0 && count < 500; i--) {
+		const ev = evs[i];
+		if (latest_evid && ev.id == latest_evid) {
+			break;
+		}
+		if (!view_mode_contains_event(model, ev, mode, opts))
+			continue;
+		let ev_el = model.elements[ev.id];
+		if (!ev_el)
+			continue;
+		fragment.appendChild(ev_el);
+		count++;
+	}
+	if (count > 0) {
 		find_node("#view .loading-events").classList.add("hide");
+		el.prepend(fragment);
+	}
+	view_set_show_count(-count, true);
+	view_timeline_update_timestamps();
 }
 
 function view_timeline_update_profiles(model, ev) {
@@ -138,22 +174,19 @@ function view_timeline_update_profiles(model, ev) {
 		redraw_my_pfp(model);
 	}
 
-	// Update displayed names
-	xs = el.querySelectorAll(`.username[data-pubkey='${pk}']`)
-	html = fmt_profile_name(p, fmt_pubkey(pk));
-	for (const x of xs) {
-		x.innerText = html;
-	}
-
-	// Update profile pictures
-	xs = el.querySelectorAll(`img.pfp[data-pubkey='${pk}']`);
-	html = get_picture(pk, p)
-	for (const x of xs) {
-		x.src = html;
+	const name = fmt_profile_name(p, fmt_pubkey(pk));
+	const pic = get_picture(pk, p)
+	for (const evid in model.elements) {
+		if (model.all_events[evid].pubkey != pk)
+			continue;
+		const el = model.elements[evid];
+		find_node(`.username[data-pubkey='${pk}']`, el).innerText = name;
+		find_node(`img.pfp[data-pubkey='${pk}']`, el).src = pic;
 	}
 }
 
-function view_timeline_update_timestamps(model) {
+function view_timeline_update_timestamps() {
+	// TODO only update elements that are fresh and are in DOM
 	const el = view_get_timeline_el();
 	let xs = el.querySelectorAll(".timestamp");
 	let now = new Date().getTime(); 
@@ -166,16 +199,12 @@ function view_timeline_update_timestamps(model) {
 function view_timeline_update_reaction(model, ev) {
 	let el;
 	const o = event_parse_reaction(ev);
-	if (!o) {
+	if (!o)
 		return;
-	}
 	const ev_id = o.e;
-	const root = find_node(`#ev${ev_id}`);
-	if (!root) {
-		// It's possible the event didn't get rendered yet from the
-		// invalidation stack. In which case emojis will get rendered then.
+	const root = model.elements[ev_id];
+	if (!root)
 		return;
-	}
 
 	// Update reaction groups
 	el = find_node(`.reactions`, root);

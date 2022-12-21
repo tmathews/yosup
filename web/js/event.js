@@ -81,7 +81,7 @@ function event_is_spam(ev, contacts, pow) {
 	return ev.pow >= pow
 }
 
-function event_cmp_created(a, b) {
+function event_cmp_created(a={}, b={}) {
 	if (a.created_at > b.created_at)
 		return 1;
 	if (a.created_at < b.created_at)

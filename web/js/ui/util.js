@@ -115,6 +115,10 @@ function click_toggle_follow_user(el) {
 	contacts_save(contacts);
 }
 
+function show_new() {
+	view_timeline_show_new(DAMUS);
+}
+
 /* click_event opens the thread view from the element's specified element id
  * "dataset.eid".
  */
