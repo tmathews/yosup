@@ -43,7 +43,7 @@ async function contacts_save(contacts) {
 			window.alert("An error occured saving contacts. Check console.");
 			reject(ev);
 		};
-	};
+	}
 	return dbcall(_contacts_save);
 }
 
@@ -76,10 +76,13 @@ async function contacts_load(model) {
 
 async function dbcall(fn) {
 	return new Promise((resolve, reject) => {
-		var open = indexedDB.open("damus", 2);
+		var open = indexedDB.open("damus", 4);
 		open.onupgradeneeded = (ev) => {
 			const db = ev.target.result;
-			const os = db.createObjectStore("friends", {keyPath: "pubkey"});
+			if (!db.objectStoreNames.contains("friends"))
+				db.createObjectStore("friends", {keyPath: "pubkey"});
+			if (!db.objectStoreNames.contains("events"))
+				db.createObjectStore("events", {keyPath: "id"});
 		};
 		open.onsuccess = (ev) => {
 			fn(ev, resolve, reject); 

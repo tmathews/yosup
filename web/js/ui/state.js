@@ -96,16 +96,11 @@ function view_timeline_update(model) {
 			continue;
 		}
 
-		const html = render_event(model, ev, {});
 		// Put it back on the stack to re-render if it's not ready.
-		if (html == "") {
+		if (!view_render_event(model, ev)) {
 			left_overs.push(evid);
 			continue;
 		}
-		const div = document.createElement("div");
-		div.innerHTML = html;
-		ev_el = div.firstChild;
-		model.elements[evid] = ev_el;
 
 		// If the new element is newer than the latest & is viewable then
 		// we want to increase the count of how many to add to view
@@ -116,18 +111,23 @@ function view_timeline_update(model) {
 	model.invalidated = model.invalidated.concat(left_overs);
 
 	if (count > 0) {
-		view_set_show_count(count, true);	
+		// If we have things to show and we have initted and we don't have
+		// anything update the current view
+		if (!latest_ev && model.inited) {
+			view_timeline_show_new(model);	
+		}
+		view_set_show_count(count, true, !model.inited);	
 	}
 }
 
-function view_set_show_count(count, add) {
+function view_set_show_count(count, add=false, hide=false) {
 	const show_el = find_node("#show-new")
 	const num_el = find_node("#show-new span", show_el);
 	if (add) {
 		count += parseInt(num_el.innerText || 0)
 	}
 	num_el.innerText = count;
-	show_el.classList.toggle("hide", count <= 0);
+	show_el.classList.toggle("hide", hide || count <= 0);
 }
 
 function view_timeline_show_new(model) {
@@ -161,6 +161,20 @@ function view_timeline_show_new(model) {
 	}
 	view_set_show_count(-count, true);
 	view_timeline_update_timestamps();
+}
+
+function view_render_event(model, ev, force=false) {
+	if (model.elements[ev.id] && !force)
+		return model.elements[ev.id];
+	const html = render_event(model, ev, {});
+	if (html == "") {
+		return;
+	}
+	const div = document.createElement("div");
+	div.innerHTML = html;
+	const el = div.firstChild;
+	model.elements[ev.id] = el;
+	return el;
 }
 
 function view_timeline_update_profiles(model, ev) {

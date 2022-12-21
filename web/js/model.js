@@ -3,6 +3,11 @@
  * and fetching of unknown pubkey profiles.
  */
 function model_process_event(model, ev) {
+	if (model.all_events[ev.id]) {
+		return;
+	}
+
+	model.all_events[ev.id] = ev;
 	ev.refs = event_get_tag_refs(ev.tags);
 	ev.pow = event_calculate_pow(ev);
 

@@ -1,7 +1,6 @@
 let DAMUS
 
 const BOOTSTRAP_RELAYS = [
-	"wss://nostr.rdfriedl.com",
 	"wss://relay.damus.io",
 	"wss://nostr-relay.wlvs.space",
 	"wss://nostr-pub.wellorder.net"
@@ -50,6 +49,8 @@ async function damus_web_init_ready() {
 		unknowns:      "unknowns",
 		dms:           "dms",
 	}
+	model.ids = ids
+	model.pool = pool
 
 	let err;
 	err = await contacts_load(model);
@@ -57,10 +58,9 @@ async function damus_web_init_ready() {
 		window.alert("Unable to load contacts.");
 	}
 
-	model.ids = ids
-	model.pool = pool
-	model.view_el = document.querySelector("#view")
-	//load_cache(model)
+	await model_load_events(model, (ev)=> {
+		model_process_event(model, ev);
+	});
 
 	view_timeline_apply_mode(model, VM_FRIENDS);
 	document.addEventListener('visibilitychange', () => {
@@ -107,6 +107,7 @@ function on_pool_notice(relay, notice) {
 // on_pool_eose occurs when all storage from a relay has been sent to the 
 // client for a labeled (sub_id) REQ.
 async function on_pool_eose(relay, sub_id) {
+	log_info(`EOSE(${relay.url}): ${sub_id}`);
 	const model = DAMUS;
 	const { ids, pool } = model;
 	switch (sub_id) {
@@ -115,6 +116,9 @@ async function on_pool_eose(relay, sub_id) {
 			// TODO filter out events to friends of friends
 			on_eose_comments(ids, model, events, relay)
 			pool.unsubscribe(ids.home, relay);
+			if (!model.inited) {
+				model.inited = true;
+			}
 			break;
 		case ids.profiles:
 			model.pool.unsubscribe(ids.profiles, relay);
@@ -137,18 +141,12 @@ function on_pool_ok(relay) {
 
 function on_pool_event(relay, sub_id, ev) {
 	const model = DAMUS;
-	const { ids, pool } = model;
 
+	// Simply ignore any events that happened in the future.
 	if (new Date(ev.created_at * 1000) > new Date()) {
-		// Simply ignore any events that happened in the future.
 		return;	
 	}
-
-	// Process event and apply side effects
-	if (!model.all_events[ev.id]) {
-		model.all_events[ev.id] = ev;
-		model_process_event(model, ev);
-	}
+	model_process_event(model, ev);
 }
 
 function on_eose_profiles(ids, model, relay) {
