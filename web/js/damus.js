@@ -68,6 +68,7 @@ async function damus_web_init_ready() {
 	});
 	on_timer_timestamps();
 	on_timer_invalidations();
+	on_timer_save();
 	pool.on("open", on_pool_open);
 	pool.on("event", on_pool_event);
 	pool.on("notice", on_pool_notice);
@@ -89,6 +90,13 @@ function on_timer_invalidations() {
 			view_timeline_update(DAMUS);
 		on_timer_invalidations();
 	}, 1 * 1000);
+}
+
+function on_timer_save() {
+	setTimeout(() => {
+		model_save_events(DAMUS);
+		on_timer_invalidations();
+	}, 10 * 1000);
 }
 
 /* on_pool_open occurs when a relay is opened. It then subscribes for the

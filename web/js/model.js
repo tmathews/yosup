@@ -198,6 +198,17 @@ function model_subscribe_defaults(model, relay) {
 	filters_subscribe(filters, model.pool, [relay]);
 }
 
+function model_events_arr(model) {
+	const events = model.all_events;
+	let arr = [];
+	for (const evid in events) {
+		const ev = events[evid];
+		const i = arr_bsearch_insert(arr, ev, event_cmp_created); 
+		arr.splice(i, 0, ev);
+	}
+	return arr;
+}
+
 function test_model_events_arr() {
 	const arr = model_events_arr({all_events: {
 		"c": {name: "c", created_at: 2},
@@ -221,15 +232,52 @@ function test_model_events_arr() {
 	}
 }
 
-function model_events_arr(model) {
-	const events = model.all_events;
-	let arr = [];
-	for (const evid in events) {
-		const ev = events[evid];
-		const i = arr_bsearch_insert(arr, ev, event_cmp_created); 
-		arr.splice(i, 0, ev);
+async function model_save_events(model) {
+	function _events_save(ev, resolve, reject) {
+		const db = ev.target.result;
+		let tx = db.transaction("events", "readwrite");
+		let store = tx.objectStore("events");
+		for (const evid in model.all_events) {
+			store.put(model.all_events[evid]);
+		}
+		tx.oncomplete = (ev) => {
+			db.close();
+			resolve();
+			log_debug("saved events!");
+		};
+		tx.onerror = (ev) => {
+			db.close();
+			log_error("failed to save events");
+			reject(ev);
+		};
 	}
-	return arr;
+	return dbcall(_events_save);
+}
+
+async function model_load_events(model, fn) {
+	function _events_load(ev, resolve, reject) {
+		const db = ev.target.result;
+		const tx = db.transaction("events", "readonly");
+		const store = tx.objectStore("events");
+		const cursor = store.openCursor();
+		cursor.onsuccess = (ev) => {
+			var cursor = ev.target.result;
+			if (cursor) {
+				fn(cursor.value);
+				cursor.continue();
+			} else {
+				db.close();
+				resolve();
+				log_debug("Successfully loaded events");
+			}
+		}
+		cursor.onerror = (ev) => {
+			db.close();
+			reject(ev);
+			log_error("Could not load events.");
+		};
+	}
+	return dbcall(_events_load);
 }
 
 function new_model() {
