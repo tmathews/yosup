@@ -234,6 +234,7 @@ function view_timeline_update_reaction(model, ev) {
 	el = find_node(`.reactions`, root);
 	el.innerHTML = render_reactions_inner(model, model.all_events[ev_id]); 
 
+	// Update like button
 	if (ev.pubkey == model.pubkey) {
 		const reaction = model_get_reacts_to(model, model.pubkey, ev_id, R_HEART);
 		const liked = !!reaction;

@@ -85,10 +85,10 @@ function model_process_event_reaction(model, ev) {
  */
 function model_process_event_deletion(model, ev) {
 	for (const tag of ev.tags) {
-		if (tag.length >= 2 && tag[0] === "e") {
-			const evid = tag[1];
+		if (tag.length >= 2 && tag[0] === "e" && tag[1]) {
+			let evid = tag[1];
 			model.invalidated.push(evid);
-			model_remove_reaction(model, ev, evid);
+			model_remove_reaction(model, evid);
 			if (model.deleted[evid])
 				continue;
 			let ds = model.deletions[evid] =
@@ -108,7 +108,10 @@ function model_remove_reaction(model, evid) {
 	if (!target_ev)
 		return;
 	const reaction = event_parse_reaction(target_ev);
-	model.reactions_to[reaction.e].remove(target_ev.id);
+	if (!reaction)
+		return;
+	if (model.reactions_to[reaction.e])
+		model.reactions_to[reaction.e].delete(target_ev.id);
 	view_timeline_update_reaction(model, target_ev);
 }
 
