@@ -90,12 +90,20 @@ function view_timeline_update(model) {
 	const left_overs = [];
 	while (model.invalidated.length > 0) {
 		var evid = model.invalidated.pop();
-		if (model.elements[evid])
+
+		// Remove deleted events first
+		if (model_is_event_deleted(model, evid)) {
+			let x = model.elements[evid];
+			if (x && x.parentElement) {
+				x.parentElement.removeChild(x);	
+				delete model.elements[evid];
+			}
 			continue;
+		}
+
+		// Skip non-renderables and already created
 		var ev = model.all_events[evid];
-		if (!event_is_renderable(ev) || model_is_event_deleted(model, evid)) {
-			let x = find_node("#ev"+evid, el);
-			if (x) el.removeChild(x);
+		if (!event_is_renderable(ev) || model.elements[evid]) {
 			continue;
 		}
 

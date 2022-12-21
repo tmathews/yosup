@@ -125,7 +125,7 @@ async function on_pool_eose(relay, sub_id) {
 		case ids.home:
 			const events = model_events_arr(model);
 			// TODO filter out events to friends of friends
-			on_eose_comments(ids, model, events, relay)
+			request_profiles(ids, model, events, relay)
 			pool.unsubscribe(ids.home, relay);
 			if (!model.inited) {
 				model.inited = true;
@@ -160,19 +160,19 @@ function on_pool_event(relay, sub_id, ev) {
 	model_process_event(model, ev);
 }
 
-function on_eose_profiles(ids, model, relay) {
-	const prefix = difficulty_to_prefix(model.pow);
-	const fofs = Array.from(model.contacts.friend_of_friends);
-	let pow_filter = {kinds: STANDARD_KINDS, limit: 50};
-	if (model.pow > 0)
-		pow_filter.ids = [ prefix ];
-	let explore_filters = [ pow_filter ];
-	if (fofs.length > 0)
-		explore_filters.push({kinds: STANDARD_KINDS, authors: fofs, limit: 50});
-	model.pool.subscribe(ids.explore, explore_filters, relay);
-}
+//function on_eose_profiles(ids, model, relay) {
+//	const prefix = difficulty_to_prefix(model.pow);
+//	const fofs = Array.from(model.contacts.friend_of_friends);
+//	let pow_filter = {kinds: STANDARD_KINDS, limit: 50};
+//	if (model.pow > 0)
+//		pow_filter.ids = [ prefix ];
+//	let explore_filters = [ pow_filter ];
+//	if (fofs.length > 0)
+//		explore_filters.push({kinds: STANDARD_KINDS, authors: fofs, limit: 50});
+//	model.pool.subscribe(ids.explore, explore_filters, relay);
+//}
 
-function on_eose_comments(ids, model, events, relay) {
+function request_profiles(ids, model, events, relay) {
 	const pubkeys = events.reduce((s, ev) => {
 		s.add(ev.pubkey);
 		for (const tag of ev.tags) {
