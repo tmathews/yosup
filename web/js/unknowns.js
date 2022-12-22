@@ -58,8 +58,7 @@ function get_non_expired_unknowns(unks, type)
 	return ids
 }
 
-function fetch_unknown_events(damus)
-{
+function fetch_unknown_events(damus) {
 	let filters = []
 	const pks = get_non_expired_unknowns(damus.unknown_pks, 'profiles')
 	const evids = get_non_expired_unknowns(damus.unknown_ids, 'events')
@@ -71,26 +70,26 @@ function fetch_unknown_events(damus)
 		}
 	}
 	if (evids.length !== 0) {
-		const unk_kinds = [1,5,6,7,40,42] // TODO don't hardcode event kinds
+		const unk_kinds = STANDARD_KINDS; 
 		filters.push({ids: evids, kinds: unk_kinds})
-		filters.push({"#e": evids, kinds: [1,42], limit: 100})
+		filters.push({"#e": evids, kinds: [KIND_NOTE, KIND_CHATROOM], limit: 100})
 	}
 	if (pks.length !== 0)
 		filters.push({authors: pks, kinds:[0]})
 	if (filters.length === 0)
-		return
+		return;
 	log_debug("fetching unknowns", filters)
 	damus.pool.subscribe('unknowns', filters)
 }
 
-function schedule_unknown_refetch(damus)
-{
+function schedule_unknown_refetch(damus) {
+	// spams our CPU :(
+	return;
 	const INTERVAL = 5000
 	if (!damus.unknown_timer) {
 		log_debug("fetching unknown events now and in %d seconds", INTERVAL / 1000)
 		damus.unknown_timer = setTimeout(() => {
 			fetch_unknown_events(damus)
-
 			setTimeout(() => {
 				delete damus.unknown_timer
 				if (damus.but_wait_theres_more > 0) {

@@ -292,12 +292,3 @@ function render_pfp(pk, profile, opts={}) {
 	src="${get_picture(pk, profile)}"/>`
 }
 
-function render_loading_spinner() {
-	return html`
-	<div class="loading-events">
-		<div class="loader" title="Loading...">
-			<img class="dark-invert" src="icon/loader-fragment.svg"/>
-		</div>
-	</div>`
-}
-

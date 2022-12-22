@@ -63,6 +63,7 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		el.append(fragment);
 		view_set_show_count(0);
 		view_timeline_update_timestamps();
+		view_show_spinner(false);
 	}
 
 	return mode;
@@ -168,6 +169,7 @@ function view_timeline_show_new(model) {
 	}
 	if (count > 0) {
 		el.prepend(fragment);
+		view_show_spinner(false);
 	}
 	view_set_show_count(-count, true);
 	view_timeline_update_timestamps();

@@ -2,13 +2,15 @@ let DAMUS
 
 const BOOTSTRAP_RELAYS = [
 	"wss://relay.damus.io",
-	//"wss://nostr-relay.wlvs.space",
-	//"wss://nostr-pub.wellorder.net"
+	"wss://nostr-relay.wlvs.space",
+	"wss://nostr-pub.wellorder.net",
 ]
 
 // TODO autogenerate these constants with a bash script
 const IMG_EVENT_LIKED = "icon/event-liked.svg";
 const IMG_EVENT_LIKE  = "icon/event-like.svg";
+
+const SID_PROFILES = "profiles";
 
 async function damus_web_init() {
 	init_message_textareas();
@@ -29,49 +31,46 @@ async function damus_web_init() {
 }
 
 async function damus_web_init_ready() {
-	const model = new_model()
-	DAMUS = model
-	model.pubkey = await get_pubkey()
-	if (!model.pubkey)
-		return
-
-	model.ids = {
-		comments:      "comments",
-		profiles:      "profiles",
-		explore:       "explore",
-		refevents:     "refevents",
-		account:       "account",
-		home:          "home",
-		contacts:      "contacts",
-		notifications: "notifications",
-		unknowns:      "unknowns",
-		dms:           "dms",
+	const model = new_model();
+	DAMUS = model;
+	model.pubkey = await get_pubkey();
+	if (!model.pubkey) {
+		// TODO show welcome screen
+		return;
 	}
 
-	const pool = nostrjs.RelayPool(BOOTSTRAP_RELAYS);
-	pool.on("open", on_pool_open);
-	pool.on("event", on_pool_event);
-	pool.on("notice", on_pool_notice);
-	pool.on("eose", on_pool_eose);
-	pool.on("ok", on_pool_ok);
-	model.pool = pool
-	
+	// WARNING Order Matters!
+	view_show_spinner(true);
+	document.addEventListener('visibilitychange', () => {
+		update_title(model);
+	});
+
+	// Load our contacts first
 	let err;
 	err = await contacts_load(model);
 	if (err) {
 		window.alert("Unable to load contacts.");
 	}
+
+	// Create our pool so that event processing functions can work
+	const pool = nostrjs.RelayPool(BOOTSTRAP_RELAYS);
+	model.pool = pool
+	pool.on("open", on_pool_open);
+	pool.on("event", on_pool_event);
+	pool.on("notice", on_pool_notice);
+	pool.on("eose", on_pool_eose);
+	pool.on("ok", on_pool_ok);
+
+	// Load all events from storage and re-process them so that apply correct
+	// effects.
 	await model_load_events(model, (ev)=> {
 		model_process_event(model, ev);
 	});
-
 	log_debug("loaded events", Object.keys(model.all_events).length);
+
+	// Update our view and apply timer methods once all data is ready to go.
 	view_timeline_update(model);
 	view_timeline_apply_mode(model, VM_FRIENDS);
-	view_show_spinner(true);
-	document.addEventListener('visibilitychange', () => {
-		update_title(model);
-	});
 	on_timer_timestamps();
 	on_timer_invalidations();
 	on_timer_save();
@@ -121,19 +120,19 @@ async function on_pool_eose(relay, sub_id) {
 	log_info(`EOSE(${relay.url}): ${sub_id}`);
 	const model = DAMUS;
 	const { ids, pool } = model;
+
+	if (sub_id.indexOf(SID_PROFILES) == 0) {
+		model.pool.unsubscribe(sub_id, relay);
+		request_profiles(model);
+		return;
+	}
+
 	switch (sub_id) {
 		case ids.home:
-			const events = model_events_arr(model);
-			// TODO filter out events to friends of friends
-			request_profiles(ids, model, events, relay)
 			pool.unsubscribe(ids.home, relay);
 			if (!model.inited) {
 				model.inited = true;
 			}
-			view_show_spinner(false);
-			break;
-		case ids.profiles:
-			model.pool.unsubscribe(ids.profiles, relay);
 			break;
 		case ids.unknown:
 			pool.unsubscribe(ids.unknowns, relay);
@@ -158,46 +157,57 @@ function on_pool_event(relay, sub_id, ev) {
 		return;	
 	}
 	model_process_event(model, ev);
+
+	// Request the profile if we have never seen it
+	if (!model.profile_events[ev.pubkey]) {
+		model.requested_profiles.push({relay, pubkey: ev.pubkey});
+		request_profiles(model);
+	}
 }
 
-//function on_eose_profiles(ids, model, relay) {
-//	const prefix = difficulty_to_prefix(model.pow);
-//	const fofs = Array.from(model.contacts.friend_of_friends);
-//	let pow_filter = {kinds: STANDARD_KINDS, limit: 50};
-//	if (model.pow > 0)
-//		pow_filter.ids = [ prefix ];
-//	let explore_filters = [ pow_filter ];
-//	if (fofs.length > 0)
-//		explore_filters.push({kinds: STANDARD_KINDS, authors: fofs, limit: 50});
-//	model.pool.subscribe(ids.explore, explore_filters, relay);
-//}
+let request_profiles_timer;
+function request_profiles() {
+	if (request_profiles_timer)
+		clearTimeout(request_profiles_timer);
+	request_profiles_timer = setTimeout(()=>{
+		if (fetch_queued_profiles(DAMUS))
+			request_profiles();
+	}, 200);
+}
 
-function request_profiles(ids, model, events, relay) {
-	const pubkeys = events.reduce((s, ev) => {
-		s.add(ev.pubkey);
-		for (const tag of ev.tags) {
-			if (tag.length >= 2 && tag[0] === "p") {
-				if (!model.profile_events[tag[1]])
-					s.add(tag[1]);
-			}
+function fetch_queued_profiles(model) {
+	const delayed = [];
+	const m = new Map();
+	for(let i = 0; model.requested_profiles.length > 0 && i < 300; i++) {
+		let r = model.requested_profiles.pop();
+		let s;
+		if (!m.has(r.relay)) {
+			s = new Set();
+			m.set(r.relay, s);
+		} else {
+			s = m.get(r.relay);
 		}
-		return s;
-	}, new Set());
-	// load profiles and noticed chatrooms
-	const authors = Array.from(pubkeys)
-	const profile_filter = {
-		kinds: [KIND_METADATA, KIND_CONTACT], 
-		authors: authors
-	};
-	let filters = [];
-	if (authors.length > 0)
-		filters.push(profile_filter);
-	if (filters.length === 0) {
-		//log_debug("No profiles filters to request...")
-		return
+		if (s.size >= 50) {
+			delayed.push(r);	
+			continue;
+		}
+		s.add(r.pubkey);
 	}
-	//console.log("subscribe", profiles_id, filter, relay)
-	//log_debug("subscribing to profiles on %s", relay.url)
-	model.pool.subscribe(ids.profiles, filters, relay)
+	model.requested_profiles = model.requested_profiles.concat(delayed);
+	//log_debug(`m size ${m.size}`);
+	m.forEach((set, relay) => {
+		let filters = [{
+			kinds: [KIND_METADATA, KIND_CONTACT],
+			authors: Array.from(set),
+		}];
+		let sid = new_sub_id(SID_PROFILES);
+		model.pool.subscribe(sid, filters, relay);
+		log_debug(`(${relay.url}) fetching profiles ${sid} size(${set.size})`);
+	})
+	return model.requested_profiles.length > 0;
+}
+
+function new_sub_id(prefix) {
+	return `${prefix}:${uuidv4()}`;
 }
 

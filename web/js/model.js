@@ -47,7 +47,7 @@ function model_process_event(model, ev) {
 		schedule_unknown_refetch(model);
 
 	// Queue event for rendering  
-	model.invalidated.push(ev.id);	
+	model.invalidated.push(ev.id);
 }
 
 /* model_process_event_profile updates the matching profile with the contents found 
@@ -285,17 +285,19 @@ async function model_load_events(model, fn) {
 
 function new_model() {
 	return {
-		all_events: {},
+		all_events: {}, // our master list of all events
 		done_init: {},
 		notifications: 0,
 		max_depth: 2,
 		reactions_to: {},
 		chatrooms: {},
+		
 		unknown_ids: {},
 		unknown_pks: {},
+		but_wait_theres_more: 0,
+		
 		deletions: {},
 		deleted: {},
-		but_wait_theres_more: 0,
 		last_event_of_kind: {},
 		pow: 0, // pow difficulty target
 		profiles: {}, // pubkey => profile data
@@ -306,6 +308,19 @@ function new_model() {
 			friend_of_friends: new Set(),
 		},
 		invalidated: [], // event ids which should be added/removed
-		elements: {}, 
+		elements: {}, // map of evid > rendered element
+		requested_profiles: [], // an array of {relay_id, pubkey} to fetching
+
+		ids: {
+			comments:      "comments",
+			explore:       "explore",
+			refevents:     "refevents",
+			account:       "account",
+			home:          "home",
+			contacts:      "contacts",
+			notifications: "notifications",
+			unknowns:      "unknowns",
+			dms:           "dms",
+		},
 	};
 }
