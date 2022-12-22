@@ -158,9 +158,10 @@ function close_reply() {
 	modal.classList.add("closed");
 }
 
-function press_logout() {
+async function press_logout() {
 	if (confirm("Are you sure you want to sign out?")) {
 		localStorage.clear();
+		await dbclear();
 		window.location.href = url.toString()
 	}
 }

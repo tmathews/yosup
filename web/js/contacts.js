@@ -14,7 +14,7 @@ function contacts_process_event(contacts, our_pubkey, ev) {
 		}
 	}
 }
-	
+
 /* contacts_push_relay sends your contact list to the desired relay.
  */
 function contacts_push_relay(contacts, relay) {
@@ -77,6 +77,8 @@ async function contacts_load(model) {
 	return dbcall(_contacts_load);
 }
 
+// TODO move database methods to it's own file
+
 async function dbcall(fn) {
 	return new Promise((resolve, reject) => {
 		var open = indexedDB.open("damus", 4);
@@ -94,4 +96,27 @@ async function dbcall(fn) {
 			reject(err);	
 		};
 	});
+}
+
+async function dbclear() {
+	function _dbclear(ev, resolve, reject) {
+		const stores = ["friends", "events"];
+		const db = ev.target.result;
+		const tx = db.transaction(stores, "readwrite");
+		tx.oncomplete = (ev) => {
+			db.close();
+			resolve();
+			log_debug("cleared database");
+		}
+		tx.onerror = (ev) => {
+			db.close();
+			log_error(`tx errorCode: ${ev.request.errorCode}`);
+			reject(ev);
+		};
+		for (const store of stores) {
+			tx.objectStore(store).clear();
+			tx.objectStore(store).clear();
+		}
+	}
+	return dbcall(_dbclear);
 }
