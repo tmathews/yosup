@@ -228,12 +228,9 @@ function get_qs(loc=location.href) {
 }
 
 function get_picture(pk, profile) {
-	if (!profile)
+	if (!profile || !profile.picture)
 		return IMG_NO_USER;
-	if (profile.resolved_picture)
-		return profile.resolved_picture
-	profile.resolved_picture = html`${profile.picture}` || IMG_NO_USER; 
-	return profile.resolved_picture
+	return html`${profile.picture}`; 
 }
 
 function debounce(f, interval) {
