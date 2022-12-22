@@ -13,6 +13,12 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	const { pubkey, thread_id } = opts;
 	const el = view_get_timeline_el();
 
+	if (mode == VM_EXPLORE) {
+		subscribe_explore(100);
+	} else {
+		unsubscribe_explore();
+	}
+
 	el.dataset.mode = mode;
 	switch(mode) {
 		case VM_THREAD:
@@ -129,10 +135,10 @@ function view_timeline_update(model) {
 	if (count > 0) {
 		// If we have things to show and we have initted and we don't have
 		// anything update the current view
-		if (!latest_ev && model.inited) {
+		if (!latest_ev) {
 			view_timeline_show_new(model);
 		}
-		view_set_show_count(count, true, !model.inited);	
+		view_set_show_count(count, true, false);	
 	}
 }
 
@@ -198,12 +204,6 @@ function view_timeline_update_profiles(model, ev) {
 	const el = view_get_timeline_el();
 	const pk = ev.pubkey;
 	const p = model.profiles[pk];
-
-	// If it's my pubkey let's redraw my pfp that is not located in the view
-	if (pk == model.pubkey) {
-		redraw_my_pfp(model);
-	}
-
 	const name = fmt_profile_name(p, fmt_pubkey(pk));
 	const pic = get_picture(pk, p)
 	for (const evid in model.elements) {
@@ -268,7 +268,6 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 			return ev.id == opts.thread_id || (ev.refs && ( 
 				ev.refs.root == opts.thread_id ||
 				ev.refs.reply == opts.thread_id));
-				//event_refs_event(ev, opts.thread_id);
 		case VM_NOTIFICATIONS:
 			return event_refs_pubkey(ev, model.pubkey);
 	}
@@ -277,9 +276,6 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 
 function event_is_renderable(ev={}) {
 	return ev.kind == KIND_NOTE || ev.kind == KIND_SHARE;
-	return ev.kind == KIND_NOTE || 
-		ev.kind == KIND_REACTION || 
-		ev.kind == KIND_DELETE;
 }
 
 function get_default_max_depth(damus, view) {

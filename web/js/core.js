@@ -171,7 +171,7 @@ function model_get_reacts_to(model, pubkey, evid, emoji) {
 	if (!r)
 		return;
 	for (const id of r.keys()) {
-		if (is_deleted(model, id))
+		if (model_is_event_deleted(model, id))
 			continue;
 		const reaction = model.all_events[id];
 		if (!reaction || reaction.pubkey != pubkey)
@@ -189,7 +189,7 @@ function get_reactions(model, evid) {
 
 	let reactions = []
 	for (const id of reactions_set.keys()) {
-		if (is_deleted(model, id))
+		if (model_is_event_deleted(model, id))
 			continue
 		const reaction = model.all_events[id]
 		if (!reaction)

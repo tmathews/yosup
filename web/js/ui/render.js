@@ -288,7 +288,7 @@ function render_pfp(pk, profile, opts={}) {
 	$${str}
 	data-pubkey="${pk}" 
 	title="${name}" 
-	onerror="this.onerror=null;this.src='${robohash(pk)}';" 
+	onerror="this.onerror=null;this.src='./icon/no-user.svg';" 
 	src="${get_picture(pk, profile)}"/>`
 }
 

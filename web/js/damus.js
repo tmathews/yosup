@@ -2,18 +2,20 @@ let DAMUS
 
 const BOOTSTRAP_RELAYS = [
 	"wss://relay.damus.io",
-	"wss://nostr-relay.wlvs.space",
-	"wss://nostr-pub.wellorder.net",
+	//"wss://nostr-relay.wlvs.space",
+	//"wss://nostr-pub.wellorder.net",
 ]
 
 // TODO autogenerate these constants with a bash script
 const IMG_EVENT_LIKED = "icon/event-liked.svg";
 const IMG_EVENT_LIKE  = "icon/event-like.svg";
+const IMG_NO_USER     = "icon/no-user.svg";
 
-const SID_META = "meta";
-const SID_HISTORY = "history";
+const SID_META          = "meta";
+const SID_HISTORY       = "history";
 const SID_NOTIFICATIONS = "notifications";
-const SID_EXPLORE = "explore";
+const SID_EXPLORE       = "explore";
+const SID_PROFILES      = "profiles";
 
 async function damus_web_init() {
 	init_message_textareas();
@@ -23,7 +25,7 @@ async function damus_web_init() {
 		const max_wait = 500;
 		const interval = 20;
 		if (window.nostr || tries >= (max_wait/interval)) {
-			console.info("init after", tries);
+			log_info("init after", tries);
 			damus_web_init_ready();
 			return;
 		}
@@ -62,7 +64,6 @@ async function damus_web_init_ready() {
 	pool.on("event", on_pool_event);
 	pool.on("notice", on_pool_notice);
 	pool.on("eose", on_pool_eose);
-	pool.on("ok", on_pool_ok);
 
 	// Load all events from storage and re-process them so that apply correct
 	// effects.
@@ -77,6 +78,7 @@ async function damus_web_init_ready() {
 	on_timer_timestamps();
 	on_timer_invalidations();
 	on_timer_save();
+	on_timer_tick();
 	
 	return pool;
 }
@@ -93,7 +95,7 @@ function on_timer_invalidations() {
 		if (DAMUS.invalidated.length > 0)
 			view_timeline_update(DAMUS);
 		on_timer_invalidations();
-	}, 1 * 1000);
+	}, 100);
 }
 
 function on_timer_save() {
@@ -102,6 +104,15 @@ function on_timer_save() {
 		contacts_save(DAMUS.contacts);
 		on_timer_invalidations();
 	}, 10 * 1000);
+}
+
+function on_timer_tick() {
+	setTimeout(() => {
+		DAMUS.relay_que.forEach((que, relay) => {
+			model_fetch_next_profile(DAMUS, relay);
+		});
+		on_timer_tick();
+	}, 1 * 1000);
 }
 
 /* on_pool_open occurs when a relay is opened. It then subscribes for the
@@ -122,10 +133,10 @@ function on_pool_open(relay) {
 		limit: 5000,
 	}]);
 
-	// Subscribe to the relay's world. We will also never close this.
-	relay.subscribe(SID_EXPLORE, [{
+	// Get the latest history as a prefetch 
+	relay.subscribe(SID_HISTORY, [{
 		kinds: STANDARD_KINDS,
-		limit: 10000, // TODO this is a lot to handle and we should deal with it another way
+		limit: 500,
 	}]);
 }
 
@@ -141,18 +152,13 @@ async function on_pool_eose(relay, sub_id) {
 	const { pool } = model;
 	
 	const sid = sub_id.slice(0, sub_id.indexOf(":"));
-	switch (sub_id) {
+	switch (sid) {
+		case SID_PROFILES:
 		case SID_META:
-			model_get_relay_que(model, relay).busy = false;
-			model_fetch_next_profile(model, relay);
 		case SID_HISTORY:
 			pool.unsubscribe(sub_id, relay);
 			break;
 	}
-}
-
-function on_pool_ok(relay) {
-	log_info(`OK(${relay.url})`, arguments);
 }
 
 function on_pool_event(relay, sub_id, ev) {
@@ -160,17 +166,28 @@ function on_pool_event(relay, sub_id, ev) {
 
 	// Simply ignore any events that happened in the future.
 	if (new Date(ev.created_at * 1000) > new Date()) {
+		log_debug(`blocked event caust it was newer`, ev);
 		return;	
 	}
 	model_process_event(model, relay, ev);
 }
 
+function fetch_profiles(pool, relay, pubkeys) {
+	log_debug(`(${relay.url}) fetching '${pubkeys.length} profiles'`);
+	pool.subscribe(SID_PROFILES, [{
+		kinds: [KIND_METADATA],
+		authors: pubkeys,
+	}], relay);
+}
+
 function fetch_profile_info(pubkey, pool, relay) {
-	pool.subscribe(`${SID_META}:${pubkey}`, [{
+	const sid = `${SID_META}:${pubkey}`;
+	pool.subscribe(sid, [{
 		kinds: [KIND_METADATA, KIND_CONTACT],
 		authors: [pubkey],
 		limit: 1,
 	}], relay);
+	return sid;
 }
 
 function fetch_profile(pubkey, pool, relay) {
@@ -182,51 +199,13 @@ function fetch_profile(pubkey, pool, relay) {
 	}], relay);
 }
 
-/*
-function new_sub_id(prefix) {
-	return `${prefix}:${uuidv4()}`;
+function subscribe_explore(limit) {
+	DAMUS.pool.subscribe(SID_EXPLORE, [{
+		kinds: STANDARD_KINDS,
+		limit: limit,
+	}]);
 }
 
-let request_profiles_timer;
-function request_profiles() {
-	if (request_profiles_timer)
-		clearTimeout(request_profiles_timer);
-	request_profiles_timer = setTimeout(()=>{
-		if (fetch_queued_profiles(DAMUS))
-			request_profiles();
-	}, 200);
+function unsubscribe_explore() {
+	DAMUS.pool.unsubscribe(SID_EXPLORE);
 }
-
-function fetch_queued_profiles(model) {
-	const delayed = [];
-	const m = new Map();
-	for(let i = 0; model.requested_profiles.length > 0 && i < 300; i++) {
-		let r = model.requested_profiles.pop();
-		let s;
-		if (!m.has(r.relay)) {
-			s = new Set();
-			m.set(r.relay, s);
-		} else {
-			s = m.get(r.relay);
-		}
-		if (s.size >= 50) {
-			delayed.push(r);	
-			continue;
-		}
-		s.add(r.pubkey);
-	}
-	model.requested_profiles = model.requested_profiles.concat(delayed);
-	//log_debug(`m size ${m.size}`);
-	m.forEach((set, relay) => {
-		let filters = [{
-			kinds: [KIND_METADATA, KIND_CONTACT],
-			authors: Array.from(set),
-		}];
-		let sid = new_sub_id(SID_PROFILES);
-		model.pool.subscribe(sid, filters, relay);
-		log_debug(`(${relay.url}) fetching profiles ${sid} size(${set.size})`);
-	})
-	return model.requested_profiles.length > 0;
-}*/
-
-

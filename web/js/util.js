@@ -195,10 +195,6 @@ function fmt_since_str(current, previous) {
     }
 }
 
-function robohash(str) {
-	return "https://robohash.org/" + str
-}
-
 function is_valid_reaction_content(content) {
 	return content === "+" || content === "" || is_emoji(content)
 }
@@ -233,10 +229,10 @@ function get_qs(loc=location.href) {
 
 function get_picture(pk, profile) {
 	if (!profile)
-		return robohash(pk)
+		return IMG_NO_USER;
 	if (profile.resolved_picture)
 		return profile.resolved_picture
-	profile.resolved_picture = html`${profile.picture}` || robohash(pk)
+	profile.resolved_picture = html`${profile.picture}` || IMG_NO_USER; 
 	return profile.resolved_picture
 }
 

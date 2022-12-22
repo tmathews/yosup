@@ -41,24 +41,66 @@ function model_process_event(model, relay, ev) {
 
 	// Request the profile if we have never seen it
 	if (!model.profile_events[ev.pubkey])
-		model_fetch_next_profile(model, relay, ev.pubkey);
+		model_que_profile(model, relay, ev.pubkey);
 	
 	// TODO fetch unknown referenced events & pubkeys from this event
 	// TODO notify user of new events aimed at them!
 }
 
 function model_get_relay_que(model, relay) {
-	return map_get(model.relay_que, relay, {profiles:[]});
+	return map_get(model.relay_que, relay, {
+		profiles: [],
+		timestamp: 0,
+	});
 }
 
-function model_fetch_next_profile(model, relay, pubkey) {
+function model_que_profile(model, relay, pubkey) {
 	const que = model_get_relay_que(model, relay);
-	if (pubkey)
-		que.profiles.push(pubkey);
-	if (que.busy || que.profiles.length == 0)
+	if (que.profiles.indexOf(pubkey) >= 0)
 		return;
-	que.busy = true;
-	fetch_profile_info(que.profiles.shift(), model.pool, relay);
+	que.profiles.push(pubkey);
+}
+
+function model_clear_profile_que(model, relay, sid) {
+	const que = model_get_relay_que(model, relay);
+	//log_debug(`cmp '${que.sid}' vs '${sid}'`);
+	if (que.sid != sid)
+		return;
+	delete que.current;
+	delete que.sid;
+	que.timestamp = 0;
+	log_debug("cleared qued");
+}
+
+function model_fetch_next_profile(model, relay) {
+	const que = model_get_relay_que(model, relay);
+
+	// Give up on existing case and add it back to the que
+	if (que.current) {
+		if ((new Date().getTime() - que.timestamp) / 1000 > 30) {
+			que.profiles = que.profiles.concat(que.current);
+			model.pool.unsubscribe(SID_PROFILES, relay);
+			log_debug(`(${relay.url}) gave up on ${que.current.length} profiles`);
+		} else {
+			return;
+		}
+	}
+
+	if (que.profiles.length == 0) {
+		delete que.current;
+		return;
+	}
+	log_debug(`(${relay.url}) has '${que.profiles.length} left profiles to fetch'`);
+
+	const set = new Set(); 
+	let i = 0;
+	while (que.profiles.length > 0 && i < 100) {
+		set.add(que.profiles.shift());
+		i++;
+	}
+	que.timestamp = new Date().getTime();
+	que.current = Array.from(set);
+	fetch_profiles(model.pool, relay, que.current);
 }
 
 /* model_process_event_profile updates the matching profile with the contents found 
@@ -72,6 +114,13 @@ function model_process_event_metadata(model, ev, update_view) {
 	model.profiles[ev.pubkey] = safe_parse_json(ev.content, "profile contents")
 	if (update_view)	
 		view_timeline_update_profiles(model, ev); 
+
+	// If it's my pubkey let's redraw my pfp that is not located in the view
+	// This has to happen regardless of update_view because of the it's not 
+	// related to events
+	if (ev.pubkey == model.pubkey) {
+		redraw_my_pfp(model);
+	}
 }
 
 function model_process_event_following(model, ev, update_view) {
@@ -238,9 +287,6 @@ async function model_save_events(model) {
 		const db = ev.target.result;
 		let tx = db.transaction("events", "readwrite");
 		let store = tx.objectStore("events");
-		for (const evid in model.all_events) {
-			store.put(model.all_events[evid]);
-		}
 		tx.oncomplete = (ev) => {
 			db.close();
 			resolve();
@@ -251,6 +297,11 @@ async function model_save_events(model) {
 			log_error("failed to save events");
 			reject(ev);
 		};
+		store.clear().onsuccess = ()=> {
+			for (const evid in model.all_events) {
+				store.put(model.all_events[evid]);
+			}
+		}
 	}
 	return dbcall(_events_save);
 }
