@@ -74,6 +74,13 @@ function arr_bsearch_insert(arr, item, cmp) {
 	return start;
 }
 
+function map_get(m, k, def) {
+	if (!m.has(k)) {
+		m.set(k, def);
+	}
+	return m.get(k);
+}
+
 function is_valid_time(now_sec, created_at) {
 	// don't count events far in the future
 	if (created_at - now_sec >= 120) {

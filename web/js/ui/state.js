@@ -66,6 +66,10 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		view_show_spinner(false);
 	}
 
+	// Request the background info for this user
+	if (pubkey)
+		fetch_profile(pubkey, model.pool);
+
 	return mode;
 }
 

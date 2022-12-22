@@ -10,7 +10,10 @@ const BOOTSTRAP_RELAYS = [
 const IMG_EVENT_LIKED = "icon/event-liked.svg";
 const IMG_EVENT_LIKE  = "icon/event-like.svg";
 
-const SID_PROFILES = "profiles";
+const SID_META = "meta";
+const SID_HISTORY = "history";
+const SID_NOTIFICATIONS = "notifications";
+const SID_EXPLORE = "explore";
 
 async function damus_web_init() {
 	init_message_textareas();
@@ -64,7 +67,7 @@ async function damus_web_init_ready() {
 	// Load all events from storage and re-process them so that apply correct
 	// effects.
 	await model_load_events(model, (ev)=> {
-		model_process_event(model, ev);
+		model_process_event(model, undefined, ev);
 	});
 	log_debug("loaded events", Object.keys(model.all_events).length);
 
@@ -107,7 +110,23 @@ function on_timer_save() {
 function on_pool_open(relay) {
 	log_info(`OPEN(${relay.url})`);
 	const model = DAMUS;
-	relay.subscribe(model.ids.account, filter_new_initial(model.pk));
+	const { pubkey } = model;
+
+	// Get all our info & history, well close this after we get  it
+	fetch_profile(pubkey, model.pool, relay);
+
+	// Get our notifications. We will never close this.
+	relay.subscribe(SID_NOTIFICATIONS, [{
+		kinds: STANDARD_KINDS,
+		"#p": [pubkey],
+		limit: 5000,
+	}]);
+
+	// Subscribe to the relay's world. We will also never close this.
+	relay.subscribe(SID_EXPLORE, [{
+		kinds: STANDARD_KINDS,
+		limit: 10000, // TODO this is a lot to handle and we should deal with it another way
+	}]);
 }
 
 function on_pool_notice(relay, notice) {
@@ -119,28 +138,15 @@ function on_pool_notice(relay, notice) {
 async function on_pool_eose(relay, sub_id) {
 	log_info(`EOSE(${relay.url}): ${sub_id}`);
 	const model = DAMUS;
-	const { ids, pool } = model;
-
-	if (sub_id.indexOf(SID_PROFILES) == 0) {
-		model.pool.unsubscribe(sub_id, relay);
-		request_profiles(model);
-		return;
-	}
-
+	const { pool } = model;
+	
+	const sid = sub_id.slice(0, sub_id.indexOf(":"));
 	switch (sub_id) {
-		case ids.home:
-			pool.unsubscribe(ids.home, relay);
-			if (!model.inited) {
-				model.inited = true;
-			}
-			break;
-		case ids.unknown:
-			pool.unsubscribe(ids.unknowns, relay);
-			break;
-		case ids.account:
-			model.done_init[relay] = true;
-			pool.unsubscribe(ids.account, relay);
-			model_subscribe_defaults(model, relay);
+		case SID_META:
+			model_get_relay_que(model, relay).busy = false;
+			model_fetch_next_profile(model, relay);
+		case SID_HISTORY:
+			pool.unsubscribe(sub_id, relay);
 			break;
 	}
 }
@@ -156,13 +162,29 @@ function on_pool_event(relay, sub_id, ev) {
 	if (new Date(ev.created_at * 1000) > new Date()) {
 		return;	
 	}
-	model_process_event(model, ev);
+	model_process_event(model, relay, ev);
+}
 
-	// Request the profile if we have never seen it
-	if (!model.profile_events[ev.pubkey]) {
-		model.requested_profiles.push({relay, pubkey: ev.pubkey});
-		request_profiles(model);
-	}
+function fetch_profile_info(pubkey, pool, relay) {
+	pool.subscribe(`${SID_META}:${pubkey}`, [{
+		kinds: [KIND_METADATA, KIND_CONTACT],
+		authors: [pubkey],
+		limit: 1,
+	}], relay);
+}
+
+function fetch_profile(pubkey, pool, relay) {
+	fetch_profile_info(pubkey, pool, relay);	
+	pool.subscribe(`${SID_HISTORY}:${pubkey}`, [{
+		kinds: STANDARD_KINDS,
+		authors: [pubkey],
+		limit: 1000,
+	}], relay);
+}
+
+/*
+function new_sub_id(prefix) {
+	return `${prefix}:${uuidv4()}`;
 }
 
 let request_profiles_timer;
@@ -205,9 +227,6 @@ function fetch_queued_profiles(model) {
 		log_debug(`(${relay.url}) fetching profiles ${sid} size(${set.size})`);
 	})
 	return model.requested_profiles.length > 0;
-}
+}*/
 
-function new_sub_id(prefix) {
-	return `${prefix}:${uuidv4()}`;
-}
 

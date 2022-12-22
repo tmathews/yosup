@@ -2,7 +2,7 @@
  * a relay. Additionally other side effects happen such as notification checks
  * and fetching of unknown pubkey profiles.
  */
-function model_process_event(model, ev) {
+function model_process_event(model, relay, ev) {
 	if (model.all_events[ev.id]) {
 		return;
 	}
@@ -16,10 +16,10 @@ function model_process_event(model, ev) {
 	let fn;
 	switch(ev.kind) {
 		case KIND_METADATA:
-			fn = model_process_event_profile;
+			fn = model_process_event_metadata;
 			break;
 		case KIND_CONTACT:
-			fn = model_process_event_contact;
+			fn = model_process_event_following;
 			break;
 		case KIND_DELETE:
 			fn = model_process_event_deletion;
@@ -29,47 +29,62 @@ function model_process_event(model, ev) {
 			break;
 	}
 	if (fn)
-		fn(model, ev);
-
-	// check if the event that just came in should notify the user and is newer
-	// than the last recorded notification event, if it is notify
-	const notify_user = event_refs_pubkey(ev, model.pubkey)
-	const last_notified = get_local_state('last_notified_date')
-	ev.notified = notify_user;
-	if (notify_user && (last_notified == null || ((ev.created_at*1000) > last_notified))) {
-		set_local_state('last_notified_date', new Date().getTime());
-		model.notifications++;
-		update_title(model);
-	}
-
-	// If we find some unknown ids lets schedule their subscription for info
-	if (model_event_has_unknown_ids(model, ev))
-		schedule_unknown_refetch(model);
+		fn(model, ev, !!relay);
 
 	// Queue event for rendering  
 	model.invalidated.push(ev.id);
+
+	// If the processing did not come from a relay, but instead storage then
+	// let us simply ignore fetching new things.
+	if (!relay)
+		return;
+
+	// Request the profile if we have never seen it
+	if (!model.profile_events[ev.pubkey])
+		model_fetch_next_profile(model, relay, ev.pubkey);
+	
+	// TODO fetch unknown referenced events & pubkeys from this event
+	// TODO notify user of new events aimed at them!
+}
+
+function model_get_relay_que(model, relay) {
+	return map_get(model.relay_que, relay, {profiles:[]});
+}
+
+function model_fetch_next_profile(model, relay, pubkey) {
+	const que = model_get_relay_que(model, relay);
+	if (pubkey)
+		que.profiles.push(pubkey);
+	if (que.busy || que.profiles.length == 0)
+		return;
+	que.busy = true;
+	fetch_profile_info(que.profiles.shift(), model.pool, relay);
 }
 
 /* model_process_event_profile updates the matching profile with the contents found 
  * in the event.
  */
-function model_process_event_profile(model, ev) {
+function model_process_event_metadata(model, ev, update_view) {
 	const prev_ev = model.all_events[model.profile_events[ev.pubkey]]
 	if (prev_ev && prev_ev.created_at > ev.created_at)
 		return
 	model.profile_events[ev.pubkey] = ev.id
 	model.profiles[ev.pubkey] = safe_parse_json(ev.content, "profile contents")
-	view_timeline_update_profiles(model, ev);
+	if (update_view)	
+		view_timeline_update_profiles(model, ev); 
 }
 
-function model_process_event_contact(model, ev) {
+function model_process_event_following(model, ev, update_view) {
 	contacts_process_event(model.contacts, model.pubkey, ev)
-	load_our_relays(model.pubkey, model.pool, ev)
+	// TODO support loading relays that are stored on the initial relay
+	// I find this wierd since I may never want to do that and only have that
+	// information provided by the client - to be better understood
+//	load_our_relays(model.pubkey, model.pool, ev)
 }
 
 /* model_process_event_reaction updates the reactions dictionary
  */
-function model_process_event_reaction(model, ev) {
+function model_process_event_reaction(model, ev, update_view) {
 	let reaction = event_parse_reaction(ev);
 	if (!reaction) {
 		return;
@@ -77,18 +92,19 @@ function model_process_event_reaction(model, ev) {
 	if (!model.reactions_to[reaction.e])
 		model.reactions_to[reaction.e] = new Set();
 	model.reactions_to[reaction.e].add(ev.id);	
-	view_timeline_update_reaction(model, ev);
+	if (update_view)
+		view_timeline_update_reaction(model, ev);
 }
 
 /* event_process_deletion updates the list of deleted events. Additionally
  * pushes event ids onto the invalidated stack for any found.
  */
-function model_process_event_deletion(model, ev) {
+function model_process_event_deletion(model, ev, update_view) {
 	for (const tag of ev.tags) {
 		if (tag.length >= 2 && tag[0] === "e" && tag[1]) {
 			let evid = tag[1];
 			model.invalidated.push(evid);
-			model_remove_reaction(model, evid);
+			model_remove_reaction(model, evid, update_view);
 			if (model.deleted[evid])
 				continue;
 			let ds = model.deletions[evid] =
@@ -98,7 +114,7 @@ function model_process_event_deletion(model, ev) {
 	}
 }
 
-function model_remove_reaction(model, evid) {
+function model_remove_reaction(model, evid, update_view) {
 	// deleted_ev -> target_ev -> original_ev
 	// Here we want to find the original react event to and remove it from our
 	// reactions map, then we want to update the element on the page. If the 
@@ -112,7 +128,8 @@ function model_remove_reaction(model, evid) {
 		return;
 	if (model.reactions_to[reaction.e])
 		model.reactions_to[reaction.e].delete(target_ev.id);
-	view_timeline_update_reaction(model, target_ev);
+	if (update_view)
+		view_timeline_update_reaction(model, target_ev);
 }
 
 /* model_event_has_unknown_ids checks the event if there are any referenced keys with
@@ -180,25 +197,6 @@ function model_has_profile(model, pk) {
 
 function model_has_event(model, evid) {
 	return evid in model.all_events
-}
-
-/* model_relay_update_lok returns a map of kinds found in all events based on 
- * the last seen event of each kind. It also updates the model's cached value.
- * If the cached value is found it returns that instead
- */
-function model_relay_update_lok(model, relay) {
-	let last_of_kind = model.last_event_of_kind[relay];
-	if (!last_of_kind) {
-		last_of_kind = model.last_event_of_kind[relay] 
-			= calculate_last_of_kind(model.all_events);
-	}
-	return last_of_kind;
-}
-
-function model_subscribe_defaults(model, relay) {
-	const lok = model_relay_update_lok(model, relay);
-	const filters = filters_new_default_since(model, lok);
-	filters_subscribe(filters, model.pool, [relay]);
 }
 
 function model_events_arr(model) {
@@ -309,18 +307,6 @@ function new_model() {
 		},
 		invalidated: [], // event ids which should be added/removed
 		elements: {}, // map of evid > rendered element
-		requested_profiles: [], // an array of {relay_id, pubkey} to fetching
-
-		ids: {
-			comments:      "comments",
-			explore:       "explore",
-			refevents:     "refevents",
-			account:       "account",
-			home:          "home",
-			contacts:      "contacts",
-			notifications: "notifications",
-			unknowns:      "unknowns",
-			dms:           "dms",
-		},
+		relay_que: new Map(),
 	};
 }

@@ -28,10 +28,6 @@ async function contacts_save(contacts) {
 		const db = ev.target.result;
 		let tx = db.transaction("friends", "readwrite");
 		let store = tx.objectStore("friends");
-		contacts.friends.forEach((pubkey) => {
-			//log_debug("storing", pubkey);
-			store.put({pubkey});
-		});
 		tx.oncomplete = (ev) => {
 			db.close();
 			resolve();
@@ -42,6 +38,13 @@ async function contacts_save(contacts) {
 			log_error(`tx errorCode: ${ev.request.errorCode}`);
 			window.alert("An error occured saving contacts. Check console.");
 			reject(ev);
+		};
+
+		store.clear().onsuccess = () => {
+		 	contacts.friends.forEach((pubkey) => {
+		 		//log_debug("storing", pubkey);
+		 		store.put({pubkey});
+		 	});
 		};
 	}
 	return dbcall(_contacts_save);
