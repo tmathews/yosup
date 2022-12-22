@@ -315,5 +315,6 @@ function get_thread_root_id(damus, id) {
 function switch_view(mode, opts) {
 	log_warn("switch_view deprecated, use view_timeline_apply_mode");
 	view_timeline_apply_mode(DAMUS, mode, opts);
+	close_gnav();
 }
 

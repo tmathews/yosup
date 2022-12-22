@@ -20,6 +20,10 @@ function toggle_gnav(el) {
 	el.parentElement.classList.toggle("open");
 }
 
+function close_gnav() {
+	find_node("#gnav").classList.remove("open");
+}
+
 /* post_input_changed checks the content of the textarea and updates the size
  * of it's element. Additionally I will toggle the enabled state of the sending
  * button.

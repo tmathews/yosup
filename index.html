@@ -41,7 +41,7 @@
 						Yo, Sup? 
 						<img class="icon svg" src="icon/logo-inverted.svg"/>
 					</h1>
-					<p>The blue bird experience for Nostr.</p>
+					<p>Damus Web, the blue bird experience for Nostr.</p>
 					<button class="action" onclick="signin()">
 						Sign In with Key
 						<img src="./icon/key.svg" class="icon svg small invert"/>
@@ -226,7 +226,7 @@
 			<h2>Apps</h2>
 			<p>
 			You are using one right now! You just haven't signed in yet to see
-			the actual application. Scroll to the top to do that.
+			the actual application. Close this modal to sign in with your key. 
 			</p>
 			<p>
 			A rich app ecosystem for Nostr. Anyone can build an app for the
@@ -247,10 +247,27 @@
 			that fits you.
 			</p>
 			<ul>
-				<li>Yo, Sup (this web app)</li>
-				<li><a href="https://damus.io" target="_blank">Damus</a></li>
-				<li><a href="https://github.com/fiatjaf/noscl" target="_blank">noscl</a></li>
+				<li><a href="https://damus.io" target="_blank">Damus</a> (iOS)</li>
+				<li><a href="https://github.com/fiatjaf/noscl" target="_blank">noscl</a> (Linux, Windows, MacOS)</li>
 			</ul>
+
+			<h3>Web Apps Warning</h3>
+			<p>
+			While the web is great for accessibility and is cross platform, it
+			is riddled with security implications you should be aware of. The
+			browser is susceptible to cross-site scripting (<a
+			href="https://en.wikipedia.org/wiki/Cross-site_scripting" 
+			target="_blank">XSS</a>) attacks and extension malware. Therefore 
+			you should be sure any web app you use is audited and trusted.
+			Additionally be aware of what apps you are using.
+			</p>
+			<p>
+			Secondly it is recommended you use a browser extension to handle
+			your Nostr key(s). This will delegate the signing process to an
+			extension that a XSS attack can't access. This is where native apps
+			have a stronger use case, but you should equally trust those as
+			well.
+			</p>
 
 			<h2>Relays</h2>
 			<p>
@@ -266,6 +283,10 @@
 			dictates who can access what and how. This is great for all kinds
 			of use cases for a range of users from individuals to businesses.
 			</p>
+
+			<h2>Account Creation</h2>
+			<p>You need to use a CLI tool. TODO fill this out.</p>
+
 			</div>
 		</div>
 	</body>
