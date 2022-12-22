@@ -40,9 +40,7 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	names[VM_THREAD] = "Thread";
 
 	// Do some visual updates
-	find_node("#view header > label").innerText = mode == VM_USER ? 
-		fmt_profile_name(DAMUS.profiles[opts.pubkey], fmt_pubkey(opts.pubkey)) : 
-		names[mode];
+	find_node("#view header > label").innerText = names[mode];
 	find_node("#nav > div[data-active]").dataset.active = names[mode].toLowerCase();
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
 	find_node("#newpost").classList.toggle("hide", mode != VM_FRIENDS);
@@ -212,6 +210,10 @@ function view_timeline_update_profiles(model, ev) {
 		const el = model.elements[evid];
 		find_node(`.username[data-pubkey='${pk}']`, el).innerText = name;
 		find_node(`img.pfp[data-pubkey='${pk}']`, el).src = pic;
+	}
+	// Update the profile view if it's active
+	if (el.dataset.mode == VM_USER && el.dataset.pubkey == pk) {
+		view_update_profile(model, pk);
 	}
 }
 

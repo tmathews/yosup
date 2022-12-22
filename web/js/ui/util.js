@@ -282,13 +282,18 @@ function open_thread(thread_id) {
 
 function open_profile(pubkey) {
 	view_timeline_apply_mode(DAMUS, VM_USER, { pubkey });
+	view_update_profile(DAMUS, pubkey);
+}
 
-	const profile = DAMUS.profiles[pubkey] || {};
+function view_update_profile(model, pubkey) {
+	const profile = model.profiles[pubkey] || {};
 	const el = find_node("[role='profile-info']");
-	
+
+	const name = fmt_profile_name(profile, fmt_pubkey(pubkey));
+	find_node("#view header > label").innerText = name;
 	find_node("[role='profile-image']", el).src = get_picture(pubkey, profile); 
 	find_nodes("[role='profile-name']", el).forEach(el => {
-		el.innerText = fmt_profile_name(profile, fmt_pubkey(pubkey));
+		el.innerText = name;
 	});
 
 	const el_nip5 = find_node("[role='profile-nip5']", el)

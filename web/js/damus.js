@@ -2,8 +2,8 @@ let DAMUS
 
 const BOOTSTRAP_RELAYS = [
 	"wss://relay.damus.io",
-	//"wss://nostr-relay.wlvs.space",
-	//"wss://nostr-pub.wellorder.net",
+	"wss://nostr-relay.wlvs.space",
+	"wss://nostr-pub.wellorder.net",
 ]
 
 // TODO autogenerate these constants with a bash script
@@ -138,6 +138,8 @@ function on_pool_open(relay) {
 		kinds: STANDARD_KINDS,
 		limit: 500,
 	}]);
+
+	// TODO perhaps get our following list's history too
 }
 
 function on_pool_notice(relay, notice) {
