@@ -24,7 +24,6 @@ addEventListener('DOMContentLoaded', (ev) => {
 });
 
 async function damus_web_init() {
-	init_message_textareas();
 	let tries = 0;
 	function init() {
 		// only wait for 500ms max
@@ -69,6 +68,7 @@ async function webapp_init() {
 	const model = DAMUS;
 
 	// WARNING Order Matters!
+	init_message_textareas();
 	view_show_spinner(true);
 	document.addEventListener('visibilitychange', () => {
 		update_title(model);
