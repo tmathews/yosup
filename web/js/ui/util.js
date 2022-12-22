@@ -161,8 +161,6 @@ function close_reply() {
 function press_logout() {
 	if (confirm("Are you sure you want to sign out?")) {
 		localStorage.clear();
-		const url = new URL(location.href)
-		url.searchParams.delete("pk")
 		window.location.href = url.toString()
 	}
 }
@@ -243,10 +241,6 @@ function update_title(model) {
 
 async function get_pubkey() {
 	let pubkey = get_local_state('pubkey')
-	// qs pk overrides stored key
-	const qs_pk = get_qs().get("pk")
-	if (qs_pk)
-		return await handle_pubkey(qs_pk)
 	if (pubkey)
 		return pubkey
 	if (window.nostr && window.nostr.getPublicKey) {
