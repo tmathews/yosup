@@ -6,19 +6,6 @@ all of it's functionality.
 
 [Issue Tracker](https://todo.sr.ht/~tomtom/damus-web-issues)
 
-## Roadmap
-
-Here is what is confirmed for development.
-
- - [ ] Share event
- - [ ] Profile view (with ability to follow user)
- - [ ] Edit metadata (from profile view)
- - [ ] Global timeline view
- - [ ] Notifications view
- - [ ] Settings view (with ability to configure relays)
- - [ ] Multiple reaction picker
- - [ ] Direct Messages (subject to discussion)
-
 ## Contribution Guide
 
 There are rules to contributing to this client. Please ensure you read them 
@@ -42,10 +29,6 @@ before making changes and supplying patch notes.
 
 These rules are subject to discussion.
 
-## Style Guide
-
-TODO Write about the style guide.
-
 ## Terminology
 
  * Sign Out  - Not "log out", "logout", "log off", etc.
@@ -58,5 +41,4 @@ TODO Write about the style guide.
 
  * You cannot send events when running from an IP address that is not secure. 
    Work arounds are not known at this time.
-
 
