@@ -162,7 +162,7 @@ async function press_logout() {
 	if (confirm("Are you sure you want to sign out?")) {
 		localStorage.clear();
 		await dbclear();
-		window.location.href = url.toString()
+		window.location.reload();
 	}
 }
 
