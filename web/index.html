@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta http-equiv="Content-Security-Policy"
-			content="default-src 'none'; connect-src 'self' ws: wss:; script-src 'self'; script-src-elem 'self' 'unsafe-inline'; script-src-attr 'unsafe-inline'; style-src 'self' fonts.googleapis.com; img-src *; media-src *; font-src 'self' fonts.gstatic.com; child-src 'none';" />
+			content="default-src 'none'; connect-src 'self' ws: wss:; script-src 'self'; script-src-elem 'self' 'unsafe-inline'; script-src-attr 'unsafe-inline'; style-src 'self' fonts.googleapis.com; img-src http: https: data:; media-src *; font-src 'self' fonts.gstatic.com; child-src 'none';" />
 
 		<title>Damus</title>
 		<link rel="stylesheet" href="css/vars.css?v=1">
@@ -111,7 +111,9 @@
 					</div>
 					<div role="profile-info" class="bottom-border hide">
 						<div class="flex">
-							<img role="profile-image" class="pfp jumbo" src="" />
+							<img role="profile-image" class="pfp jumbo" 
+								src="./icon/no-user.svg" 
+								onerror="this.src='./icon/no-user.svg';"/>
 							<div class="profile-tools">
 								<!--
 								<button class="icon" title="Message User" role="message-user">
