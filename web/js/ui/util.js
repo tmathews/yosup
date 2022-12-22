@@ -240,19 +240,21 @@ function update_title(model) {
 	update_notification_markers(has_notes)
 }
 
-async function get_pubkey() {
+async function get_pubkey(use_prompt=true) {
 	let pubkey = get_local_state('pubkey')
 	if (pubkey)
 		return pubkey
 	if (window.nostr && window.nostr.getPublicKey) {
-		console.log("calling window.nostr.getPublicKey()...")
+		log_debug("calling window.nostr.getPublicKey()...")
 		const pubkey = await window.nostr.getPublicKey()
-		console.log("got %s pubkey from nos2x", pubkey)
+		log_debug("got %s pubkey from nos2x", pubkey)
 		return await handle_pubkey(pubkey)
 	}
-	pubkey = prompt("Enter nostr id (eg: jb55@jb55.com) or pubkey (hex or npub)")
-	if (!pubkey)
-		throw new Error("Need pubkey to continue")
+	if (!use_prompt)
+		return;
+	pubkey = prompt("Enter Nostr ID (eg: jb55@jb55.com) or public key (hex or npub).")
+	if (!pubkey.trim())
+		return;
 	return await handle_pubkey(pubkey)
 }
 
@@ -278,6 +280,20 @@ function open_thread(thread_id) {
 function open_profile(pubkey) {
 	view_timeline_apply_mode(DAMUS, VM_USER, { pubkey });
 	view_update_profile(DAMUS, pubkey);
+}
+
+function open_faqs() {
+	find_node("#faqs").classList.remove("closed");
+}
+
+function close_modal(el) {
+	while (el.parentElement) {
+		if (el.classList.contains("modal")) {
+			el.classList.add("closed");
+			break;
+		}
+		el = el.parentElement;
+	}
 }
 
 function view_update_profile(model, pubkey) {

@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta http-equiv="Content-Security-Policy"
-			content="default-src 'none'; connect-src 'self' ws: wss:; script-src 'self'; script-src-elem 'self' 'unsafe-inline'; script-src-attr 'unsafe-inline'; style-src 'self' fonts.googleapis.com; img-src http: https: data:; media-src *; font-src 'self' fonts.gstatic.com; child-src 'none';" />
+			content="default-src 'none'; connect-src 'self' ws: wss:; script-src 'self'; script-src-elem 'self'; script-src-attr 'unsafe-inline'; style-src 'self' fonts.googleapis.com; img-src http: https: data:; media-src *; font-src 'self' fonts.gstatic.com; child-src 'none';" />
 
 		<title>Damus</title>
 		<link rel="stylesheet" href="css/vars.css?v=1">
@@ -26,18 +26,37 @@
 		<script defer src="js/event.js?v=1"></script>
 		<script defer src="js/unknowns.js?v=1"></script>
 		<script defer src="js/lib.js?v=1"></script>
-		<script defer src="js/damus.js?v=92"></script>
+		<script defer src="js/main.js?v=1"></script>
 	</head>
 	<body>
-		<script>
-		// This is our main entry.
-		// https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
-		addEventListener('DOMContentLoaded', (ev) => {
-			damus_web_init();
-		});
-		</script>
-		<div id="gsticker" title="This is alpha software.">αlpha</div>
+		<div id="container-busy">
+			<div class="loader" title="Loading...">
+				<img class="dark-invert" src="icon/loader-fragment.svg"/>
+			</div>
+		</div>
+		<div id="container-welcome" class="hide">
+			<div class="hero-box">
+				<div class="padded">
+					<h1>
+						Yo, Sup? 
+						<img class="icon svg" src="icon/logo-inverted.svg"/>
+					</h1>
+					<p>The blue bird experience for Nostr.</p>
+					<button class="action" onclick="signin()">
+						Sign In with Key
+						<img src="./icon/key.svg" class="icon svg small dark-noinvert"/>
+					</button>
+					<br/>
+					<br/>
+					<button class="btn-text" onclick="open_faqs()">
+						What's Nostr? 
+					</button>
+				</div>
+			</div>
+		</div>
 
+		<div id="container-app" class="hide">
+		<div id="gsticker" title="This is alpha software.">αlpha</div>
 		<nav id="gnav" class="">
 			<button class="icon" role="open-gnav" title="Open Menu" onclick="toggle_gnav(this)">
 				<img class="icon svg invert" src="icon/logo.svg"/>
@@ -145,6 +164,7 @@
 			</div>
 			<div class="flex-fill vertical-hide"></div>
 		</div>
+		</div>
 
 		<div class="modal closed" id="media-preview">
 			<div class="media-container">
@@ -171,6 +191,82 @@
 						</button>
 					</div>
 				</div>
+			</div>
+		</div>
+
+		<div id="faqs" class="modal scrollable closed">
+			<button class="icon modal-floating-close-btn" onclick="close_modal(this)">
+				<img class="icon svg" src="icon/close-modal.svg"/>
+			</button>
+			<div class="page-content">
+			<h1>Welcome to Nostr</h1>
+			<p>The open social network for "literally" everyone.</p>
+
+			<h2>What is Nostr?</h2>
+			<p>
+			Nostr is a protocol, not a platform or an app. This means that
+			users can pick and choose which clients (apps) to use and which
+			relays (servers) they wish to connect to.
+			</p>
+			<p>Nostr uses encryption to validate content authors. This means
+			that there is no centralized account system. We use 
+			<a href="https://en.wikipedia.org/wiki/Public-key_cryptography"
+				target="_blank">public &amp; private</a> keys to sign our 
+			content when we post. Do not confuse this with blockchain
+			technology.
+			</p>
+			<p>
+			Nostr stands for "Notes and Other Stuff Transmitted by Relays".
+			</p>
+			<p>
+				Read more about the protocol <a
+				href="https://github.com/nostr-protocol/nostr"
+				target="_blank">here</a>.
+			</p>
+
+			<h2>Apps</h2>
+			<p>
+			You are using one right now! You just haven't signed in yet to see
+			the actual application. Scroll to the top to do that.
+			</p>
+			<p>
+			A rich app ecosystem for Nostr. Anyone can build an app for the
+			protocol that fits their needs. This is the best option for users
+			as everyone has their own style. Another benifit is that you can
+			use multiple apps with the same account.
+			</p>
+			<p>
+			Since there are many apps for Nostr it allows developers to focus
+			on building certain experiences. Some apps may offer features that
+			others don't, such as direct messages, content viewing methods,
+			etc. You are allowed to choose how you want to interact with
+			Nostr.
+			</p>
+			<h3>Pick One</h3>
+			<p>
+			Here are a list of (trusted) apps that work with Nostr. Pick one
+			that fits you.
+			</p>
+			<ul>
+				<li>Yo, Sup (this web app)</li>
+				<li><a href="https://damus.io" target="_blank">Damus</a></li>
+				<li><a href="https://github.com/fiatjaf/noscl" target="_blank">noscl</a></li>
+			</ul>
+
+			<h2>Relays</h2>
+			<p>
+			Relays are points of connection, a server. They allow you to read 
+			events (content) and write to it depending on it's configuration.
+			Some may be read only, others may require some sort of payment to 
+			use. Some may simply clone other relays. 
+			</p>
+			<p>
+			Relays allow for specific needs and niches. You can host your
+			own relay for your club or community (such as gaming, art, sciences,
+			etc.) Or you can build your own relay with your own logic that 
+			dictates who can access what and how. This is great for all kinds
+			of use cases for a range of users from individuals to businesses.
+			</p>
 			</div>
 		</div>
 	</body>

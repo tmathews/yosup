@@ -1,4 +1,4 @@
-let DAMUS
+let DAMUS = new_model();
 
 const BOOTSTRAP_RELAYS = [
 	"wss://relay.damus.io",
@@ -16,6 +16,12 @@ const SID_HISTORY       = "history";
 const SID_NOTIFICATIONS = "notifications";
 const SID_EXPLORE       = "explore";
 const SID_PROFILES      = "profiles";
+
+// This is our main entry.
+// https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
+addEventListener('DOMContentLoaded', (ev) => {
+	damus_web_init();
+});
 
 async function damus_web_init() {
 	init_message_textareas();
@@ -36,13 +42,31 @@ async function damus_web_init() {
 }
 
 async function damus_web_init_ready() {
-	const model = new_model();
-	DAMUS = model;
-	model.pubkey = await get_pubkey();
+	const model = DAMUS;
+	model.pubkey = await get_pubkey(false);
+
+	find_node("#container-busy").classList.add("hide");
 	if (!model.pubkey) {
-		// TODO show welcome screen
+		find_node("#container-welcome").classList.remove("hide");
 		return;
 	}
+	find_node("#container-app").classList.remove("hide");
+	webapp_init();
+}
+
+async function signin() {
+	const model = DAMUS;
+	model.pubkey = await get_pubkey();
+	if (!model.pubkey) {
+		return;
+	}
+	find_node("#container-welcome").classList.add("hide");
+	find_node("#container-app").classList.remove("hide");
+	webapp_init();
+}
+
+async function webapp_init() {
+	const model = DAMUS;
 
 	// WARNING Order Matters!
 	view_show_spinner(true);
