@@ -70,8 +70,8 @@ async function update_profile(profile={}) {
 		content: JSON.stringify(profile),
 		tags: [],
 	};
-	ev.id = await nostrjs.calculate_id(ev)
-	ev = await sign_event(ev)
+	ev.id = await nostrjs.calculate_id(ev);
+	ev = await sign_event(ev);
 	broadcast_event(ev);
 	return ev;
 }

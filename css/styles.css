@@ -528,7 +528,7 @@ input[type="text"] {
 	color: var(--clrText);
 	font-size: var(--fsNormal);
 	padding: 15px;
-	border-bottom: 3px white solid;
+	border-bottom: 3px var(--clrText) solid;
 	box-sizing: border-box;
 }
 textarea {
