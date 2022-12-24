@@ -250,8 +250,7 @@ Relay.prototype.send = async function relay_send(data) {
 	this.ws.send(JSON.stringify(data))
 }
 
-function handle_nostr_message(relay, msg)
-{
+function handle_nostr_message(relay, msg) {
 	let data
 	try {
 		data = JSON.parse(msg.data)
@@ -269,6 +268,8 @@ function handle_nostr_message(relay, msg)
 			return relay.onfn.eose && relay.onfn.eose(data[1])
 		case "NOTICE":
 			return relay.onfn.notice && relay.onfn.notice(...data.slice(1))
+		case "OK":
+			return relay.onfn.ok && relay.onfn.ok(...data.slice(1));
 		}
 	}
 }

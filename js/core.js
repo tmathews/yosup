@@ -62,22 +62,18 @@ function broadcast_event(ev) {
 	DAMUS.pool.send(["EVENT", ev])
 }
 
-async function update_profile() {
-	const kind = 0 
-	const created_at = new_creation_time()
-	const pubkey = await get_pubkey()
-	const content = JSON.stringify({
-		name: "test",
-		about: "Testing",
-		picture: "",
-		nip05: ""
-	})
-
-	let ev = { pubkey, content, created_at, kind }
+async function update_profile(profile={}) {
+	let ev = {
+		kind: KIND_METADATA,
+		created_at: new_creation_time(),
+		pubkey: DAMUS.pubkey,
+		content: JSON.stringify(profile),
+		tags: [],
+	};
 	ev.id = await nostrjs.calculate_id(ev)
 	ev = await sign_event(ev)
-	model_get_my_relay(DAMUS, );
-	// TODO add error checking on updating profile
+	broadcast_event(ev);
+	return ev;
 }
 
 async function sign_event(ev) {

@@ -317,10 +317,37 @@ function view_update_profile(model, pubkey) {
 	el_desc.classList.toggle("hide", !profile.about);
 	
 	find_node("button[role='copy-pk']", el).dataset.pk = pubkey;
+	find_node("button[role='edit-profile']", el)
+		.classList.toggle("hide", pubkey != model.pubkey);
 	
 	const btn_follow = find_node("button[role='follow-user']", el)
 	btn_follow.dataset.pk = pubkey;
 	// TODO check follow status
 	btn_follow.innerText = contact_is_friend(DAMUS.contacts, pubkey) ? "Unfollow" : "Follow";
 	btn_follow.classList.toggle("hide", pubkey == DAMUS.pubkey);
+}
+
+const PROFILE_FIELDS = ['name', 'picture', 'nip05', 'about'];
+
+function show_profile_editor() {
+	const p = DAMUS.profiles[DAMUS.pubkey];
+	const el = find_node("#profile-editor");
+	el.classList.remove("closed");
+	for (const key of PROFILE_FIELDS) {
+		find_node(`[name='${key}']`, el).value = p[key];
+	}
+}
+
+function click_update_profile() {
+	const el = find_node("#profile-editor");
+	const btn = find_node("button.action", el);
+	const p = {
+		name: find_node("input[name='name']", el).value,
+		picture: find_node("input[name='picture']", el).value,
+		nip05: find_node("input[name='nip05']", el).value,
+		about: find_node("textarea[name='about']", el).value,
+	};
+	update_profile(p);
+	close_modal(el);
+	// TODO show toast that say's "broadcasted!"
 }

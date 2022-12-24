@@ -89,6 +89,7 @@ async function webapp_init() {
 	pool.on("event", on_pool_event);
 	pool.on("notice", on_pool_notice);
 	pool.on("eose", on_pool_eose);
+	pool.on("ok", on_pool_ok);
 
 	// Load all events from storage and re-process them so that apply correct
 	// effects.
@@ -197,6 +198,10 @@ function on_pool_event(relay, sub_id, ev) {
 		return;	
 	}
 	model_process_event(model, relay, ev);
+}
+
+function on_pool_ok(relay, evid, status) {
+	log_debug(`OK(${relay.url}): ${evid} = '${status}'`);
 }
 
 function fetch_profiles(pool, relay, pubkeys) {

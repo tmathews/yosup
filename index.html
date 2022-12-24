@@ -137,6 +137,9 @@
 								<button class="icon" title="Message User" role="message-user">
 									<img class="icon" src="icon/message-user.svg"/></button>
 								-->
+								<button class="icon hide" role="edit-profile"
+									onclick="show_profile_editor()" title="Edit Profile">
+									<img class="icon svg" src="icon/edit-profile.svg"/></button>
 								<button class="icon" role="copy-pk"
 									data-pk="" onclick="click_copy_pk(this)" title="Copy Public Key">
 									<img class="icon svg" src="icon/pubkey.svg"/></button>
@@ -189,6 +192,26 @@
 							Reply
 						</button>
 					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="profile-editor" class="modal closed">
+			<div class="modal-content">
+				<header>
+					<label>Update Profile</label>
+					<button class="icon" onclick="close_modal(this)">
+						<img class="icon svg" src="icon/close-modal.svg"/>
+					</button>
+				</header>
+				<div>
+					<input type="text" class="block w100" name="name" placeholder="Name"/>
+					<input type="text" class="block w100" name="picture" placeholder="Picture URL"/>
+					<input type="text" class="block w100" name="nip05" placeholder="nip05"/>
+					<textarea name="about" class="block w100" placeholder="A bit about you."></textarea>
+					<button class="action float-right" onclick="click_update_profile()">
+						Update
+					</button>
 				</div>
 			</div>
 		</div>
