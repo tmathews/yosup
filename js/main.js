@@ -70,6 +70,7 @@ async function webapp_init() {
 	// WARNING Order Matters!
 	init_message_textareas();
 	view_show_spinner(true);
+	redraw_my_pfp(model);	
 	document.addEventListener('visibilitychange', () => {
 		update_title(model);
 	});

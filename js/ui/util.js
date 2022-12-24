@@ -204,13 +204,10 @@ function reply_to(evid) {
 	replybox.focus()
 }
 
-function redraw_my_pfp(model, force = false) {
+function redraw_my_pfp(model) {
 	const p = model.profiles[model.pubkey]
-	if (!p) return;
-	const html = render_pfp(model.pubkey, p);
+	const html = render_pfp(model.pubkey, p || {});
 	const el = document.querySelector(".my-userpic");
-	if (!force && el.dataset.loaded) return;
-	el.dataset.loaded = true;
 	el.innerHTML = html;
 }
 
