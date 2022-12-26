@@ -30,18 +30,9 @@ function calculate_pow(ev) {
 	log_warn("calculate_pow deprecated, use event_calculate_pow");
 	return event_calculate_pow(ev);
 }
-function insert_event_sorted(evs, new_ev) {
-	log_warn("insert_event_sorted deprecated, use events_insert_sorted");
-	events_insert_sorted(evs, new_ev);
-}
 function can_reply(ev) {
 	log_warn("can_reply is deprecated, use event_can_reply");
 	return event_can_reply(ev);
-}
-function should_add_to_timeline(ev) {
-	// TODO rename should_add_to_timeline to is_timeline_event
-	log_warn("should_add_to_timeline is deprecated, use event_is_timeline");
-	return event_is_timeline(ev);
 }
 function passes_spam_filter(contacts, ev, pow) {
 	log_warn("passes_spam_filter deprecated, use event_is_spam");

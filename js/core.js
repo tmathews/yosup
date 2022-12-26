@@ -46,7 +46,6 @@ async function broadcast_related_events(ev) {
 			const ev = get_tag_event(tag)
 			if (!ev)
 				return evs
-			insert_event_sorted(evs, ev) // for uniqueness
 			return evs
 		}, [])
 		.forEach((ev, i) => {
