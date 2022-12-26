@@ -1,8 +1,22 @@
-# Damus Web 
+# Yo, Sup? 
 
-Here lies the code for the Damus web app, a client for the Nostr protocol. The
-goal of this client is to be a better version of Twitter, but not to reproduce
-all of it's functionality.
+Yo Sup? or simply "Yo" for short is a web client for the Nostr protocol. Its
+aim is to be as good of an experience (if not better than) as Twitter. Note Yo
+will not be the same as Twitter and will not implement all of it's features.
+Nor will Yo try to implement all of Nostr's features as there are many.
+
+The true purpose of Yo is to provide a great experience on any platform for 
+anyone. It should be easy to use and understand making it a great option for 
+people coming from other social networks to engage in their community.
+
+Yo comes from the legacy Damus Web app an holds all of its history. It has been
+rewritten to accomodate for the scale issues that we have seen so that it can 
+continue to be used. The main reason for branching off is due to the lack of 
+parity between Damus iOS (and new codebase improvements) and that of what the 
+web version would support.
+
+New minor features will continue to be added, but nothing substancial without
+full time maintainers. Security will always be a top concern.
 
 [Issue Tracker](https://todo.sr.ht/~tomtom/damus-web-issues)
 
@@ -26,6 +40,7 @@ before making changes and supplying patch notes.
    Animations should not be a forefront, but an enjoyable addition.
  - All new & modified code should be properly documented.
  - Source code should be readable in the browser.
+ - Search for the TODOs.
 
 These rules are subject to discussion.
 

@@ -236,7 +236,8 @@ function update_title(model) {
 
 	const num = model.notifications
 	const has_notes = num !== 0
-	document.title = has_notes ? `(${num}) Damus` : "Damus";
+	document.title = has_notes ? `(${num}) Yo Sup` : "Yo Sup";
+	// TODO I broke the favicons. I will fix with notications update
 	update_favicon(has_notes ? "img/damus_notif.svg" : "img/damus.svg");
 	update_notification_markers(has_notes)
 }
