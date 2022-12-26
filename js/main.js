@@ -179,8 +179,9 @@ async function on_pool_eose(relay, sub_id) {
 	log_info(`EOSE(${relay.url}): ${sub_id}`);
 	const model = DAMUS;
 	const { pool } = model;
-	
-	const sid = sub_id.slice(0, sub_id.indexOf(":"));
+
+	const index = sub_id.indexOf(":");
+	const sid = sub_id.slice(0, index >= 0 ? index : sub_id.length);
 	switch (sid) {
 		case SID_THREAD:
 		case SID_PROFILES:
