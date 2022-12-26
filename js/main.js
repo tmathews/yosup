@@ -16,6 +16,7 @@ const SID_HISTORY       = "history";
 const SID_NOTIFICATIONS = "notifications";
 const SID_EXPLORE       = "explore";
 const SID_PROFILES      = "profiles";
+const SID_THREAD        = "thread";
 
 // This is our main entry.
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
@@ -181,6 +182,7 @@ async function on_pool_eose(relay, sub_id) {
 	
 	const sid = sub_id.slice(0, sub_id.indexOf(":"));
 	switch (sid) {
+		case SID_THREAD:
 		case SID_PROFILES:
 		case SID_META:
 		case SID_HISTORY:
@@ -229,6 +231,16 @@ function fetch_profile(pubkey, pool, relay) {
 		authors: [pubkey],
 		limit: 1000,
 	}], relay);
+}
+
+function fetch_thread_history(evid, pool) {
+	const sid = `${SID_THREAD}:${evid}`
+	pool.subscribe(sid, [{
+		kinds: STANDARD_KINDS,
+		limit: 1000,
+		"#e": [evid],
+	}]);
+	log_debug(`fetching thread ${sid}`);
 }
 
 function subscribe_explore(limit) {

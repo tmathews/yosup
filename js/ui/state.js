@@ -18,6 +18,9 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	} else {
 		unsubscribe_explore();
 	}
+	if (mode == VM_THREAD) {
+		fetch_thread_history(thread_id, model.pool);
+	}
 
 	el.dataset.mode = mode;
 	switch(mode) {
