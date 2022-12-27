@@ -19,27 +19,15 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		el.dataset.threadId == thread_id))
 		return;
 
-	// Set the last time we were actively viewing explore to correctly fetch
-	// the history in the future
-	if (el.dataset.mode == VM_EXPLORE && mode != VM_EXPLORE) {
-		model.seen_explore = now;
-	}
-
-	if (mode == VM_EXPLORE) {
-		// If the time between the last explore and now is less than a minute
-		// simply only fetch a few
-		subscribe_explore((now - model.seen_explore) / 1000 < 60 ? 100 : 500);
-	} else {
-		unsubscribe_explore();
-	}
+	// Fetch history for certain views
 	if (mode == VM_THREAD || mode == VM_USER) {
-		fetch_thread_history(thread_id, model.pool);
 		view_show_spinner(true);
+		fetch_thread_history(thread_id, model.pool);
 	}
-
-	// Request the background info for this user
-	if (pubkey)
+	if (pubkey) {
+		view_show_spinner(true);
 		fetch_profile(pubkey, model.pool);
+	}
 
 	el.dataset.mode = mode;
 	switch(mode) {

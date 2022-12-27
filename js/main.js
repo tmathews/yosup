@@ -161,18 +161,18 @@ function on_pool_open(relay) {
 		limit: 5000,
 	}]);
 
-	/*// Get the latest history as a prefetch 
-	relay.subscribe(SID_HISTORY, [{
+	// Subscribe to the world as it will serve our friends, notifications, and 
+	// explore views
+	relay.subscribe(SID_EXPLORE, [{
 		kinds: STANDARD_KINDS,
-		limit: 500,
-	}]);*/
-
-	// Grab our friends history so our default timeline looks loaded
-	relay.subscribe(SID_FRIENDS, [{
-		kinds: STANDARD_KINDS,
-		authors: Array.from(model.contacts.friends),
 		limit: 500,
 	}]);
+
+	// Grab our friends history so our default timeline looks loaded 
+	if (model.contacts.friends.size > 0) {
+		model_get_relay_que(model, relay).contacts_init = true;
+		fetch_friends_history(Array.from(model.contacts.friends), model.pool, relay);
+	}
 }
 
 function on_pool_notice(relay, notice) {
@@ -188,15 +188,24 @@ async function on_pool_eose(relay, sub_id) {
 
 	const index = sub_id.indexOf(":");
 	const sid = sub_id.slice(0, index >= 0 ? index : sub_id.length);
+	const identifier = sub_id.slice(index+1);
 	switch (sid) {
 		case SID_HISTORY:
 		case SID_THREAD:
+		case SID_FRIENDS:
 			view_timeline_refresh(model); 
 			pool.unsubscribe(sub_id, relay);
 			break
-		case SID_FRIENDS:
-			view_timeline_refresh(model); 
 		case SID_META:
+			// if sid is ours and we did not init properly (must be login) then 
+			// we will fetch our friends history now
+			if (model.pubkey == identifier && 
+				!model_get_relay_que(model, relay).contacts_init) {
+				fetch_friends_history(Array.from(model.contacts.friends), 
+					pool, relay);
+				log_debug("Got our friends after no init & fetching our friends");
+			}
+		case SID_NOTIFICATIONS:
 		case SID_PROFILES:
 			pool.unsubscribe(sub_id, relay);
 			break;
@@ -255,13 +264,11 @@ function fetch_thread_history(evid, pool) {
 	log_debug(`fetching thread ${sid}`);
 }
 
-function subscribe_explore(limit) {
-	DAMUS.pool.subscribe(SID_EXPLORE, [{
+function fetch_friends_history(friends, pool, relay) {
+	pool.subscribe(SID_FRIENDS, [{
 		kinds: STANDARD_KINDS,
-		limit: limit,
-	}]);
+		authors: friends,
+		limit: 500,
+	}], relay);
 }
 
-function unsubscribe_explore() {
-	DAMUS.pool.unsubscribe(SID_EXPLORE);
-}

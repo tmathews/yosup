@@ -51,6 +51,7 @@ function model_get_relay_que(model, relay) {
 	return map_get(model.relay_que, relay, {
 		profiles: [],
 		timestamp: 0,
+		contacts_init: false,
 	});
 }
 
