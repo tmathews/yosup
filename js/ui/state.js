@@ -12,15 +12,34 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	let xs;
 	const { pubkey, thread_id } = opts;
 	const el = view_get_timeline_el();
+	const now = new Date().getTime();
+
+	// Don't do anything if we are already here
+	if (el.dataset.mode == mode && (el.dataset.pubkey == opts.pubkey || 
+		el.dataset.threadId == thread_id))
+		return;
+
+	// Set the last time we were actively viewing explore to correctly fetch
+	// the history in the future
+	if (el.dataset.mode == VM_EXPLORE && mode != VM_EXPLORE) {
+		model.seen_explore = now;
+	}
 
 	if (mode == VM_EXPLORE) {
-		subscribe_explore(100);
+		// If the time between the last explore and now is less than a minute
+		// simply only fetch a few
+		subscribe_explore((now - model.seen_explore) / 1000 < 60 ? 100 : 500);
 	} else {
 		unsubscribe_explore();
 	}
-	if (mode == VM_THREAD) {
+	if (mode == VM_THREAD || mode == VM_USER) {
 		fetch_thread_history(thread_id, model.pool);
+		view_show_spinner(true);
 	}
+
+	// Request the background info for this user
+	if (pubkey)
+		fetch_profile(pubkey, model.pool);
 
 	el.dataset.mode = mode;
 	switch(mode) {
@@ -49,6 +68,20 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	find_node("#newpost").classList.toggle("hide", mode != VM_FRIENDS);
 	find_node("#timeline").classList.toggle("reverse", mode == VM_THREAD);
 
+	view_timeline_refresh(model, mode, opts);
+	
+	return mode;
+}
+
+/* view_timeline_refresh is a hack for redrawing the events in order
+ */
+function view_timeline_refresh(model, mode, opts={}) {
+	const el = view_get_timeline_el();
+	if (!mode) {
+		mode = el.dataset.mode;
+		opts.thread_id = el.dataset.threadId;
+		opts.pubkey = el.dataset.pubkey;
+	}
 	// Remove all 
 	// This is faster than removing one by one
 	el.innerHTML = "";
@@ -72,12 +105,6 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		view_timeline_update_timestamps();
 		view_show_spinner(false);
 	}
-
-	// Request the background info for this user
-	if (pubkey)
-		fetch_profile(pubkey, model.pool);
-
-	return mode;
 }
 
 function view_show_spinner(show=true) {

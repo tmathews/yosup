@@ -15,12 +15,6 @@ function contacts_process_event(contacts, our_pubkey, ev) {
 	}
 }
 
-/* contacts_push_relay sends your contact list to the desired relay.
- */
-function contacts_push_relay(contacts, relay) {
-	log_warn("contacts_push_relay not implemented");
-}
-
 /* contacts_save commits the contacts data to storage.
  */
 async function contacts_save(contacts) {

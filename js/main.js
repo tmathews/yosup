@@ -17,6 +17,7 @@ const SID_NOTIFICATIONS = "notifications";
 const SID_EXPLORE       = "explore";
 const SID_PROFILES      = "profiles";
 const SID_THREAD        = "thread";
+const SID_FRIENDS       = "friends";
 
 // This is our main entry.
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
@@ -160,13 +161,18 @@ function on_pool_open(relay) {
 		limit: 5000,
 	}]);
 
-	// Get the latest history as a prefetch 
+	/*// Get the latest history as a prefetch 
 	relay.subscribe(SID_HISTORY, [{
 		kinds: STANDARD_KINDS,
 		limit: 500,
-	}]);
+	}]);*/
 
-	// TODO perhaps get our following list's history too
+	// Grab our friends history so our default timeline looks loaded
+	relay.subscribe(SID_FRIENDS, [{
+		kinds: STANDARD_KINDS,
+		authors: Array.from(model.contacts.friends),
+		limit: 500,
+	}]);
 }
 
 function on_pool_notice(relay, notice) {
@@ -183,10 +189,15 @@ async function on_pool_eose(relay, sub_id) {
 	const index = sub_id.indexOf(":");
 	const sid = sub_id.slice(0, index >= 0 ? index : sub_id.length);
 	switch (sid) {
-		case SID_THREAD:
-		case SID_PROFILES:
-		case SID_META:
 		case SID_HISTORY:
+		case SID_THREAD:
+			view_timeline_refresh(model); 
+			pool.unsubscribe(sub_id, relay);
+			break
+		case SID_FRIENDS:
+			view_timeline_refresh(model); 
+		case SID_META:
+		case SID_PROFILES:
 			pool.unsubscribe(sub_id, relay);
 			break;
 	}

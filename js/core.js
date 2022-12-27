@@ -75,6 +75,25 @@ async function update_profile(profile={}) {
 	return ev;
 }
 
+async function update_contacts() {
+	const model = DAMUS;
+	const contacts = Array.from(model.contacts.friends);
+	const tags = contacts.map((pubkey) => {
+		return ["p", pubkey]
+	});
+	let ev = {
+		kind: KIND_CONTACT,
+		created_at: new_creation_time(),
+		pubkey: model.pubkey,
+		content: "",
+		tags: tags,
+	}
+	ev.id = await nostrjs.calculate_id(ev);
+	ev = await sign_event(ev);
+	broadcast_event(ev);
+	return ev;
+}
+
 async function sign_event(ev) {
 	if (window.nostr && window.nostr.signEvent) {
 		const signed = await window.nostr.signEvent(ev)
