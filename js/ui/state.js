@@ -20,11 +20,11 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		return;
 
 	// Fetch history for certain views
-	if (mode == VM_THREAD || mode == VM_USER) {
+	if (mode == VM_THREAD) {
 		view_show_spinner(true);
 		fetch_thread_history(thread_id, model.pool);
 	}
-	if (pubkey) {
+	if (pubkey && pubkey != model.pubkey) {
 		view_show_spinner(true);
 		fetch_profile(pubkey, model.pool);
 	}
