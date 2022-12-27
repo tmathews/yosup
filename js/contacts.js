@@ -59,7 +59,7 @@ async function contacts_load(model) {
 			} else {
 				db.close();
 				resolve();
-				log_debug("contacts loaded successfully");
+				log_debug(`contacts loaded successfully ${model.contacts.friends.size}`);
 			}
 		}
 		cursor.onerror = (ev) => {
@@ -75,13 +75,15 @@ async function contacts_load(model) {
 
 async function dbcall(fn) {
 	return new Promise((resolve, reject) => {
-		var open = indexedDB.open("damus", 4);
+		var open = indexedDB.open("damus", 5);
 		open.onupgradeneeded = (ev) => {
 			const db = ev.target.result;
 			if (!db.objectStoreNames.contains("friends"))
 				db.createObjectStore("friends", {keyPath: "pubkey"});
 			if (!db.objectStoreNames.contains("events"))
 				db.createObjectStore("events", {keyPath: "id"});
+			if (!db.objectStoreNames.contains("settings"))
+				db.createObjectStore("settings", {keyPath: "pubkey"});
 		};
 		open.onsuccess = (ev) => {
 			fn(ev, resolve, reject); 
@@ -94,7 +96,7 @@ async function dbcall(fn) {
 
 async function dbclear() {
 	function _dbclear(ev, resolve, reject) {
-		const stores = ["friends", "events"];
+		const stores = ["friends", "events", "settings"];
 		const db = ev.target.result;
 		const tx = db.transaction(stores, "readwrite");
 		tx.oncomplete = (ev) => {
@@ -108,7 +110,6 @@ async function dbclear() {
 			reject(ev);
 		};
 		for (const store of stores) {
-			tx.objectStore(store).clear();
 			tx.objectStore(store).clear();
 		}
 	}

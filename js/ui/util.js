@@ -47,7 +47,8 @@ function init_message_textareas() {
 }
 
 // update_notification_markers will find all markers and hide or show them
-// based on the passed in state of 'active'.
+// based on the passed in state of 'active'. This applies to the navigation 
+// icons.
 function update_notification_markers(active) {
 	let els = document.querySelectorAll(".new-notifications")
 	for (const el of els) {
@@ -214,8 +215,7 @@ function redraw_my_pfp(model) {
 	el.innerHTML = html;
 }
 
-function update_favicon(path)
-{
+function update_favicon(path) {
 	let link = document.querySelector("link[rel~='icon']");
 	const head = document.getElementsByTagName('head')[0]
 
@@ -228,21 +228,15 @@ function update_favicon(path)
 	link.href = path;
 }
 
-// update_title updates the document title & visual indicators based on if the
+// update_notifications updates the document title & visual indicators based on if the
 // number of notifications that are unseen by the user.
-function update_title(model) {
-	// TODO rename update_title to update_notification_state or similar
-	// TODO only clear notifications once they have seen all targeted events
-	if (document.visibilityState === 'visible') {
-		model.notifications = 0
-	}
-
-	const num = model.notifications
-	const has_notes = num !== 0
-	document.title = has_notes ? `(${num}) Yo Sup` : "Yo Sup";
+function update_notifications(model) {
+	const { count } = model.notifications;
+	const suffix = "Yo Sup";
+	document.title = count ? `(${count}) ${suffix}` : suffix;
 	// TODO I broke the favicons. I will fix with notications update
-	update_favicon(has_notes ? "img/damus_notif.svg" : "img/damus.svg");
-	update_notification_markers(has_notes)
+	//update_favicon(has_notes ? "img/damus_notif.svg" : "img/damus.svg");
+	update_notification_markers(count);
 }
 
 async function get_pubkey(use_prompt=true) {

@@ -283,6 +283,55 @@ function test_model_events_arr() {
 	}
 }
 
+async function model_save_settings(model) {
+	function _settings_save(ev, resolve, reject) {
+		const db = ev.target.result;
+		const tx = db.transaction("settings", "readwrite");
+		const store = tx.objectStore("settings");
+		tx.oncomplete = (ev) => {
+			db.close();
+			resolve();
+			log_debug("settings saved");
+		};
+		tx.onerror = (ev) => {
+			db.close();
+			log_error("failed to save events");
+			reject(ev);
+		};
+		store.clear().onsuccess = () => {
+			store.put({
+				pubkey: model.pubkey,
+				notifications_last_viewed: model.notifications.last_viewed,
+			});
+		};
+	}
+	return dbcall(_settings_save);
+}
+
+async function model_load_settings(model) {
+	function _settings_load(ev, resolve, reject) {
+		const db = ev.target.result;
+		const tx = db.transaction("settings", "readonly");
+		const store = tx.objectStore("settings");
+		const req = store.get(model.pubkey);
+		req.onsuccess = (ev) => {
+			const settings = ev.target.result;
+			if (settings) {
+				model.notifications.last_viewed = settings.notifications_last_viewed;
+			}
+			db.close();
+			resolve();
+			log_debug("Successfully loaded events");
+		}
+		req.onerror = (ev) => {
+			db.close();
+			reject(ev);
+			log_error("Could not load settings.");
+		};
+	}
+	return dbcall(_settings_load);	
+}
+
 async function model_save_events(model) {
 	function _events_save(ev, resolve, reject) {
 		const db = ev.target.result;
@@ -336,11 +385,12 @@ async function model_load_events(model, fn) {
 function new_model() {
 	return {
 		all_events: {}, // our master list of all events
-		done_init: {},
-		notifications: 0,
+		notifications: {
+			last_viewed: 0, // time since last looking at notifications
+			count: 0, // the number not seen  since last looking
+		},
 		max_depth: 2,
 		reactions_to: {},
-		chatrooms: {},
 		
 		unknown_ids: {},
 		unknown_pks: {},
@@ -348,7 +398,6 @@ function new_model() {
 		
 		deletions: {},
 		deleted: {},
-		last_event_of_kind: {},
 		pow: 0, // pow difficulty target
 		profiles: {}, // pubkey => profile data
 		profile_events: {}, // pubkey => event id - use with all_events

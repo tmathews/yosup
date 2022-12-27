@@ -76,11 +76,9 @@ async function webapp_init() {
 	init_message_textareas();
 	view_show_spinner(true);
 	redraw_my_pfp(model);	
-	document.addEventListener('visibilitychange', () => {
-		update_title(model);
-	});
 
-	// Load our contacts first
+	// Load data from storage 
+	await model_load_settings(model);
 	let err;
 	err = await contacts_load(model);
 	if (err) {
@@ -131,9 +129,11 @@ function on_timer_invalidations() {
 
 function on_timer_save() {
 	setTimeout(() => {
-		model_save_events(DAMUS);
-		contacts_save(DAMUS.contacts);
-		on_timer_invalidations();
+		const model = DAMUS;
+		model_save_events(model);
+		model_save_settings(model);
+		contacts_save(model.contacts);
+		on_timer_save();
 	}, 10 * 1000);
 }
 

@@ -28,6 +28,11 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		view_show_spinner(true);
 		fetch_profile(pubkey, model.pool);
 	}
+	if (mode == VM_NOTIFICATIONS) {
+		model.notifications.count = 0;
+		model.notifications.last_viewed = new_creation_time();
+		update_notifications(model);
+	}
 
 	el.dataset.mode = mode;
 	switch(mode) {
@@ -99,8 +104,8 @@ function view_show_spinner(show=true) {
 	find_node("#view .loading-events").classList.toggle("hide", !show);
 }
 
-/* view_timeline_update iterates through invalidated event ids and either adds
- * or removes them from the timeline.
+/* view_timeline_update iterates through invalidated event ids and updates the
+ * state of the timeline and other factors such as notifications, etc.
  */
 function view_timeline_update(model) {
 	const el = view_get_timeline_el();
@@ -111,6 +116,7 @@ function view_timeline_update(model) {
 	};
 
 	let count = 0;
+	let ncount = 0;
 	const latest_ev = el.firstChild ? 
 		model.all_events[el.firstChild.id.slice(2)] : undefined;
 	const all = model_events_arr(model);
@@ -140,21 +146,33 @@ function view_timeline_update(model) {
 			continue;
 		}
 
+		// Increase notification count if needed
+		if (event_refs_pubkey(ev, model.pubkey) && 
+			ev.created_at > model.notifications.last_viewed) {
+			ncount++;
+		}
+
 		// If the new element is newer than the latest & is viewable then
 		// we want to increase the count of how many to add to view
-		if (event_cmp_created(ev, latest_ev) >= 0 && view_mode_contains_event(model, ev, mode, opts)) {
+		if (event_cmp_created(ev, latest_ev) >= 0 && 
+			view_mode_contains_event(model, ev, mode, opts)) {
 			count++;
 		}
 	}
 	model.invalidated = model.invalidated.concat(left_overs);
 
+	// If there are new things to show on our current view lets do it
 	if (count > 0) {
-		// If we have things to show and we have initted and we don't have
-		// anything update the current view
 		if (!latest_ev) {
 			view_timeline_show_new(model);
 		}
 		view_set_show_count(count, true, false);	
+	}
+	// Update notification markers and count
+	if (ncount > 0) {
+		log_debug(`new notis ${ncount}`);
+		model.notifications.count += ncount;
+		update_notifications(model);
 	}
 }
 
@@ -308,18 +326,6 @@ function get_thread_max_depth(damus, view, root_id) {
 
 	return view.depths[root_id]
 }
-
-/*function expand_thread(id, reply_id) {
-	const view = get_current_view()
-	const root_id = get_thread_root_id(DAMUS, id)
-	if (!root_id) {
-		log_debug("could not get root_id for", DAMUS.all_events[id])
-		return
-	}
-	view.expanded.add(reply_id)
-	view.depths[root_id] = get_thread_max_depth(DAMUS, view, root_id) + 1
-	redraw_events(DAMUS, view)
-}*/
 
 function get_thread_root_id(damus, id) {
 	const ev = damus.all_events[id]
