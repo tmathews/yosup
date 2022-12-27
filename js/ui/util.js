@@ -117,6 +117,9 @@ function click_toggle_follow_user(el) {
 	}
 	el.innerText = is_friend ? "Follow" : "Unfollow";
 	contacts_save(contacts);
+	if (window.confirm("Contacts are saved locally. Do you want to sync you contacts with all relays?")) {
+		update_contacts();
+	}
 }
 
 function show_new() {
