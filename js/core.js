@@ -61,6 +61,24 @@ function broadcast_event(ev) {
 	DAMUS.pool.send(["EVENT", ev])
 }
 
+async function share(evid) {
+	const model = DAMUS;
+	const e = model.all_events[evid];
+	if (!e)
+		return;
+	let ev = {
+		kind: KIND_SHARE,
+		created_at: new_creation_time(),
+		pubkey: model.pubkey,
+		content: JSON.stringify(e),
+		tags: [["e", e.id], ["p", e.pubkey]],
+	}
+	ev.id = await nostrjs.calculate_id(ev);
+	ev = await sign_event(ev);
+	broadcast_event(ev);
+	return ev;
+}
+
 async function update_profile(profile={}) {
 	let ev = {
 		kind: KIND_METADATA,

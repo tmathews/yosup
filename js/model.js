@@ -291,7 +291,7 @@ async function model_save_settings(model) {
 		tx.oncomplete = (ev) => {
 			db.close();
 			resolve();
-			log_debug("settings saved");
+			//log_debug("settings saved");
 		};
 		tx.onerror = (ev) => {
 			db.close();
@@ -340,7 +340,7 @@ async function model_save_events(model) {
 		tx.oncomplete = (ev) => {
 			db.close();
 			resolve();
-			log_debug("saved events!");
+			//log_debug("saved events!");
 		};
 		tx.onerror = (ev) => {
 			db.close();

@@ -127,12 +127,8 @@ function show_new() {
 	view_timeline_show_new(DAMUS);
 }
 
-/* click_event opens the thread view from the element's specified element id
- * "dataset.eid".
- */
-function click_event(el) {
-	console.info(`thread to open: ${el.dataset.eid}`);
-	switch_view("thread");
+function click_share(el) {
+	share(el.dataset.evid);
 }
 
 function click_toggle_like(el) {

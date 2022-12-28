@@ -24,7 +24,7 @@ function render_replying_to(model, ev) {
 	`
 }
 
-function render_share(damus, view, ev, opts) {
+function render_share(damus, ev, opts) {
 	const shared_ev = damus.all_events[ev.refs && ev.refs.root]
 	// If the shared event hasn't been resolved or leads to a circular event 
 	// kind we will skip out on it.
@@ -32,28 +32,11 @@ function render_share(damus, view, ev, opts) {
 		return "";
 	opts.shared = {
 		pubkey: ev.pubkey,
-		profile: damus.profiles[ev.pubkey]
+		profile: damus.profiles[ev.pubkey],
+		share_time: ev.created_at,
+		share_evid: ev.id,
 	}
 	return render_event(damus, shared_ev, opts)
-}
-
-function render_comment_body(model, ev, opts) {
-	const can_delete = model.pubkey === ev.pubkey;
-	const bar = !event_can_reply(ev) || opts.nobar ? 
-		"" : render_action_bar(model, ev, {can_delete});
-	// Only show media for content that is by friends.
-	const show_media = !opts.is_composing &&  
-		model.contacts.friends.has(ev.pubkey); 
-	return `
-	<div>
-	${render_replying_to(model, ev)}
-	${render_shared_by(ev, opts)}
-	</div>
-	<p>
-	${format_content(ev, show_media)}
-	</p>
-	${render_reactions(model, ev)}
-	${bar}`
 }
 
 function render_shared_by(ev, opts) {
@@ -65,12 +48,6 @@ function render_shared_by(ev, opts) {
 }
 
 function render_event(model, ev, opts={}) {
-	let { 
-		has_bot_line, 
-		has_top_line, 
-		reply_line_bot,
-	} = opts
-
 	if (ev.kind == KIND_SHARE) {
 		return render_share(model, ev, opts);
 	}
@@ -78,13 +55,11 @@ function render_event(model, ev, opts={}) {
 	const thread_root = (ev.refs && ev.refs.root) || ev.id;
 	const profile = model.profiles[ev.pubkey];
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
-	const border_bottom = opts.is_composing || has_bot_line ? "" : "bottom-border";
+	const border_bottom = opts.is_composing ? "" : "bottom-border";
 	let thread_btn = "";
-	if (!reply_line_bot) reply_line_bot = '';
 	return html`<div id="ev${ev.id}" class="event ${border_bottom}">
 		<div class="userpic">
 			$${render_pfp(ev.pubkey, profile)}
-			$${reply_line_bot}
 		</div>	
 		<div class="event-content">
 			<div class="info">
@@ -95,7 +70,7 @@ function render_event(model, ev, opts={}) {
 				</button>
 			</div>
 			<div class="comment">
-				$${render_comment_body(model, ev, opts)}
+				$${render_event_body(model, ev, opts)}
 			</div>
 		</div>
 	</div>` 
@@ -114,10 +89,28 @@ function render_event_nointeract(model, ev, opts={}) {
 				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
 			</div>
 			<div class="comment">
-				$${render_comment_body(model, ev, opts)}
+				$${render_event_body(model, ev, opts)}
 			</div>
 		</div>
 	</div>`
+}
+
+function render_event_body(model, ev, opts) {
+	const { shared } = opts;
+	const can_delete = model.pubkey === ev.pubkey || 
+		(opts.shared && model.pubkey == opts.shared.pubkey);
+	// Only show media for content that is by friends.
+	const show_media = !opts.is_composing &&  
+		model.contacts.friends.has(ev.pubkey); 
+	let str = "<div>";
+	str += shared ? render_shared_by(ev, opts) : render_replying_to(model, ev);
+	str += `</div><p>
+	${format_content(ev, show_media)}
+	</p>`;
+	str += render_reactions(model, ev);
+	str += opts.nobar ? "" : 
+		render_action_bar(model, ev, {can_delete, shared});
+	return str;
 }
 
 function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
@@ -154,22 +147,14 @@ function render_reaction_group(model, emoji, reactions, reacting_to) {
 
 function render_action_bar(model, ev, opts={}) {
 	const { pubkey } = model;
-	let { can_delete } = opts;
-	let delete_html = ""
-	if (can_delete) {
-		delete_html = html`
-	<button class="icon" title="Delete" onclick="delete_post_confirm('${ev.id}')">
-		<img class="icon svg small" src="icon/event-delete.svg"/>
-	</button>`
-	}
-
+	let { can_delete, shared } = opts;
 	// TODO rewrite all of the toggle heart code. It's mine & I hate it.
 	const reaction = model_get_reacts_to(model, pubkey, ev.id, R_HEART);
 	const liked = !!reaction;
 	const reaction_id = reaction ? reaction.id : "";
-	return html`
-	<div class="action-bar">
-		<button class="icon" title="Reply" onclick="reply_author('${ev.id}')">
+	let str = html`<div class="action-bar">`;
+	if (!shared && event_can_reply(ev)) {
+		str += html`<button class="icon" title="Reply" onclick="reply_author('${ev.id}')">
 			<img class="icon svg small" src="icon/event-reply.svg"/>
 		</button>
 		<button class="icon" title="Reply All" onclick="reply_all('${ev.id}')">
@@ -182,12 +167,21 @@ function render_action_bar(model, ev, opts={}) {
 			title="$${ab(liked, 'Unlike', 'Like')}">
 			<img class="icon svg small ${ab(liked, 'dark-noinvert', '')}" 
 				src="$${ab(liked, IMG_EVENT_LIKED, IMG_EVENT_LIKE)}"/>
-		</button>
-		<!--<button class="icon" title="Share" onclick=""><i class="fa fa-fw fa-link"></i></a>-->
-		$${delete_html}	
-		<!--<button class="icon" title="View raw Nostr event." onclick=""><i class="fa-solid fa-fw fa-code"></i></a>-->
-	</div>
-	`
+		</button>`;
+	}
+	if (!shared) {
+		str += html`<button class="icon" title="Share" data-evid="${ev.id}" onclick="click_share(this)">
+			<img class="icon svg small" src="icon/event-share.svg"/>
+		</button>`;
+	}
+	if (can_delete) {
+		const delete_id = shared ? shared.share_evid : ev.id;
+		str += html`
+	<button class="icon" title="Delete" onclick="delete_post_confirm('${delete_id}')">
+		<img class="icon svg small" src="icon/event-delete.svg"/>
+	</button>` 
+	}
+	return str + "</div>";
 }
 
 function render_reactions_inner(model, ev) {

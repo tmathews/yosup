@@ -223,6 +223,7 @@ function view_render_event(model, ev, force=false) {
 		return model.elements[ev.id];
 	const html = render_event(model, ev, {});
 	if (html == "") {
+		//log_debug(`failed to render ${ev.id}`);
 		return;
 	}
 	const div = document.createElement("div");
@@ -244,7 +245,10 @@ function view_timeline_update_profiles(model, ev) {
 			continue;
 		const el = model.elements[evid];
 		find_node(`.username[data-pubkey='${pk}']`, el).innerText = name;
-		find_node(`img.pfp[data-pubkey='${pk}']`, el).src = pic;
+		// TODO Sometimes this fails and I don't know why
+		let img = find_node(`img.pfp[data-pubkey='${pk}']`, el);
+		if (img)
+			img.src = pic;
 	}
 	// Update the profile view if it's active
 	if (el.dataset.mode == VM_USER && el.dataset.pubkey == pk) {
@@ -302,6 +306,7 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 		case VM_FRIENDS:
 			return ev.pubkey == model.pubkey || contact_is_friend(model.contacts, ev.pubkey);
 		case VM_THREAD:
+			if (ev.kind == KIND_SHARE) return false;
 			return ev.id == opts.thread_id || (ev.refs && ( 
 				ev.refs.root == opts.thread_id ||
 				ev.refs.reply == opts.thread_id));

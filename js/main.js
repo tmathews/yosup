@@ -134,7 +134,6 @@ function on_timer_save() {
 		const model = DAMUS;
 		model_save_events(model);
 		model_save_settings(model);
-		contacts_save(model.contacts);
 		on_timer_save();
 	}, 10 * 1000);
 }

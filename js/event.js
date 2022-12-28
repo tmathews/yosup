@@ -37,7 +37,7 @@ function event_calculate_pow(ev) {
  * event in the manner of a chat.
  */
 function event_can_reply(ev) {
-	return ev.kind === KIND_NOTE || ev.kind === 42
+	return ev.kind === KIND_NOTE; // || ev.kind === KIND_CHATROOM;
 }
 
 /* event_is_timeline returns a boolean based on if the event should be rendered
