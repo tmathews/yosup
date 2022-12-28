@@ -129,30 +129,40 @@ async function send_post() {
 	post_input_changed(input_el)
 }
 
+function new_reply_tags(ev) {
+	return [
+		["e", ev.id, "", "reply"],
+		["p", ev.pubkey],
+	];
+}
 
-async function create_reply(pubkey, content, from) {
-	const tags = gather_reply_tags(pubkey, from)
-	const created_at = Math.floor(new Date().getTime() / 1000)
-	let kind = from.kind
+async function create_reply(pubkey, content, ev, all=true) {
+	const tags = all ? gather_reply_tags(pubkey, ev) : new_reply_tags(ev);
+	const created_at = new_creation_time();
+	let kind = ev.kind;
 
 	// convert emoji replies into reactions
 	if (is_valid_reaction_content(content))
-		kind = 7
-
-	let reply = { pubkey, tags, content, created_at, kind }
-
+		kind = 7;
+	let reply = { 
+		pubkey, 
+		tags, 
+		content, 
+		created_at, 
+		kind 
+	}
 	reply.id = await nostrjs.calculate_id(reply)
 	reply = await sign_event(reply)
 	return reply
 }
 
-async function send_reply(content, replying_to) {
+async function send_reply(content, replying_to, all=true) {
 	const ev = DAMUS.all_events[replying_to]
 	if (!ev)
-		return
+		return;
 
 	const pubkey = await get_pubkey()
-	let reply = await create_reply(pubkey, content, ev)
+	let reply = await create_reply(pubkey, content, ev, all)
 
 	broadcast_event(reply)
 	broadcast_related_events(reply)

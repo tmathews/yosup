@@ -187,25 +187,35 @@ async function do_send_reply() {
 	const modal = document.querySelector("#reply-modal");
 	const replying_to = modal.querySelector("#replying-to");
 	const evid = replying_to.dataset.evid;
+	const all = replying_to.dataset.toAll != "";
 	const reply_content_el = document.querySelector("#reply-content");
 	const content = reply_content_el.value;
-	await send_reply(content, evid);
+	await send_reply(content, evid, all);
 	reply_content_el.value = "";
 	close_reply();
 }
 
-function reply_to(evid) {
+function reply(evid, all=false) {
 	const ev = DAMUS.all_events[evid]
 	const modal = document.querySelector("#reply-modal")
 	const replybox = modal.querySelector("#reply-content")
 	const replying_to = modal.querySelector("#replying-to")
 	replying_to.dataset.evid = evid
+	replying_to.dataset.toAll = all ? "all" : "";
 	replying_to.innerHTML = render_event_nointeract(DAMUS, ev, {
 		is_composing: true, 
 		nobar: true
 	});
 	modal.classList.remove("closed")
 	replybox.focus()
+}
+
+function reply_author(evid) {
+	reply(evid);
+}
+
+function reply_all(evid) {
+	reply(evid, true);
 }
 
 function redraw_my_pfp(model) {

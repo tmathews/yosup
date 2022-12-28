@@ -226,8 +226,11 @@ function render_action_bar(model, ev, opts={}) {
 	const reaction_id = reaction ? reaction.id : "";
 	return html`
 	<div class="action-bar">
-		<button class="icon" title="Reply" onclick="reply_to('${ev.id}')">
+		<button class="icon" title="Reply" onclick="reply_author('${ev.id}')">
 			<img class="icon svg small" src="icon/event-reply.svg"/>
+		</button>
+		<button class="icon" title="Reply All" onclick="reply_all('${ev.id}')">
+			<img class="icon svg small" src="icon/event-reply-all.svg"/>
 		</button>
 		<button class="icon react heart ${ab(liked, 'liked', '')}" 
 			onclick="click_toggle_like(this)"
