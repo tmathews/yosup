@@ -119,7 +119,6 @@ function view_timeline_update(model) {
 	let ncount = 0;
 	const latest_ev = el.firstChild ? 
 		model.all_events[el.firstChild.id.slice(2)] : undefined;
-	const all = model_events_arr(model);
 	const left_overs = [];
 	while (model.invalidated.length > 0) {
 		var evid = model.invalidated.pop();
