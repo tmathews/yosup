@@ -19,9 +19,6 @@ const SID_PROFILES      = "profiles";
 const SID_THREAD        = "thread";
 const SID_FRIENDS       = "friends";
 
-// TODO notifications view needs to show replys to threads without mentions not 
-// sure how to achieve this just yet
-
 // This is our main entry.
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
 addEventListener('DOMContentLoaded', (ev) => {

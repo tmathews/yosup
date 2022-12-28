@@ -2,62 +2,6 @@
 // is done by simple string manipulations & templates. If you need to write
 // loops simply write it in code and return strings.
 
-/*function render_timeline_event(damus, view, ev)
-{
-	const root_id = get_thread_root_id(damus, ev.id)
-	const max_depth = root_id ? get_thread_max_depth(damus, view, root_id) : get_default_max_depth(damus, view)
-
-	if (ev.refs && ev.refs.root && view.expanded.has(ev.refs.root))
-		max_depth = null
-
-	return render_event(damus, view, ev, {max_depth})
-}
-*/
-
-function render_reply_line_top(has_top_line) {
-	const classes = has_top_line ? "" : "invisible"
-	return `<div class="line-top ${classes}"></div>`
-}
-
-function render_reply_line_bot() {
-	return `<div class="line-bot"></div>`
-}
-
-function render_thread_collapsed(model, ev, opts)
-{
-	if (opts.is_composing)
-		return ""
-	return `<div onclick="expand_thread('${ev.id}')" class="thread-collapsed">
-		<div class="thread-summary clickable event-message">
-			Read More  
-			<img class="icon svg small" src="icon/read-more.svg"/>
-		</div>
-	</div>`
-}
-
-/*function render_replied_events(damus, view, ev, opts) {
-	if (!(ev.refs && ev.refs.reply))
-		return "";
-	const reply_ev = damus.all_events[ev.refs.reply]
-	if (!reply_ev)
-		return "";
-	opts.replies = opts.replies == null ? 1 : opts.replies + 1
-	if (!(opts.max_depth == null || opts.replies < opts.max_depth))
-		return render_thread_collapsed(damus, ev, opts);
-	opts.is_reply = true
-	return render_event(damus, view, reply_ev, opts)
-}
-
-function render_replying_to_chat(damus, ev) {
-	const chatroom = (ev.refs.root && damus.chatrooms[ev.refs.root]) || {}
-	const roomname = chatroom.name || ev.refs.root || "??"
-	const pks = ev.refs.pubkeys || []
-	const names = pks.map(pk => render_mentioned_name(pk, damus.profiles[pk])).join(", ")
-	const to_users = pks.length === 0 ? "" : ` to ${names}`
-
-	return `<div class="replying-to">replying${to_users} in <span class="chatroom-name">${roomname}</span></div>`
-}*/
-
 function render_replying_to(model, ev) {
 	if (!(ev.refs && ev.refs.reply))
 		return "";
@@ -139,7 +83,6 @@ function render_event(model, ev, opts={}) {
 	if (!reply_line_bot) reply_line_bot = '';
 	return html`<div id="ev${ev.id}" class="event ${border_bottom}">
 		<div class="userpic">
-			$${render_reply_line_top(has_top_line)}
 			$${render_pfp(ev.pubkey, profile)}
 			$${reply_line_bot}
 		</div>	
