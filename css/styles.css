@@ -391,7 +391,7 @@ details.cw summary {
 	-webkit-backdrop-filter: blur(20px);
 }
 .modal.scrollable {
-	overflow: scroll;
+	overflow-y: auto;
 }
 .modal.closed {
 	opacity: 0;

@@ -30,19 +30,18 @@ addEventListener('DOMContentLoaded', (ev) => {
 
 async function damus_web_init() {
 	let tries = 0;
-	function init() {
-		// only wait for 500ms max
-		const max_wait = 500;
-		const interval = 20;
+	const max_wait = 500;
+	const interval = 20;
+	async function init() {
 		if (window.nostr || tries >= (max_wait/interval)) {
 			log_info("init after", tries);
-			damus_web_init_ready();
+			await damus_web_init_ready();
 			return;
 		}
 		tries++;
-		setTimeout(init, interval);
+		await init();
 	}
-	init();
+	setTimeout(init, interval);
 }
 
 async function damus_web_init_ready() {
@@ -60,13 +59,19 @@ async function damus_web_init_ready() {
 
 async function signin() {
 	const model = DAMUS;
-	model.pubkey = await get_pubkey();
+	try {
+		model.pubkey = await get_pubkey();
+	} catch (err) {
+		window.alert("An error occured trying to get your public key.");
+		return;
+	}
 	if (!model.pubkey) {
+		window.alert("No public key was aquired.");
 		return;
 	}
 	find_node("#container-welcome").classList.add("hide");
 	find_node("#container-app").classList.remove("hide");
-	webapp_init();
+	await webapp_init();
 }
 
 async function webapp_init() {

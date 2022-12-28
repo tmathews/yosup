@@ -245,9 +245,13 @@ async function get_pubkey(use_prompt=true) {
 		return pubkey
 	if (window.nostr && window.nostr.getPublicKey) {
 		log_debug("calling window.nostr.getPublicKey()...")
-		const pubkey = await window.nostr.getPublicKey()
+		try {
+			pubkey = await window.nostr.getPublicKey()
+			return await handle_pubkey(pubkey)
+		} catch (err) {
+			return;
+		}
 		log_debug("got %s pubkey from nos2x", pubkey)
-		return await handle_pubkey(pubkey)
 	}
 	if (!use_prompt)
 		return;
