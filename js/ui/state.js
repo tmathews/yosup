@@ -120,7 +120,7 @@ function view_timeline_update(model) {
 	const latest_ev = el.firstChild ? 
 		model.all_events[el.firstChild.id.slice(2)] : undefined;
 	const left_overs = [];
-	while (model.invalidated.length > 0) {
+	while (model.invalidated.length > 0 && count < 500) {
 		var evid = model.invalidated.pop();
 
 		// Remove deleted events first

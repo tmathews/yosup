@@ -98,13 +98,13 @@ async function webapp_init() {
 
 	// Load all events from storage and re-process them so that apply correct
 	// effects.
-	await model_load_events(model, (ev)=> {
+	/*await model_load_events(model, (ev)=> {
 		model_process_event(model, undefined, ev);
 	});
 	log_debug("loaded events", Object.keys(model.all_events).length);
 
 	// Update our view and apply timer methods once all data is ready to go.
-	view_timeline_update(model);
+	view_timeline_update(model);*/
 	view_timeline_apply_mode(model, VM_FRIENDS);
 	on_timer_timestamps();
 	on_timer_invalidations();
@@ -126,16 +126,16 @@ function on_timer_invalidations() {
 		if (DAMUS.invalidated.length > 0)
 			view_timeline_update(DAMUS);
 		on_timer_invalidations();
-	}, 100);
+	}, 50);
 }
 
 function on_timer_save() {
 	setTimeout(() => {
 		const model = DAMUS;
-		model_save_events(model);
+		//model_save_events(model);
 		model_save_settings(model);
 		on_timer_save();
-	}, 10 * 1000);
+	}, 1 * 1000);
 }
 
 function on_timer_tick() {
