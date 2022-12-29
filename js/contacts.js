@@ -7,7 +7,10 @@ function contact_is_friend(contacts, pk) {
 function contacts_process_event(contacts, our_pubkey, ev) {
 	if (ev.pubkey !== our_pubkey)
 		return;
+	if (contacts.event && ev.created_at < contacts.event.created_at)
+		return;
 	contacts.event = ev
+	contacts.friends = new Set();
 	for (const tag of ev.tags) {
 		if (tag.length > 1 && tag[0] === "p") {
 			contacts.friends.add(tag[1])
