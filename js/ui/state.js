@@ -29,9 +29,7 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 		fetch_profile(pubkey, model.pool);
 	}
 	if (mode == VM_NOTIFICATIONS) {
-		model.notifications.count = 0;
-		model.notifications.last_viewed = new_creation_time();
-		update_notifications(model);
+		reset_notifications(model);
 	}
 
 	el.dataset.mode = mode;
@@ -213,6 +211,9 @@ function view_timeline_show_new(model) {
 	if (count > 0) {
 		el.prepend(fragment);
 		view_show_spinner(false);
+		if (mode == VM_NOTIFICATIONS) {
+			reset_notifications(model);
+		}
 	}
 	view_set_show_count(-count, true);
 	view_timeline_update_timestamps();
@@ -341,8 +342,13 @@ function get_thread_root_id(damus, id) {
 }
 
 function switch_view(mode, opts) {
-	log_warn("switch_view deprecated, use view_timeline_apply_mode");
 	view_timeline_apply_mode(DAMUS, mode, opts);
 	close_gnav();
+}
+
+function reset_notifications(model) {
+	model.notifications.count = 0;
+	model.notifications.last_viewed = new_creation_time();
+	update_notifications(model);
 }
 
