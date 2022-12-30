@@ -356,6 +356,7 @@ function click_update_profile() {
 		nip05: find_node("input[name='nip05']", el).value,
 		about: find_node("textarea[name='about']", el).value,
 	};
+	Object.assign(p, model_get_profile(DAMUS, DAMUS.pubkey).data, p);
 	update_profile(p);
 	close_modal(el);
 	// TODO show toast that say's "broadcasted!"
