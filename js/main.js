@@ -242,7 +242,7 @@ function fetch_profiles(pool, relay, pubkeys) {
 function fetch_profile_info(pubkey, pool, relay) {
 	const sid = `${SID_META}:${pubkey}`;
 	pool.subscribe(sid, [{
-		kinds: [KIND_METADATA, KIND_CONTACT],
+		kinds: [KIND_METADATA, KIND_CONTACT, KIND_RELAY],
 		authors: [pubkey],
 		limit: 1,
 	}], relay);

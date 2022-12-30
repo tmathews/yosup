@@ -15,6 +15,25 @@ function event_refs_pubkey(ev, pubkey) {
 	return false
 }
 
+function event_contains_pubkey(ev, pubkey) {
+	if (ev.pubkey == pubkey)
+		return true;
+	for (const tag of ev.tags) {
+		if (tag.length >= 2 && tag[0] == "p" && tag[1] == pubkey)
+			return true;
+	}
+	return false;
+}
+
+function event_get_pubkeys(ev) {
+	const keys = [ev.pubkey];
+	for (const tag of ev.tags) {
+		if (tag.length >= 2 && tag[0] == "p")
+			keys.push(tag[1]);
+	}
+	return keys;
+}
+
 function event_calculate_pow(ev) {
 	const id_bits = leading_zero_bits(ev.id)
 	for (const tag of ev.tags) {

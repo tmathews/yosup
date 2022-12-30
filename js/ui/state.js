@@ -234,26 +234,29 @@ function view_render_event(model, ev, force=false) {
 	return el;
 }
 
-function view_timeline_update_profiles(model, ev) {
+function view_timeline_update_profiles(model, pubkey) {
 	let xs, html;
 	const el = view_get_timeline_el();
-	const pk = ev.pubkey;
-	const p = model.profiles[pk];
-	const name = fmt_profile_name(p, fmt_pubkey(pk));
-	const pic = get_picture(pk, p)
+	const p = model_get_profile(model, pubkey);
+	const name = fmt_profile_name(p.data, fmt_pubkey(pubkey));
+	const pic = get_picture(pubkey, p.data)
 	for (const evid in model.elements) {
-		if (model.all_events[evid].pubkey != pk)
+		if (!event_contains_pubkey(model.all_events[evid], pubkey))
 			continue;
 		const el = model.elements[evid];
-		find_node(`.username[data-pubkey='${pk}']`, el).innerText = name;
-		// TODO Sometimes this fails and I don't know why
-		let img = find_node(`img.pfp[data-pubkey='${pk}']`, el);
-		if (img)
-			img.src = pic;
+		let xs;
+		xs = find_nodes(`.username[data-pubkey='${pubkey}']`, el)
+		xs.forEach((el)=> {
+			el.innerText = name;
+		});
+		xs = find_nodes(`img[data-pubkey='${pubkey}']`, el)
+		xs.forEach((el)=> {
+			el.src = pic;
+		});
 	}
 	// Update the profile view if it's active
-	if (el.dataset.mode == VM_USER && el.dataset.pubkey == pk) {
-		view_update_profile(model, pk);
+	if (el.dataset.mode == VM_USER && el.dataset.pubkey == pubkey) {
+		view_update_profile(model, pubkey);
 	}
 }
 

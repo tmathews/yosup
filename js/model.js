@@ -39,9 +39,12 @@ function model_process_event(model, relay, ev) {
 	if (!relay)
 		return;
 
-	// Request the profile if we have never seen it
-	if (!model.profile_events[ev.pubkey])
-		model_que_profile(model, relay, ev.pubkey);
+	// Request new profiles for unseen pubkeys of the event
+	event_get_pubkeys(ev).forEach((pubkey) => {
+		if (!model_has_profile(model, pubkey)) {
+			model_que_profile(model, relay, pubkey);
+		}
+	});
 	
 	// TODO fetch unknown referenced events & pubkeys from this event
 	// TODO notify user of new events aimed at them!
@@ -108,20 +111,38 @@ function model_fetch_next_profile(model, relay) {
  * in the event.
  */
 function model_process_event_metadata(model, ev, update_view) {
-	const prev_ev = model.all_events[model.profile_events[ev.pubkey]]
-	if (prev_ev && prev_ev.created_at > ev.created_at)
-		return
-	model.profile_events[ev.pubkey] = ev.id
-	model.profiles[ev.pubkey] = safe_parse_json(ev.content, "profile contents")
-	if (update_view)	
-		view_timeline_update_profiles(model, ev); 
-
+	const profile = model_get_profile(model, ev.pubkey);
+	const evs = model.all_events;
+	if (profile.evid && 
+		evs[ev.id].created_at < evs[profile.evid].created_at)
+		return;
+	profile.evid = ev.id;
+	profile.data = safe_parse_json(ev.content, "profile contents");
+	if (update_view)
+		view_timeline_update_profiles(model, profile.pubkey); 
 	// If it's my pubkey let's redraw my pfp that is not located in the view
 	// This has to happen regardless of update_view because of the it's not 
 	// related to events
-	if (ev.pubkey == model.pubkey) {
+	if (profile.pubkey == model.pubkey) {
 		redraw_my_pfp(model);
 	}
+}
+
+function model_has_profile(model, pk) {
+	return !!model_get_profile(model, pk).evid;
+}
+
+function model_get_profile(model, pubkey) {
+	if (model.profiles.has(pubkey)) {
+		return model.profiles.get(pubkey);
+	}
+	model.profiles.set(pubkey, {
+		pubkey: pubkey,
+		evid: "",
+		relays: [],
+		data: {},
+	});
+	return model.profiles.get(pubkey);
 }
 
 function model_process_event_following(model, ev, update_view) {
@@ -239,10 +260,6 @@ function model_is_event_deleted(model, evid) {
 		}
 	}
 	return false
-}
-
-function model_has_profile(model, pk) {
-	return pk in model.profiles
 }
 
 function model_has_event(model, evid) {
@@ -399,8 +416,7 @@ function new_model() {
 		deletions: {},
 		deleted: {},
 		pow: 0, // pow difficulty target
-		profiles: {}, // pubkey => profile data
-		profile_events: {}, // pubkey => event id - use with all_events
+		profiles: new Map(), // pubkey => profile data
 		contacts: {
 			event: null,
 			friends: new Set(),

@@ -5,17 +5,23 @@
 function render_replying_to(model, ev) {
 	if (!(ev.refs && ev.refs.reply))
 		return "";
-	if (ev.kind === KIND_CHATROOM)
-		return render_replying_to_chat(model, ev);
 	let pubkeys = ev.refs.pubkeys || []
 	if (pubkeys.length === 0 && ev.refs.reply) {
 		const replying_to = model.all_events[ev.refs.reply]
-		if (!replying_to)
-			return html`<div class="replying-to small-txt">reply to ${ev.refs.reply}</div>`;
-		pubkeys = [replying_to.pubkey]
+		// If there is no profile being replied to, it is simply a reply to an 
+		// event itself, thus render it differently.
+		if (!replying_to) {
+			return html`<span class="replying-to small-txt">
+				replying in thread 
+				<span class="thread-id clickable" 
+				onclick="open_thread('${ev.refs.reply}')">
+				${fmt_pubkey(ev.refs.reply)}</span></span>`;
+		} else {
+			pubkeys = [replying_to.pubkey];
+		}
 	}
 	const names = pubkeys.map((pk) => {
-		return render_mentioned_name(pk, model.profiles[pk]);
+		return render_name(pk, model_get_profile(model, pk).data);
 	}).join(", ")
 	return `
 	<span class="replying-to small-txt">
@@ -24,19 +30,19 @@ function render_replying_to(model, ev) {
 	`
 }
 
-function render_share(damus, ev, opts) {
-	const shared_ev = damus.all_events[ev.refs && ev.refs.root]
+function render_share(model, ev, opts) {
+	const shared_ev = model.all_events[ev.refs && ev.refs.root]
 	// If the shared event hasn't been resolved or leads to a circular event 
 	// kind we will skip out on it.
 	if (!shared_ev || shared_ev.kind == KIND_SHARE)
 		return "";
 	opts.shared = {
 		pubkey: ev.pubkey,
-		profile: damus.profiles[ev.pubkey],
+		profile: model_get_profile(model, ev.pubkey),
 		share_time: ev.created_at,
 		share_evid: ev.id,
 	}
-	return render_event(damus, shared_ev, opts)
+	return render_event(model, shared_ev, opts)
 }
 
 function render_shared_by(ev, opts) {
@@ -52,22 +58,18 @@ function render_event(model, ev, opts={}) {
 		return render_share(model, ev, opts);
 	}
 
-	const thread_root = (ev.refs && ev.refs.root) || ev.id;
-	const profile = model.profiles[ev.pubkey];
+	const profile = model_get_profile(model, ev.pubkey);
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
 	const border_bottom = opts.is_composing ? "" : "bottom-border";
 	let thread_btn = "";
 	return html`<div id="ev${ev.id}" class="event ${border_bottom}">
 		<div class="userpic">
-			$${render_pfp(ev.pubkey, profile)}
+			$${render_pfp(ev.pubkey, profile.data)}
 		</div>	
 		<div class="event-content">
 			<div class="info">
-				$${render_name(ev.pubkey, profile)}
+				$${render_name(ev.pubkey, profile.data)}
 				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
-				<button class="icon" title="View Thread" role="view-event" onclick="open_thread('${thread_root}')">
-					<img class="icon svg small" src="icon/open-thread.svg"/>
-				</button>
 			</div>
 			<div class="comment">
 				$${render_event_body(model, ev, opts)}
@@ -77,15 +79,15 @@ function render_event(model, ev, opts={}) {
 }
 
 function render_event_nointeract(model, ev, opts={}) {
-	const profile = model.profiles[ev.pubkey];
+	const profile = model_get_profiles(model, ev.pubkey);
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
 	return html`<div class="event border-bottom">
 		<div class="userpic">
-			$${render_pfp(ev.pubkey, profile)}
+			$${render_pfp(ev.pubkey, profile.data)}
 		</div>	
 		<div class="event-content">
 			<div class="info">
-				$${render_name(ev.pubkey, profile)}
+				$${render_name(ev.pubkey, profile.data)}
 				<span class="timestamp" data-timestamp="${ev.created_at}">${delta}</span>
 			</div>
 			<div class="comment">
@@ -132,7 +134,7 @@ function render_reaction_group(model, emoji, reactions, reacting_to) {
 			break;
 		}
 		const pubkey = reactions[k].pubkey;
-		str += render_pfp(pubkey, model.profiles[pubkey], {noclick:true});
+		str += render_pfp(pubkey, model_get_profile(model, pubkey).data, {noclick:true});
 	}
 	let onclick = render_react_onclick(model.pubkey, 
 		reacting_to.id, emoji, reactions);
@@ -149,6 +151,7 @@ function render_action_bar(model, ev, opts={}) {
 	const { pubkey } = model;
 	let { can_delete, shared } = opts;
 	// TODO rewrite all of the toggle heart code. It's mine & I hate it.
+	const thread_root = (ev.refs && ev.refs.root) || ev.id;
 	const reaction = model_get_reacts_to(model, pubkey, ev.id, R_HEART);
 	const liked = !!reaction;
 	const reaction_id = reaction ? reaction.id : "";
@@ -181,7 +184,15 @@ function render_action_bar(model, ev, opts={}) {
 		<img class="icon svg small" src="icon/event-delete.svg"/>
 	</button>` 
 	}
-	return str + "</div>";
+	return str + `
+	<button class="icon" title="View Thread" role="view-event" 
+	onclick="open_thread('${thread_root}')">
+		<img class="icon svg small" src="icon/open-thread.svg"/>
+	</button>
+	<button class="icon" title="View Replies" role="view-event" 
+	onclick="open_thread('${ev.id}')">
+		<img class="icon svg small" src="icon/open-thread-here.svg"/>
+	</button></div>`;
 }
 
 function render_reactions_inner(model, ev) {

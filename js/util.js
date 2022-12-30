@@ -103,16 +103,14 @@ function get_since_time(created_at) {
  * parent element to search on.
  */
 function find_node(selector, parentEl) {
-	const el = parentEl ? parentEl : document;
-	return el.querySelector(selector)
+	return (parentEl || document).querySelector(selector)
 }
 
 /* find_nodes is a short name for document.querySelectorAll, it also takes in a
  * parent element to search on.
  */
 function find_nodes(selector, parentEl) {
-	const el = parentEl ? parentEl : document;
-	return el.querySelectorAll(selector)
+	return (parentEl || document).querySelectorAll(selector);
 }
 
 /* uuidv4 returns a new uuid v4

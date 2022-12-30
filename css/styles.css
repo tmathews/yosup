@@ -239,17 +239,6 @@ button.nav > img.icon {
 	z-index: var(--zPFP);
 	object-fit: cover;
 }
-.pfp.deleted {
-	font-size: 32px;
-	color: var(--clrBg);
-	background: var(--clrText);
-}
-.pfp.deleted > i {
-	top: 40%;
-	left: 50%;
-	position: relative;
-	transform: translateX(-50%) translateY(-50%);
-}
 
 .event-content {
 	flex: 1;
@@ -260,13 +249,8 @@ button.nav > img.icon {
 }
 .event-content > .info button[role="view-event"] {
 	margin-left: 10px;
-	opacity: 0;
-	transition: opacity 0.2s linear;
 }
-.event:hover .event-content > .info button[role="view-event"] {
-	opacity: 0.6;
-}
-.username {
+.username, .thread-id {
 	font-weight: 800;
 	font-size: var(--fsReduced);
 }
@@ -361,19 +345,6 @@ details.cw summary {
 	cursor: pointer;
 	outline: none;
 	margin-bottom: 10px;
-}
-
-/* Thread Expansion */
-.thread-collapsed {
-	padding: 7px; 
-}
-.thread-summary {
-	text-align: center; 
-}
-.thread-summary img.icon {
-	opacity: 0.6;
-	position: relative;
-	top: 1px;
 }
 
 /* Modal */

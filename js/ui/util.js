@@ -62,7 +62,8 @@ function update_notification_markers(active) {
  */
 function show_profile(pk) {
 	switch_view("profile");
-	const profile = DAMUS.profiles[pk];
+	const model = DAMUS;
+	const profile = model_get_profile(model, pk).data;
 	const el = find_node("#profile-view");
 	// TODO show loading indicator then render
 	
@@ -85,7 +86,7 @@ function show_profile(pk) {
 	btn_follow.dataset.pk = pk;
 	// TODO check follow status
 	btn_follow.innerText = 1 == 1 ? "Follow" : "Unfollow";
-	btn_follow.classList.toggle("hide", pk == DAMUS.pubkey);
+	btn_follow.classList.toggle("hide", pk == model.pubkey);
 }
 
 /* newlines_to_br takes a string and converts all newlines to HTML 'br' tags.
@@ -215,7 +216,7 @@ function reply_all(evid) {
 }
 
 function redraw_my_pfp(model) {
-	const p = model.profiles[model.pubkey]
+	const p = model_get_profile(model, model.pubkey).data;
 	const html = render_pfp(model.pubkey, p || {});
 	const el = document.querySelector(".my-userpic");
 	el.innerHTML = html;
@@ -306,23 +307,23 @@ function close_modal(el) {
 }
 
 function view_update_profile(model, pubkey) {
-	const profile = model.profiles[pubkey] || {};
+	const profile = model_get_profile(pubkey);
 	const el = find_node("[role='profile-info']");
 
-	const name = fmt_profile_name(profile, fmt_pubkey(pubkey));
+	const name = fmt_profile_name(profile.data, fmt_pubkey(pubkey));
 	find_node("#view header > label").innerText = name;
-	find_node("[role='profile-image']", el).src = get_picture(pubkey, profile); 
+	find_node("[role='profile-image']", el).src = get_picture(pubkey, profile.data); 
 	find_nodes("[role='profile-name']", el).forEach(el => {
 		el.innerText = name;
 	});
 
 	const el_nip5 = find_node("[role='profile-nip5']", el)
-	el_nip5.innerText = profile.nip05;
-	el_nip5.classList.toggle("hide", !profile.nip05);
+	el_nip5.innerText = profile.data.nip05;
+	el_nip5.classList.toggle("hide", !profile.data.nip05);
 	
 	const el_desc = find_node("[role='profile-desc']", el)
-	el_desc.innerHTML = newlines_to_br(linkify(profile.about));
-	el_desc.classList.toggle("hide", !profile.about);
+	el_desc.innerHTML = newlines_to_br(linkify(profile.data.about));
+	el_desc.classList.toggle("hide", !profile.data.about);
 	
 	find_node("button[role='copy-pk']", el).dataset.pk = pubkey;
 	find_node("button[role='edit-profile']", el)
@@ -331,18 +332,18 @@ function view_update_profile(model, pubkey) {
 	const btn_follow = find_node("button[role='follow-user']", el)
 	btn_follow.dataset.pk = pubkey;
 	// TODO check follow status
-	btn_follow.innerText = contact_is_friend(DAMUS.contacts, pubkey) ? "Unfollow" : "Follow";
-	btn_follow.classList.toggle("hide", pubkey == DAMUS.pubkey);
+	btn_follow.innerText = contact_is_friend(model.contacts, pubkey) ? "Unfollow" : "Follow";
+	btn_follow.classList.toggle("hide", pubkey == model.pubkey);
 }
 
 const PROFILE_FIELDS = ['name', 'picture', 'nip05', 'about'];
 
 function show_profile_editor() {
-	const p = DAMUS.profiles[DAMUS.pubkey];
+	const p = model_get_profile(DAMUS, DAMUS.pubkey);
 	const el = find_node("#profile-editor");
 	el.classList.remove("closed");
 	for (const key of PROFILE_FIELDS) {
-		find_node(`[name='${key}']`, el).value = p[key];
+		find_node(`[name='${key}']`, el).value = p.data[key];
 	}
 }
 

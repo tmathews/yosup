@@ -38,23 +38,22 @@ async function sign_id(privkey, id) {
 }
 
 async function broadcast_related_events(ev) {
-	ev.tags
-		.reduce((evs, tag) => {
-			// cap it at something sane
-			if (evs.length >= 5)
-				return evs
-			const ev = get_tag_event(tag)
-			if (!ev)
-				return evs
+	ev.tags.reduce((evs, tag) => {
+		// cap it at something sane
+		if (evs.length >= 5)
 			return evs
-		}, [])
-		.forEach((ev, i) => {
-			// so we don't get rate limited
-			setTimeout(() => {
-				log_debug("broadcasting related event", ev)
-				broadcast_event(ev)
-			}, (i+1)*1200)
-		})
+		const ev = get_tag_event(tag)
+		if (!ev)
+			return evs
+		return evs
+	}, [])
+	.forEach((ev, i) => {
+		// so we don't get rate limited
+		setTimeout(() => {
+			log_debug("broadcasting related event", ev)
+			broadcast_event(ev)
+		}, (i+1)*1200)
+	});
 }
 
 function broadcast_event(ev) {
@@ -278,12 +277,16 @@ function gather_reply_tags(pubkey, from) {
 }
 
 function get_tag_event(tag) {
+	const model = DAMUS;
 	if (tag.length < 2)
 		return null
 	if (tag[0] === "e")
-		return DAMUS.all_events[tag[1]]
-	if (tag[0] === "p")
-		return DAMUS.all_events[DAMUS.profile_events[tag[1]]]
+		return model.all_events[tag[1]]
+	if (tag[0] === "p") {
+		let profile = model_get_profile(model, tag[1]);
+		if (profile.evid)
+			return model.all_events[profile.evid];
+	}
 	return null
 }
 
