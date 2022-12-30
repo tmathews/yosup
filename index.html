@@ -17,6 +17,7 @@
 		<script defer src="js/ui/render.js?v=15"></script>
 		<script defer src="js/ui/state.js?v=1"></script>
 		<script defer src="js/ui/fmt.js?v=1"></script>
+		<script defer src="js/ui/settings.js?v=1"></script>
 		<script defer src="js/noble-secp256k1.js?v=1"></script>
 		<script defer src="js/bech32.js?v=1"></script>
 		<script defer src="js/nostr.js?v=7"></script>
@@ -69,11 +70,10 @@
 				<img class="icon svg invert" src="icon/notifications.svg"/>
 				<div class="new-notifications hide"></div>
 			</button>
-			<button class="icon" role="sign-out" title="Sign Out" onclick="press_logout()">
-				<img class="icon svg invert" src="icon/sign-out.svg"/>
+			<button class="icon" role="settings" title="Settings" onclick="switch_view('settings')">
+				<img class="icon svg invert" src="icon/settings.svg"/>
 			</button>
 		</nav>
-
 		<div id="container">
 			<div class="flex-fill vertical-hide"></div>
 			<div id="nav" class="flex-noshrink vertical-hide">
@@ -97,11 +97,14 @@
 						<img class="icon svg active" src="icon/notifications-active.svg"/>
 						<div class="new-notifications hide"></div>
 					</button>
-					<button title="Sign Out" class="nav icon" onclick="press_logout()">
-						<img class="icon svg" src="icon/sign-out.svg"/>
+					<button role="settings" title="Sign Out" class="nav icon"
+						onclick="switch_view('settings')">
+						<img class="icon svg inactive" src="icon/settings.svg"/>
+						<img class="icon svg active" src="icon/settings-active.svg"/>
 					</button>
 				</div>
 			</div>
+
 			<div id="view">
 				<div>
 					<header>
@@ -161,6 +164,42 @@
 							Show New (<span role="count">0</span>)</button>
 					</div>
 					<div id="timeline" class="events"></div>
+					<div id="settings" class="hide">
+						<section>
+							<header>
+								<label>Relays</label>
+								<button id="add-relay" class="btn-text">
+									<img class="svg icon small" src="icon/add-relay.svg"/>
+								</button>
+							</header>
+							<table id="relay-list" class="row">
+								<thead>
+									<tr>
+										<td>Address</td>
+										<td>Option</td>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</section>
+						<section>
+							<header><label>Miscellanious</label></header>
+							<div class="row">
+								<label>
+									Show Embeds From Everyone
+									<input type="checkbox" name="show_embeds"/>	
+								<label>
+							</div>
+							<div class="row">
+							<button class="action mr-some" role='about-nostr'>Read About Nostr</button>
+							<button class="action" role="sign-out">
+								Sign Out
+								<img class="icon svg small invert" src="icon/sign-out.svg"/>
+							</button>
+							</row>
+						</section>
+					</div>
 				</div>
 			</div>
 			<div class="flex-fill vertical-hide"></div>

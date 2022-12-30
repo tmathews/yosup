@@ -1,8 +1,9 @@
-const VM_FRIENDS = "friends"; // mine + only events that are from my contacts
-const VM_EXPLORE = "explore"; // all events
+const VM_FRIENDS       = "friends"; // mine + only events that are from my contacts
+const VM_EXPLORE       = "explore"; // all events
 const VM_NOTIFICATIONS = "notifications";  // reactions & replys
-const VM_THREAD = "thread"; // all events in response to target event
-const VM_USER = "user"; // all events by pubkey 
+const VM_THREAD        = "thread"; // all events in response to target event
+const VM_USER          = "user"; // all events by pubkey 
+const VM_SETTINGS      = "settings";
 
 function view_get_timeline_el() {
 	return find_node("#timeline");
@@ -51,15 +52,24 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	names[VM_NOTIFICATIONS] = "Notifications";
 	names[VM_USER] = "Profile";
 	names[VM_THREAD] = "Thread";
+	names[VM_SETTINGS] = "Settings";
 
 	// Do some visual updates
 	find_node("#view header > label").innerText = names[mode];
 	find_node("#nav > div[data-active]").dataset.active = names[mode].toLowerCase();
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
 	find_node("#newpost").classList.toggle("hide", mode != VM_FRIENDS);
-	find_node("#timeline").classList.toggle("reverse", mode == VM_THREAD);
+	const timeline_el = find_node("#timeline");
+	timeline_el.classList.toggle("reverse", mode == VM_THREAD);
+	timeline_el.classList.toggle("hide", mode == VM_SETTINGS);
+	find_node("#settings").classList.toggle("hide", mode != VM_SETTINGS);
 
 	view_timeline_refresh(model, mode, opts);
+
+	if (mode == VM_SETTINGS) {
+		view_show_spinner(false);
+		view_set_show_count(0, true, true);
+	}
 	
 	return mode;
 }

@@ -20,6 +20,27 @@ a {
 a:visited {
 	color: var(--clrLinkVisited);
 }
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+thead {
+	font-weight: bold;
+}
+th, td {
+	padding: 5px 0;
+	font-size: var(--fsNormal);
+}
+
+.row { 
+	margin: 15px 0;
+}
+.mr-some {
+	margin-right: 15px;
+}
+.align-right {
+	text-align: right;
+}
 
 #gsticker {
 	position: absolute;
@@ -163,14 +184,14 @@ button.nav > img.icon {
 	width: 750px;
 	min-height: 100vh;
 }
-#view header {
+#view > div > header {
 	position: sticky;
 	top: 0;
 	z-index: var(--zHeader);
 	backdrop-filter: blur(20px);
 	-webkit-backdrop-filter: blur(20px);
 }
-#view header > label {
+#view > div > header > label {
 	padding: 15px;
 	font-size: 22px;
 	font-weight: 800;
@@ -484,6 +505,16 @@ label[role="profile-nip5"] {
 	margin: 15px 0;
 }
 
+/* Settings */
+
+#settings section {
+	margin: 15px;
+}
+#settings header > label {
+	font-weight: bold;
+	font-size: var(--fsEnlarged);
+}
+
 /* Inputs */
 
 .block {
@@ -491,6 +522,11 @@ label[role="profile-nip5"] {
 }
 .w100 {
 	width: 100%;
+}
+
+/* Prevent events from inside button sub elements */
+button > * {
+	pointer-events: none;
 }
 
 input[type="text"] {

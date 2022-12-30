@@ -102,8 +102,12 @@ function render_event_body(model, ev, opts) {
 	const can_delete = model.pubkey === ev.pubkey || 
 		(opts.shared && model.pubkey == opts.shared.pubkey);
 	// Only show media for content that is by friends.
-	const show_media = !opts.is_composing &&  
-		model.contacts.friends.has(ev.pubkey); 
+	let show_media = true;
+	if (opts.is_composing) {
+		show_media = false;
+	} else if (model.embeds == "friends") {
+		show_media = model.contacts.friends.has(ev.pubkey);
+	}
 	let str = "<div>";
 	str += shared ? render_shared_by(ev, opts) : render_replying_to(model, ev);
 	str += `</div><p>

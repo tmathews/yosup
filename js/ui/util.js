@@ -163,14 +163,6 @@ function close_reply() {
 	modal.classList.add("closed");
 }
 
-async function press_logout() {
-	if (confirm("Are you sure you want to sign out?")) {
-		localStorage.clear();
-		await dbclear();
-		window.location.reload();
-	}
-}
-
 function delete_post_confirm(evid) {
 	if (!confirm("Are you sure you want to delete this post?"))
 		return;

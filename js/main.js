@@ -1,11 +1,5 @@
 let DAMUS = new_model();
 
-const BOOTSTRAP_RELAYS = [
-	"wss://relay.damus.io",
-	"wss://nostr-relay.wlvs.space",
-	"wss://nostr-pub.wellorder.net",
-]
-
 // TODO autogenerate these constants with a bash script
 const IMG_EVENT_LIKED = "icon/event-liked.svg";
 const IMG_EVENT_LIKE  = "icon/event-like.svg";
@@ -87,8 +81,10 @@ async function webapp_init() {
 		window.alert("Unable to load contacts.");
 	}
 
+	init_settings(model);
+
 	// Create our pool so that event processing functions can work
-	const pool = nostrjs.RelayPool(BOOTSTRAP_RELAYS);
+	const pool = nostrjs.RelayPool(model.relays);
 	model.pool = pool
 	pool.on("open", on_pool_open);
 	pool.on("event", on_pool_event);

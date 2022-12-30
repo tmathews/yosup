@@ -290,6 +290,8 @@ async function model_save_settings(model) {
 			store.put({
 				pubkey: model.pubkey,
 				notifications_last_viewed: model.notifications.last_viewed,
+				relays: Array.from(model.relays),
+				embeds: model.embeds,
 			});
 		};
 	}
@@ -306,6 +308,9 @@ async function model_load_settings(model) {
 			const settings = ev.target.result;
 			if (settings) {
 				model.notifications.last_viewed = settings.notifications_last_viewed;
+				if (settings.length) 
+					model.relays = new Set(settings.relays);
+				model.embeds = settings.embeds ? settings.embeds : "friends";
 			}
 			db.close();
 			resolve();
@@ -377,16 +382,6 @@ function new_model() {
 			last_viewed: 0, // time since last looking at notifications
 			count: 0, // the number not seen  since last looking
 		},
-		max_depth: 2,
-		reactions_to: {},
-		
-		unknown_ids: {},
-		unknown_pks: {},
-		but_wait_theres_more: 0,
-		
-		deletions: {},
-		deleted: {},
-		pow: 0, // pow difficulty target
 		profiles: new Map(), // pubkey => profile data
 		contacts: {
 			event: null,
@@ -396,5 +391,17 @@ function new_model() {
 		invalidated: [], // event ids which should be added/removed
 		elements: {}, // map of evid > rendered element
 		relay_que: new Map(),
+		relays: new Set([
+			"wss://relay.damus.io",
+			"wss://nostr-relay.wlvs.space",
+			"wss://nostr-pub.wellorder.net",
+		]),
+		embeds: "friends", // friends, everyone
+		
+		max_depth: 2,
+		reactions_to: {},
+		deletions: {},
+		deleted: {},
+		pow: 0, // pow difficulty target
 	};
 }
