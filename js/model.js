@@ -203,35 +203,6 @@ function model_remove_reaction(model, evid, update_view) {
 		view_timeline_update_reaction(model, target_ev);
 }
 
-/* model_event_has_unknown_ids checks the event if there are any referenced keys with
- * unknown user profiles in the provided scope.
- */
-function model_event_has_unknown_ids(damus, ev) {
-	// make sure this event itself is removed from unknowns
-	if (ev.kind === 0)
-		delete damus.unknown_pks[ev.pubkey]
-	delete damus.unknown_ids[ev.id]
-	let got_some = false
-	for (const tag of ev.tags) {
-		if (tag.length >= 2) {
-			if (tag[0] === "p") {
-				const pk = tag[1]
-				if (!model_has_profile(damus, pk) && is_valid_id(pk)) {
-					got_some = true
-					damus.unknown_pks[pk] = make_unk(tag[2], ev)
-				}
-			} else if (tag[0] === "e") {
-				const evid = tag[1]
-				if (!model_has_event(damus, evid) && is_valid_id(evid)) {
-					got_some = true
-					damus.unknown_ids[evid] = make_unk(tag[2], ev)
-				}
-			}
-		}
-	}
-	return got_some
-}
-
 function model_is_event_deleted(model, evid) {
 	// we've already know it's deleted
 	if (model.deleted[evid])
