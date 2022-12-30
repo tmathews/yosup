@@ -307,7 +307,7 @@ function close_modal(el) {
 }
 
 function view_update_profile(model, pubkey) {
-	const profile = model_get_profile(pubkey);
+	const profile = model_get_profile(model, pubkey);
 	const el = find_node("[role='profile-info']");
 
 	const name = fmt_profile_name(profile.data, fmt_pubkey(pubkey));
