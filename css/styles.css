@@ -157,7 +157,7 @@ button.nav > img.icon {
 #gnav.open button[role="notifications"] .new-notifications {
 	right: 9px;
 }
-#gnav.open button[role="sign-out"] {
+#gnav.open button[role="settings"] {
 	top: -75px;
 }
 
