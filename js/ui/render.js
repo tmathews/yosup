@@ -133,13 +133,14 @@ function render_reaction_group(model, emoji, reactions, reacting_to) {
 	let str = "";
 	for (const k in reactions) {
 		count++;
-		if (count > 5) {
-			str = `${count}`;
-			break;
-		}
+		if (count > 5)
+			continue;
 		const pubkey = reactions[k].pubkey;
-		str += render_pfp(pubkey, model_get_profile(model, pubkey).data, {noclick:true});
+		str += render_pfp(pubkey, model_get_profile(model, pubkey).data, 
+			{noclick:true});
 	}
+	if (count > 5)
+		str = `${count}`;
 	let onclick = render_react_onclick(model.pubkey, 
 		reacting_to.id, emoji, reactions);
 	return html`
