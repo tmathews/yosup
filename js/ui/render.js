@@ -79,7 +79,7 @@ function render_event(model, ev, opts={}) {
 }
 
 function render_event_nointeract(model, ev, opts={}) {
-	const profile = model_get_profiles(model, ev.pubkey);
+	const profile = model_get_profile(model, ev.pubkey);
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
 	return html`<div class="event border-bottom">
 		<div class="userpic">
@@ -181,14 +181,7 @@ function render_action_bar(model, ev, opts={}) {
 			<img class="icon svg small" src="icon/event-share.svg"/>
 		</button>`;
 	}
-	if (can_delete) {
-		const delete_id = shared ? shared.share_evid : ev.id;
-		str += html`
-	<button class="icon" title="Delete" onclick="delete_post_confirm('${delete_id}')">
-		<img class="icon svg small" src="icon/event-delete.svg"/>
-	</button>` 
-	}
-	return str + `
+	str += `
 	<button class="icon" title="View Thread" role="view-event" 
 	onclick="open_thread('${thread_root}')">
 		<img class="icon svg small" src="icon/open-thread.svg"/>
@@ -196,7 +189,15 @@ function render_action_bar(model, ev, opts={}) {
 	<button class="icon" title="View Replies" role="view-event" 
 	onclick="open_thread('${ev.id}')">
 		<img class="icon svg small" src="icon/open-thread-here.svg"/>
-	</button></div>`;
+	</button>`;
+	if (can_delete) {
+		const delete_id = shared ? shared.share_evid : ev.id;
+		str += html`
+	<button class="icon" title="Delete" onclick="delete_post_confirm('${delete_id}')">
+		<img class="icon svg small" src="icon/event-delete.svg"/>
+	</button>` 
+	}
+	return str + "</div>";
 }
 
 function render_reactions_inner(model, ev) {
