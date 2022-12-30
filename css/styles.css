@@ -100,12 +100,14 @@ th, td {
 }
 #nav > div[data-active="home"] [role="home"] img.inactive,
 #nav > div[data-active="explore"] [role="explore"] img.inactive,
-#nav > div[data-active="notifications"] [role="notifications"] img.inactive {
+#nav > div[data-active="notifications"] [role="notifications"] img.inactive,
+#nav > div[data-active="settings"] [role="settings"] img.inactive {
 	display: none;
 }
 #nav > div[data-active="home"] [role="home"] img.active,
 #nav > div[data-active="explore"] [role="explore"] img.active,
-#nav > div[data-active="notifications"] [role="notifications"] img.active {
+#nav > div[data-active="notifications"] [role="notifications"] img.active,
+#nav > div[data-active="settings"] [role="settings"] img.active {
 	display: block;
 }
 #app-icon-logo > img {
