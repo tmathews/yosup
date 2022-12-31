@@ -147,10 +147,12 @@ async function send_post() {
 }
 
 function new_reply_tags(ev) {
-	return [
-		["e", ev.id, "", "reply"],
-		["p", ev.pubkey],
-	];
+	const tags = [["e", ev.id, "", "reply"]];
+	if (ev.refs.root) {
+		tags.push(["e", ev.refs.root, "", "root"]);	
+	}
+	tags.push(["p", ev.pubkey]);
+	return tags;
 }
 
 async function create_reply(pubkey, content, ev, all=true) {
