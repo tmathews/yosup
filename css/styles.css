@@ -507,6 +507,15 @@ label[role="profile-nip5"] {
 	margin: 15px 0;
 }
 
+/* Event Preview */
+
+#event-details .modal-content > div {
+	overflow: scroll;
+}
+code {
+	tab-size: 4;
+}
+
 /* Settings */
 
 #settings section {

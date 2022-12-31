@@ -183,13 +183,17 @@ function render_action_bar(model, ev, opts={}) {
 		</button>`;
 	}
 	str += `
-	<button class="icon" title="View Thread" role="view-event" 
+	<button class="icon" title="View Thread" role="view-thread" 
 	onclick="open_thread('${thread_root}')">
 		<img class="icon svg small" src="icon/open-thread.svg"/>
 	</button>
-	<button class="icon" title="View Replies" role="view-event" 
+	<button class="icon" title="View Replies" role="view-replies" 
 	onclick="open_thread('${ev.id}')">
 		<img class="icon svg small" src="icon/open-thread-here.svg"/>
+	</button>
+	<button class="icon" title="View Event JSON" role="view-event-json" 
+	onclick="on_click_show_event_details('${ev.id}')">
+		<img class="icon svg small" src="icon/event-details.svg"/>
 	</button>`;
 	if (can_delete) {
 		const delete_id = shared ? shared.share_evid : ev.id;

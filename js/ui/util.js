@@ -353,3 +353,13 @@ function click_update_profile() {
 	close_modal(el);
 	// TODO show toast that say's "broadcasted!"
 }
+
+function on_click_show_event_details(evid) {
+	const model = DAMUS;
+	const ev = model.all_events[evid];
+	if (!ev)
+		return;
+	const el = find_node("#event-details");
+	el.classList.remove("closed");
+	find_node("code", el).innerText = JSON.stringify(ev, null, "\t");
+}
