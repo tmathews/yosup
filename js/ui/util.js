@@ -342,13 +342,12 @@ function show_profile_editor() {
 function click_update_profile() {
 	const el = find_node("#profile-editor");
 	const btn = find_node("button.action", el);
-	const p = {
+	const p = Object.assign({}, model_get_profile(DAMUS, DAMUS.pubkey).data, {
 		name: find_node("input[name='name']", el).value,
 		picture: find_node("input[name='picture']", el).value,
 		nip05: find_node("input[name='nip05']", el).value,
 		about: find_node("textarea[name='about']", el).value,
-	};
-	Object.assign(p, model_get_profile(DAMUS, DAMUS.pubkey).data, p);
+	});
 	update_profile(p);
 	close_modal(el);
 	// TODO show toast that say's "broadcasted!"
