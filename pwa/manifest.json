@@ -11,6 +11,11 @@
 		{
 			"src": "../icon/icon.svg",
 			"sizes": "any",
+			"type": "image/svg+xml"
+		},
+		{
+			"src": "../icon/icon-maskable.svg",
+			"sizes": "any",
 			"type": "image/svg+xml",
 			"purpose": "maskable any"
 		}, 
