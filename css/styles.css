@@ -276,6 +276,7 @@ button.nav > img.icon {
 .username, .thread-id {
 	font-weight: 800;
 	font-size: var(--fsReduced);
+	word-break: break-word;
 }
 .chatroom-name {
 	font-weight: bold;
@@ -407,6 +408,7 @@ details.cw summary {
 	font-weight: 800;
 	font-size: var(--fsEnlarged);
 	flex: 1;
+	word-break: break-word;
 }
 .modal header button {
 	font-size: 24px;
