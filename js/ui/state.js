@@ -1,6 +1,8 @@
 const VM_FRIENDS       = "friends"; // mine + only events that are from my contacts
 const VM_EXPLORE       = "explore"; // all events
 const VM_NOTIFICATIONS = "notifications";  // reactions & replys
+const VM_DM            = "dm"; // all events of KIND_DM aimmed at user 
+const VM_DM_THREAD     = "dmthread"; // all events from a user of KIND_DM 
 const VM_THREAD        = "thread"; // all events in response to target event
 const VM_USER          = "user"; // all events by pubkey 
 const VM_SETTINGS      = "settings";
@@ -27,6 +29,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	// Don't do anything if we are already here
 	if (el.dataset.mode == mode) {
 		switch (mode) {
+			case VM_DM_THREAD:
 			case VM_USER:
 				if (el.dataset.pubkey == opts.pubkey)
 					return;
@@ -39,7 +42,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 				return;
 		}
 	}
-
+	
 	// Push a new state to the browser history stack
 	if (push_state)
 		history.pushState({mode, opts}, '');
@@ -49,7 +52,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 		view_show_spinner(true);
 		fetch_thread_history(thread_id, model.pool);
 	}
-	if (pubkey && pubkey != model.pubkey) {
+	if (mode == VM_USER && pubkey && pubkey != model.pubkey) {
 		view_show_spinner(true);
 		fetch_profile(pubkey, model.pool);
 	}
@@ -57,11 +60,26 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 		reset_notifications(model);
 	}
 
+	const names = {};
+	names[VM_FRIENDS] = "Home";
+	names[VM_EXPLORE] = "Explore";
+	names[VM_NOTIFICATIONS] = "Notifications";
+	names[VM_DM] = "Messages (Alpha)";
+	names[VM_DM_THREAD] = "Messages";
+	names[VM_USER] = "Profile";
+	names[VM_THREAD] = "Thread";
+	names[VM_SETTINGS] = "Settings";
+	let name = names[mode];
+	let profile;
+
 	el.dataset.mode = mode;
 	switch(mode) {
 		case VM_THREAD:
 			el.dataset.threadId = thread_id;
 		case VM_USER:
+		case VM_DM_THREAD:
+			profile = model_get_profile(model, pubkey);
+			name = fmt_name(profile);
 			el.dataset.pubkey = pubkey;
 			break;
 		default:
@@ -70,29 +88,42 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 			break;
 	}
 
-	const names = {};
-	names[VM_FRIENDS] = "Home";
-	names[VM_EXPLORE] = "Explore";
-	names[VM_NOTIFICATIONS] = "Notifications";
-	names[VM_USER] = "Profile";
-	names[VM_THREAD] = "Thread";
-	names[VM_SETTINGS] = "Settings";
-
 	// Do some visual updates
-	find_node("#view header > label").innerText = names[mode];
+	find_node("#view header > label").innerText = name;
 	find_node("#nav > div[data-active]").dataset.active = names[mode].toLowerCase();
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
-	find_node("#newpost").classList.toggle("hide", mode != VM_FRIENDS);
+	find_node("#newpost").classList.toggle("hide", mode != VM_FRIENDS && mode != VM_DM_THREAD);
 	const timeline_el = find_node("#timeline");
 	timeline_el.classList.toggle("reverse", mode == VM_THREAD);
-	timeline_el.classList.toggle("hide", mode == VM_SETTINGS);
+	timeline_el.classList.toggle("hide", mode == VM_SETTINGS || mode == VM_DM);
 	find_node("#settings").classList.toggle("hide", mode != VM_SETTINGS);
+	find_node("#dms").classList.toggle("hide", mode != VM_DM);
+	find_node("#dms-not-available")
+		.classList.toggle("hide", mode == VM_DM_THREAD || mode == VM_DM ? 
+			dms_available() : true);
+
+	// Show/hide different profile image in header
+	el_their_pfp = find_node("#view header > img.pfp[role='their-pfp']");
+	el_their_pfp.classList.toggle("hide", mode != VM_DM_THREAD);
+	find_node("#view header > img.pfp[role='my-pfp']")
+		.classList.toggle("hide", mode == VM_DM_THREAD);
 
 	view_timeline_refresh(model, mode, opts);
 
-	if (mode == VM_SETTINGS) {
-		view_show_spinner(false);
-		view_set_show_count(0, true, true);
+	switch (mode) {
+		case VM_DM_THREAD:
+			decrypt_dms(model);
+			el_their_pfp.src = get_profile_pic(profile);
+			el_their_pfp.dataset.pubkey = pubkey;
+			break;
+		case VM_DM:
+			decrypt_dms(model);
+			view_dm_update(model);
+			break;
+		case VM_SETTINGS:
+			view_show_spinner(false);
+			view_set_show_count(0, true, true);
+			break;
 	}
 	
 	return mode;
@@ -112,7 +143,9 @@ function view_timeline_refresh(model, mode, opts={}) {
 	el.innerHTML = "";
 	// Build DOM fragment and render it 
 	let count = 0;
-	const evs = model_events_arr(model)
+	const evs = mode == VM_DM_THREAD ? 
+		model_get_dm(model, opts.pubkey).events.concat().reverse() : 
+		model_events_arr(model);
 	const fragment = new DocumentFragment();
 	for (let i = evs.length - 1; i >= 0 && count < 1000; i--) {
 		const ev = evs[i];
@@ -149,6 +182,7 @@ function view_timeline_update(model) {
 
 	let count = 0;
 	let ncount = 0;
+	let decrypted = false;
 	const latest_ev = el.firstChild ? 
 		model.all_events[el.firstChild.id.slice(2)] : undefined;
 	const left_overs = [];
@@ -165,9 +199,16 @@ function view_timeline_update(model) {
 			continue;
 		}
 
-		// Skip non-renderables and already created
+		// Skip non-renderables
 		var ev = model.all_events[evid];
-		if (!event_is_renderable(ev) || model.elements[evid]) {
+		if (!event_is_renderable(ev)) {
+			continue;
+		}
+
+		// Re-render content of a decrypted dm
+		if (ev.kind == KIND_DM && model.elements[evid]) {
+			rerender_dm(model, ev, model.elements[evid]);
+			decrypted = true;
 			continue;
 		}
 
@@ -204,6 +245,10 @@ function view_timeline_update(model) {
 		log_debug(`new notis ${ncount}`);
 		model.notifications.count += ncount;
 		update_notifications(model);
+	}
+	// Update the dms list view
+	if (decrypted) {
+		view_dm_update(model);
 	}
 }
 
@@ -251,6 +296,7 @@ function view_timeline_show_new(model) {
 	}
 	view_set_show_count(-count, true);
 	view_timeline_update_timestamps();
+	if (mode == VM_DM_THREAD) decrypt_dms(model);
 }
 
 function view_render_event(model, ev, force=false) {
@@ -269,29 +315,42 @@ function view_render_event(model, ev, force=false) {
 }
 
 function view_timeline_update_profiles(model, pubkey) {
-	let xs, html;
 	const el = view_get_timeline_el();
 	const p = model_get_profile(model, pubkey);
-	const name = fmt_profile_name(p.data, fmt_pubkey(pubkey));
-	const pic = get_picture(pubkey, p.data)
+	const name = fmt_name(p);
+	const pic = get_profile_pic(p);
 	for (const evid in model.elements) {
 		if (!event_contains_pubkey(model.all_events[evid], pubkey))
 			continue;
-		const el = model.elements[evid];
-		let xs;
-		xs = find_nodes(`.username[data-pubkey='${pubkey}']`, el)
-		xs.forEach((el)=> {
-			el.innerText = name;
-		});
-		xs = find_nodes(`img[data-pubkey='${pubkey}']`, el)
-		xs.forEach((el)=> {
-			el.src = pic;
-		});
+		update_el_profile(model.elements[evid], pubkey, name, pic);	
 	}
 	// Update the profile view if it's active
-	if (el.dataset.mode == VM_USER && el.dataset.pubkey == pubkey) {
-		view_update_profile(model, pubkey);
+	if (el.dataset.pubkey == pubkey) {
+		const mode = el.dataset.mode;
+		switch (mode) {
+			case VM_USER:
+				view_update_profile(model, pubkey);
+			case VM_DM_THREAD:
+				find_node("#view header > label").innerText = name;
+		}
 	}
+	// Update dm's section since they are not in our view, dm's themselves will
+	// be caught by the process above.
+	update_el_profile(find_node("#dms"), pubkey, name, pic);
+	update_el_profile(find_node("#view header"), pubkey, name, pic);
+	update_el_profile(find_node("#newpost"), pubkey, name, pic);
+}
+
+function update_el_profile(el, pubkey, name, pic) {
+	if (!el)
+		return;
+	find_nodes(`.username[data-pubkey='${pubkey}']`, el).forEach((el)=> {
+		el.innerText = name;
+	});
+	find_nodes(`img[data-pubkey='${pubkey}']`, el).forEach((el)=> {
+		el.src = pic;
+		el.title = name;
+	});
 }
 
 function view_timeline_update_timestamps() {
@@ -336,6 +395,9 @@ function view_timeline_update_reaction(model, ev) {
 }
 
 function view_mode_contains_event(model, ev, mode, opts={}) {
+	if (mode != VM_DM_THREAD && ev.kind == KIND_DM) {
+		return false;
+	}
 	switch(mode) {
 		case VM_EXPLORE:
 			return ev.kind != KIND_REACTION;
@@ -349,13 +411,19 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 				ev.refs.root == opts.thread_id ||
 				ev.refs.reply == opts.thread_id));
 		case VM_NOTIFICATIONS:
-			return event_refs_pubkey(ev, model.pubkey);
+			return event_tags_pubkey(ev, model.pubkey);
+		case VM_DM_THREAD:
+			if (ev.kind != KIND_DM) return false;
+			return (ev.pubkey == opts.pubkey && 
+				event_tags_pubkey(ev, model.pubkey)) || 
+				(ev.pubkey == model.pubkey &&
+				event_tags_pubkey(ev, opts.pubkey));
 	}
 	return false;
 }
 
 function event_is_renderable(ev={}) {
-	return ev.kind == KIND_NOTE || ev.kind == KIND_SHARE;
+	return ev.kind == KIND_NOTE || ev.kind == KIND_SHARE || ev.kind == KIND_DM;
 }
 
 function get_default_max_depth(damus, view) {
@@ -364,18 +432,17 @@ function get_default_max_depth(damus, view) {
 
 function get_thread_max_depth(damus, view, root_id) {
 	if (!view.depths[root_id])
-		return get_default_max_depth(damus, view)
-
-	return view.depths[root_id]
+		return get_default_max_depth(damus, view);
+	return view.depths[root_id];
 }
 
 function get_thread_root_id(damus, id) {
-	const ev = damus.all_events[id]
+	const ev = damus.all_events[id];
 	if (!ev) {
 		log_debug("expand_thread: no event found?", id)
-		return null
+		return null;
 	}
-	return ev.refs && ev.refs.root
+	return ev.refs && ev.refs.root;
 }
 
 function switch_view(mode, opts) {
@@ -389,3 +456,89 @@ function reset_notifications(model) {
 	update_notifications(model);
 }
 
+function html2el(html) {
+	const div = document.createElement("div");
+	div.innerHTML = html;
+	return div.firstChild;
+}
+
+function init_my_pfp(model) {
+	find_nodes(`img[role='my-pfp']`).forEach((el)=> {
+		el.dataset.pubkey = model.pubkey;
+		el.addEventListener("error", onerror_pfp);
+		el.addEventListener("click", onclick_pfp);
+		el.classList.add("clickable");
+	});
+	find_nodes(`img[role='their-pfp']`).forEach((el)=> {
+		el.addEventListener("error", onerror_pfp);
+		el.addEventListener("click", onclick_pfp);
+		el.classList.add("clickable");
+	});
+}
+
+function init_postbox(model) {
+	const el = find_node("#newpost");
+	find_node("textarea", el).addEventListener("input", oninput_post);
+	find_node("button[role='send']").addEventListener("click", onclick_send);
+	find_node("button[role='toggle-cw']")
+		.addEventListener("click", onclick_toggle_cw);
+}
+async function onclick_send(ev) {
+	const el = view_get_timeline_el();
+	const mode = el.dataset.mode;
+	const pubkey = await get_pubkey();
+	const el_input = document.querySelector("#post-input");
+	const el_cw = document.querySelector("#content-warning-input");
+	let post = {
+		pubkey,
+		kind: KIND_NOTE,
+		created_at: new_creation_time(),
+		content: el_input.value,
+		tags: el_cw.value ? [["content-warning", el_cw.value]] : [],
+	}
+
+	// Handle DM type post
+	if (mode == VM_DM_THREAD) {
+		if (!dms_available()) {
+			window.alert("DMing not available.");
+			return;
+		}
+		post.kind = KIND_DM;
+		const target = el.dataset.pubkey;
+		post.tags.splice(0, 0, ["p", target]);
+		post.content = await window.nostr.nip04.encrypt(target, post.content);
+	}
+
+	// Send it
+	post.id = await nostrjs.calculate_id(post)
+	post = await sign_event(post)
+	broadcast_event(post);
+
+	// Reset UI
+	el_input.value = "";
+	el_cw.value = "";
+	trigger_postbox_assess(el_input);	
+}
+/* oninput_post checks the content of the textarea and updates the size
+ * of it's element. Additionally I will toggle the enabled state of the sending
+ * button.
+ */
+function oninput_post(ev) {
+	trigger_postbox_assess(ev.target);
+}
+function trigger_postbox_assess(el) { 
+	el.style.height = `0px`;
+	el.style.height = `${el.scrollHeight}px`;
+	let btn = el.parentElement.querySelector("button[role=send]");
+	if (btn) btn.disabled = el.value === "";
+}
+/* toggle_cw changes the active stage of the Content Warning for a post. It is
+ * relative to the element that is pressed.
+ */
+function onclick_toggle_cw(ev) {
+	const el = ev.target;
+	el.classList.toggle("active");
+    const isOn = el.classList.contains("active");
+	const input = el.parentElement.querySelector("input.cw");
+	input.classList.toggle("hide", !isOn);
+}

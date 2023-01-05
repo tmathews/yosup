@@ -27,6 +27,9 @@ function model_process_event(model, relay, ev) {
 		case KIND_REACTION:
 			fn = model_process_event_reaction;
 			break;
+		case KIND_DM:
+			fn = model_process_event_dm;
+			break;
 	}
 	if (fn)
 		fn(model, ev, !!relay);
@@ -45,9 +48,6 @@ function model_process_event(model, relay, ev) {
 			model_que_profile(model, relay, pubkey);
 		}
 	});
-	
-	// TODO fetch unknown referenced events & pubkeys from this event
-	// TODO notify user of new events aimed at them!
 }
 
 function model_get_relay_que(model, relay) {
@@ -123,9 +123,9 @@ function model_process_event_metadata(model, ev, update_view) {
 	// If it's my pubkey let's redraw my pfp that is not located in the view
 	// This has to happen regardless of update_view because of the it's not 
 	// related to events
-	if (profile.pubkey == model.pubkey) {
+	/*if (profile.pubkey == model.pubkey) {
 		redraw_my_pfp(model);
-	}
+	}*/
 }
 
 function model_has_profile(model, pk) {
@@ -151,6 +151,76 @@ function model_process_event_following(model, ev, update_view) {
 	// I find this wierd since I may never want to do that and only have that
 	// information provided by the client - to be better understood
 //	load_our_relays(model.pubkey, model.pool, ev)
+}
+
+function event_is_dm(ev, mykey) {
+	if (ev.kind != KIND_DM)
+		return false;
+	if (ev.pubkey != mykey && event_tags_pubkey(ev, mykey))
+		return true;
+	return ev.pubkey == mykey;
+}
+
+/* model_process_event_dm updates the internal dms hash map based on dms
+ * targeted at the user.
+ */
+function model_process_event_dm(model, ev, update_view) {
+	if (!event_is_dm(ev, model.pubkey))
+		return;
+	// We have to identify who the target DM is for since we are also in the 
+	// chat. We simply use the first non-us key we find as the target. I am not
+	// sure that multi-sig chats are possible at this time in the spec. If no 
+	// target, it's a bad DM.
+	let target;
+	const keys = event_get_pubkeys(ev);
+	for (let key of keys) {
+		target = key;
+		if (key == model.pubkey)
+			continue;
+		break;
+	}
+	if (!target)
+		return;
+	let dm = model_get_dm(model, target);
+	dm.needs_decryption = true;
+	dm.needs_redraw = true;
+	// It may be faster to not use binary search due to the newest always being
+	// at the front - but I could be totally wrong. Potentially it COULD be 
+	// slower during history if history is imported ASCENDINGLY. But anything 
+	// after this will always be faster and is insurance (race conditions).
+	let i = 0;
+	for (; i < dm.events.length; i++) {
+		const b = dm.events[i];
+		if (ev.created_at > b.created_at)
+			break;
+	}
+	dm.events.splice(i, 0, ev);
+
+	// Check if DM is new
+	const b = model.all_events[dm.last_seen];
+	if (!b || b.created_at < ev.created_at) {
+		// TODO update notification UI 
+		dm.new_count++;
+	}
+}
+
+function model_get_dm(model, target) {
+	if (!model.dms.has(target)) {
+		// TODO think about using "pubkey:subject" so we have threads
+		model.dms.set(target, {
+			pubkey: target,
+			// events is an ordered list (new to old) of events referenced from
+			// all_events. It should not be a copy to reduce memory.
+			events: [], 
+			// Last read event by the client/user
+			last_seen: "", 
+			new_count: 0,
+			// Notifies the renderer that this dm is out of date
+			needs_redraw: false,
+			needs_decryption: false,
+		});
+	}
+	return model.dms.get(target);
 }
 
 /* model_process_event_reaction updates the reactions dictionary
@@ -388,6 +458,7 @@ function new_model() {
 			friends: new Set(),
 			friend_of_friends: new Set(),
 		},
+		dms: new Map(), // pubkey => event list
 		invalidated: [], // event ids which should be added/removed
 		elements: {}, // map of evid > rendered element
 		relay_que: new Map(),

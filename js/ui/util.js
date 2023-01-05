@@ -3,16 +3,6 @@
  * this file grows specific UI area code should be migrated to its own file.
  */
 
-/* toggle_cw changes the active stage of the Content Warning for a post. It is
- * relative to the element that is pressed.
- */
-function toggle_cw(el) {
-	el.classList.toggle("active");
-    const isOn = el.classList.contains("active");
-	const input = el.parentElement.querySelector("input.cw");
-	input.classList.toggle("hide", !isOn);
-}
-
 /* toggle_gnav hides or shows the global navigation's additional buttons based
  * on its opened state.
  */
@@ -24,17 +14,6 @@ function close_gnav() {
 	find_node("#gnav").classList.remove("open");
 }
 
-/* post_input_changed checks the content of the textarea and updates the size
- * of it's element. Additionally I will toggle the enabled state of the sending
- * button.
- */
-function post_input_changed(el) {
-	el.style.height = `0px`;
-	el.style.height = `${el.scrollHeight}px`;
-	let btn = el.parentElement.querySelector("button[role=send]");
-	if (btn) btn.disabled = el.value === "";
-}
-
 /* init_message_textareas finds all message textareas and updates their initial
  * height based on their content (0). This is so there is no jaring affect when
  * the page loads.
@@ -42,7 +21,7 @@ function post_input_changed(el) {
 function init_message_textareas() {
 	const els = document.querySelectorAll(".post-input");
 	for (const el of els) {
-		post_input_changed(el);
+		trigger_postbox_assess(el);
 	}
 }
 
@@ -56,72 +35,12 @@ function update_notification_markers(active) {
 	}
 }
 
-/* show_profile updates the current view to the profile display and updates the
- * information to the relevant profile based on the public key passed.
- * TODO handle async waiting for relay not yet connected
- */
-function show_profile(pk) {
-	switch_view("profile");
-	const model = DAMUS;
-	const profile = model_get_profile(model, pk).data;
-	const el = find_node("#profile-view");
-	// TODO show loading indicator then render
-	
-	find_node("[role='profile-image']", el).src = get_picture(pk, profile); 
-	find_nodes("[role='profile-name']", el).forEach(el => {
-		el.innerText = fmt_profile_name(profile, fmt_pubkey(pk));
-	});
-	
-	const el_nip5 = find_node("[role='profile-nip5']", el)
-	el_nip5.innerText = profile.nip05;
-	el_nip5.classList.toggle("hide", !profile.nip05);
-	
-	const el_desc = find_node("[role='profile-desc']", el)
-	el_desc.innerHTML = newlines_to_br(profile.about);
-	el_desc.classList.toggle("hide", !profile.about);
-	
-	find_node("button[role='copy-pk']", el).dataset.pk = pk;
-	
-	const btn_follow = find_node("button[role='follow-user']", el)
-	btn_follow.dataset.pk = pk;
-	// TODO check follow status
-	btn_follow.innerText = 1 == 1 ? "Follow" : "Unfollow";
-	btn_follow.classList.toggle("hide", pk == model.pubkey);
-}
-
 /* newlines_to_br takes a string and converts all newlines to HTML 'br' tags.
  */
 function newlines_to_br(str="") {
 	return str.split("\n").reduce((acc, part, index) => {
 		return acc + part + "<br/>";
 	}, "");
-}
-
-/* click_copy_pk writes the element's dataset.pk field to the users OS'
- * clipboard. No we don't use fallback APIs, use a recent browser.
- */
-function click_copy_pk(el) {
-	// TODO show toast
-	navigator.clipboard.writeText(el.dataset.pk);
-}
-
-/* click_follow_user sends the event to the relay to subscribe the active user
- * to the target public key of the element's dataset.pk field.
- */
-function click_toggle_follow_user(el) {
-	const { contacts } = DAMUS;
-	const pubkey = el.dataset.pk;
-	const is_friend = contacts.friends.has(pubkey);
-	if (is_friend) {
-		contacts.friends.delete(pubkey);
-	} else {
-		contacts.friends.add(pubkey);
-	}
-	el.innerText = is_friend ? "Follow" : "Unfollow";
-	contacts_save(contacts);
-	if (window.confirm("Contacts are saved locally. Do you want to sync you contacts with all relays?")) {
-		update_contacts();
-	}
 }
 
 function show_new() {
@@ -207,12 +126,12 @@ function reply_all(evid) {
 	reply(evid, true);
 }
 
-function redraw_my_pfp(model) {
+/*function redraw_my_pfp(model) {
 	const p = model_get_profile(model, model.pubkey).data;
 	const html = render_pfp(model.pubkey, p || {});
 	const el = document.querySelector(".my-userpic");
 	el.innerHTML = html;
-}
+}*/
 
 function update_favicon(path) {
 	let link = document.querySelector("link[rel~='icon']");
@@ -279,11 +198,6 @@ function open_thread(thread_id) {
 	view_timeline_apply_mode(DAMUS, VM_THREAD, { thread_id });
 }
 
-function open_profile(pubkey) {
-	view_timeline_apply_mode(DAMUS, VM_USER, { pubkey });
-	view_update_profile(DAMUS, pubkey);
-}
-
 function open_faqs() {
 	find_node("#faqs").classList.remove("closed");
 }
@@ -298,61 +212,6 @@ function close_modal(el) {
 	}
 }
 
-function view_update_profile(model, pubkey) {
-	const profile = model_get_profile(model, pubkey);
-	const el = find_node("[role='profile-info']");
-
-	const name = fmt_profile_name(profile.data, fmt_pubkey(pubkey));
-	find_node("#view header > label").innerText = name;
-	find_node("[role='profile-image']", el).src = get_picture(pubkey, profile.data); 
-	find_nodes("[role='profile-name']", el).forEach(el => {
-		el.innerText = name;
-	});
-
-	const el_nip5 = find_node("[role='profile-nip5']", el)
-	el_nip5.innerText = profile.data.nip05;
-	el_nip5.classList.toggle("hide", !profile.data.nip05);
-	
-	const el_desc = find_node("[role='profile-desc']", el)
-	el_desc.innerHTML = newlines_to_br(linkify(profile.data.about));
-	el_desc.classList.toggle("hide", !profile.data.about);
-	
-	find_node("button[role='copy-pk']", el).dataset.pk = pubkey;
-	find_node("button[role='edit-profile']", el)
-		.classList.toggle("hide", pubkey != model.pubkey);
-	
-	const btn_follow = find_node("button[role='follow-user']", el)
-	btn_follow.dataset.pk = pubkey;
-	// TODO check follow status
-	btn_follow.innerText = contact_is_friend(model.contacts, pubkey) ? "Unfollow" : "Follow";
-	btn_follow.classList.toggle("hide", pubkey == model.pubkey);
-}
-
-const PROFILE_FIELDS = ['name', 'picture', 'nip05', 'about'];
-
-function show_profile_editor() {
-	const p = model_get_profile(DAMUS, DAMUS.pubkey);
-	const el = find_node("#profile-editor");
-	el.classList.remove("closed");
-	for (const key of PROFILE_FIELDS) {
-		find_node(`[name='${key}']`, el).value = p.data[key];
-	}
-}
-
-function click_update_profile() {
-	const el = find_node("#profile-editor");
-	const btn = find_node("button.action", el);
-	const p = Object.assign({}, model_get_profile(DAMUS, DAMUS.pubkey).data, {
-		name: find_node("input[name='name']", el).value,
-		picture: find_node("input[name='picture']", el).value,
-		nip05: find_node("input[name='nip05']", el).value,
-		about: find_node("textarea[name='about']", el).value,
-	});
-	update_profile(p);
-	close_modal(el);
-	// TODO show toast that say's "broadcasted!"
-}
-
 function on_click_show_event_details(evid) {
 	const model = DAMUS;
 	const ev = model.all_events[evid];
@@ -361,4 +220,12 @@ function on_click_show_event_details(evid) {
 	const el = find_node("#event-details");
 	el.classList.remove("closed");
 	find_node("code", el).innerText = JSON.stringify(ev, null, "\t");
+}
+
+function onclick_pfp(ev) {
+	open_profile(ev.target.dataset.pubkey);	
+}
+
+function onerror_pfp(ev) {
+	ev.target.src = IMG_NO_USER;
 }

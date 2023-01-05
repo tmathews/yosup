@@ -8,21 +8,21 @@ function event_refs_pubkey(ev, pubkey) {
 		return false
 	if (ev.pubkey === pubkey)
 		return false
-	for (const tag of ev.tags) {
-		if (tag.length >= 2 && tag[0] === "p" && tag[1] === pubkey)
-			return true
-	}
-	return false
+	return event_tags_pubkey(ev, pubkey)
 }
 
 function event_contains_pubkey(ev, pubkey) {
 	if (ev.pubkey == pubkey)
 		return true;
+	return event_tags_pubkey(ev, pubkey)
+}
+
+function event_tags_pubkey(ev, pubkey) {
 	for (const tag of ev.tags) {
 		if (tag.length >= 2 && tag[0] == "p" && tag[1] == pubkey)
 			return true;
 	}
-	return false;
+	return false
 }
 
 function event_get_pubkeys(ev) {
@@ -139,5 +139,4 @@ function event_parse_reaction(ev) {
 		return o;
 	}
 }
-
 

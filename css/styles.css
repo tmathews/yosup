@@ -101,13 +101,15 @@ th, td {
 #nav > div[data-active="home"] [role="home"] img.inactive,
 #nav > div[data-active="explore"] [role="explore"] img.inactive,
 #nav > div[data-active="notifications"] [role="notifications"] img.inactive,
-#nav > div[data-active="settings"] [role="settings"] img.inactive {
+#nav > div[data-active="settings"] [role="settings"] img.inactive,
+#nav > div[data-active="messages"] [role="dm"] img.inactive {
 	display: none;
 }
 #nav > div[data-active="home"] [role="home"] img.active,
 #nav > div[data-active="explore"] [role="explore"] img.active,
 #nav > div[data-active="notifications"] [role="notifications"] img.active,
-#nav > div[data-active="settings"] [role="settings"] img.active {
+#nav > div[data-active="settings"] [role="settings"] img.active,
+#nav > div[data-active="messages"] [role="dm"] img.active {
 	display: block;
 }
 #app-icon-logo > img {
@@ -148,9 +150,12 @@ button.nav > img.icon {
 	padding: 15px;
 }
 #gnav.open button[role="home"] {
-	top: -300px;
+	top: -375px;
 }
 #gnav.open button[role="explore"] {
+	top: -300px;
+}
+#gnav.open button[role="dm"] {
 	top: -225px;
 }
 #gnav.open button[role="notifications"] {
@@ -168,7 +173,7 @@ button.nav > img.icon {
 	top: 10px;
 	right: 13px;
 	border-radius: 13px;
-	background: #20ff00;
+	background: var(--clrNotification);
 	color: white;
 	font-weight: 800;
 	width: 5px;
@@ -198,6 +203,13 @@ button.nav > img.icon {
 	font-size: 22px;
 	font-weight: 800;
 	display: block;
+}
+#view > div > header > .pfp {
+	width: 32px;
+	height: 32px;
+	position: absolute;
+	top: 15px;
+	right: 15px;
 }
 
 /* Events & Content */
@@ -422,16 +434,7 @@ details.cw summary {
 /* Post & Reply */
 #newpost {
 	padding: 0px 15px 15px;
-	display: flex;
-	flex-direction: row;
 	border-bottom: solid 1px var(--clrBorder);
-}
-#newpost > :first-child {
-	width: 64px;
-}
-#newpost > :last-child {
-	padding-left: 15px;
-	flex: 1;
 }
 textarea.post-input {
 	display: block;
@@ -454,6 +457,7 @@ input[type="text"].cw {
 	font-size: var(--fsReduced);
 	background: transparent;
 	color: var(--clrText);
+	padding: 5px;
 }
 
 /* Profile */
@@ -526,6 +530,82 @@ code {
 #settings header > label {
 	font-weight: bold;
 	font-size: var(--fsEnlarged);
+}
+
+/* Messaging */
+
+#dms-not-available {
+    background: #ffd559;
+    display: inline-block;
+    color: #090909;
+    padding: 15px;
+}
+.dm-group {
+	display: flex;
+	padding: 15px;
+}
+.dm-group .content {
+	position: relative;
+	padding: 0 15px;
+	flex: 1;
+}
+.dm-group .message {
+	word-break: break-word;	
+}
+.dm-group .time {
+	font-size: var(--fsReduced);
+	color: var(--clrTextLight);
+}
+.dm-group .count {
+	position: absolute;
+	top: 0;
+	right: 0;
+	background: var(--clrBorder);
+	border-radius: 20px;
+	padding: 1px 8px;
+	font-size: var(--fsSmall);
+}
+.dm-group .count.active {
+	border: var(--clrNotification) solid 2px;
+	font-weight: bold;
+	background: transparent;
+}
+.event.dm {
+	padding-bottom: 0;
+}
+.event.dm:hover { 
+	background: transparent;
+}
+.event.dm:last-child {
+	padding-bottom: 15px;
+}
+.event.dm .wrap{
+	border-radius: 20px;
+	background: var(--clrPanel);
+	padding: 10px;
+}
+.event.dm.mine .wrap {
+	background: #0058ff;
+	margin-left: auto;
+}
+.event.dm.mine .timestamp {
+	color: white;
+	display: block;
+	text-align: right;
+}
+.event.dm .body p {
+	display: inline-block;
+	margin: 0;
+}
+.event.dm .timestamp {
+	display: block;
+	margin: 0;
+}
+.event.dm .reactions {
+	margin: 0;
+}
+.event.dm .body {
+	word-break: break-word;
 }
 
 /* Inputs */

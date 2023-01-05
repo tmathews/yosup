@@ -15,6 +15,7 @@ const R_HEART = "❤️";
 
 const STANDARD_KINDS = [
 	KIND_NOTE,
+	KIND_DM,
 	KIND_DELETE,
 	KIND_REACTION,
 	KIND_SHARE,
@@ -124,26 +125,6 @@ async function sign_event(ev) {
 	const privkey = get_privkey()
 	ev.sig = await sign_id(privkey, ev.id)
 	return ev
-}
-
-async function send_post() {
-	const input_el = document.querySelector("#post-input")
-	const cw_el = document.querySelector("#content-warning-input")
-	const cw = cw_el.value
-	const content = input_el.value
-	const created_at = new_creation_time()
-	const kind = 1
-	const tags = cw ? [["content-warning", cw]] : []
-	const pubkey = await get_pubkey()
-
-	let post = { pubkey, tags, content, created_at, kind }
-	post.id = await nostrjs.calculate_id(post)
-	post = await sign_event(post)
-	broadcast_event(post)
-
-	input_el.value = ""
-	cw_el.value = ""
-	post_input_changed(input_el)
 }
 
 function new_reply_tags(ev) {

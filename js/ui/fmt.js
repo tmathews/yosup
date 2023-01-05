@@ -25,12 +25,13 @@ function linkify(text="", show_media=false) {
 }
 
 function format_content(ev, show_media) {
-	if (ev.kind === 7) {
+	if (ev.kind === KIND_REACTION) {
 		if (ev.content === "" || ev.content === "+")
 			return "❤️"
 		return html`${ev.content.trim()}`;
 	}
-	const content = ev.content.trim();
+	const content = (ev.kind == KIND_DM ? ev.decrypted || ev.content : ev.content)
+		.trim();
 	const body = fmt_body(content, show_media);
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
@@ -72,8 +73,9 @@ function fmt_body(content, show_media) {
 	}, "")
 }
 
-/* format_profile_name takes in a profile and tries it's best to return a string
- * that is best suited for the profile. 
+/* DEPRECATED: use fmt_name
+ * format_profile_name takes in a profile and tries it's best to
+ * return a string that is best suited for the profile. 
  */
 function fmt_profile_name(profile={}, fallback="Anonymous") {
 	const name = profile.display_name || profile.user || profile.name || 
@@ -81,7 +83,23 @@ function fmt_profile_name(profile={}, fallback="Anonymous") {
 	return html`${name}`;
 }
 
+function fmt_name(profile={data:{}}) {
+	const { data } = profile;
+	const name = data.display_name || data.user || data.name || 
+		fmt_pubkey(profile.pubkey);
+	return html`${name}`;
+}
+
 function fmt_pubkey(pk) {
+	if (!pk)
+		return "Unknown";
 	return pk.slice(-8)
 }
 
+function fmt_datetime(d) {
+	return d.getFullYear() + 
+		"/" + ("0" + (d.getMonth()+1)).slice(-2) + 
+		"/" + ("0" + d.getDate()).slice(-2) + 
+		" " + ("0" + d.getHours()).slice(-2) + 
+		":" + ("0" + d.getMinutes()).slice(-2);
+}

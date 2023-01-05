@@ -1,0 +1,13 @@
+Here lie goals:
+ [ ] Fix UI/X issues on mobile (modal, reply, etc.)
+ [ ] Direct messaging 
+ [ ] Store profiles of friends, friends of friends, & the user
+ [ ] Export/import contacts list
+ [ ] Render lighting invoices (BOLT11) Do this without a library
+ [ ] Render tagged users e.g. #[0]
+ [ ] Autocomplete for usernames in composition
+ [ ] Redesign embeds
+ [ ] Store latest 500 STANDARD_KINDS & their profiles kick out as needed
+ [ ] Display contacts list
+ [ ] Replace local storage usage
+

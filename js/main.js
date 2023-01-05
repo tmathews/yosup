@@ -8,6 +8,8 @@ const IMG_NO_USER     = "icon/no-user.svg";
 const SID_META          = "meta";
 const SID_HISTORY       = "history";
 const SID_NOTIFICATIONS = "notifications";
+const SID_DMS_OUT       = "dms_out";
+const SID_DMS_IN        = "dms_in";
 const SID_EXPLORE       = "explore";
 const SID_PROFILES      = "profiles";
 const SID_THREAD        = "thread";
@@ -70,8 +72,10 @@ async function webapp_init() {
 
 	// WARNING Order Matters!
 	init_message_textareas();
+	init_my_pfp(model);
+	init_postbox(model);
+	init_profile();
 	view_show_spinner(true);
-	redraw_my_pfp(model);	
 
 	// Load data from storage 
 	await model_load_settings(model);
@@ -80,7 +84,6 @@ async function webapp_init() {
 	if (err) {
 		window.alert("Unable to load contacts.");
 	}
-
 	init_settings(model);
 
 	// Create our pool so that event processing functions can work
@@ -135,6 +138,7 @@ function on_timer_save() {
 }
 
 function on_timer_tick() {
+	//return;
 	setTimeout(() => {
 		DAMUS.relay_que.forEach((que, relay) => {
 			model_fetch_next_profile(DAMUS, relay);
@@ -154,11 +158,21 @@ function on_pool_open(relay) {
 	// Get all our info & history, well close this after we get  it
 	fetch_profile(pubkey, model.pool, relay);
 
-	// Get our notifications. We will never close this.
+	// Get our notifications
 	relay.subscribe(SID_NOTIFICATIONS, [{
 		kinds: STANDARD_KINDS,
 		"#p": [pubkey],
 		limit: 5000,
+	}]);
+
+	// Get our dms. You have to do 2 separate queries: ours out and others in
+	relay.subscribe(SID_DMS_IN, [{
+		kinds: [KIND_DM],
+		"#p": [pubkey],
+	}]);
+	relay.subscribe(SID_DMS_OUT, [{
+		kinds: [KIND_DM],
+		authors: [pubkey],
 	}]);
 
 	// Subscribe to the world as it will serve our friends, notifications, and 
@@ -185,7 +199,6 @@ async function on_pool_eose(relay, sub_id) {
 	log_info(`EOSE(${relay.url}): ${sub_id}`);
 	const model = DAMUS;
 	const { pool } = model;
-
 	const index = sub_id.indexOf(":");
 	const sid = sub_id.slice(0, index >= 0 ? index : sub_id.length);
 	const identifier = sub_id.slice(index+1);
@@ -207,6 +220,8 @@ async function on_pool_eose(relay, sub_id) {
 			}
 		case SID_NOTIFICATIONS:
 		case SID_PROFILES:
+		case SID_DMS_OUT:
+		case SID_DMS_IN:
 			pool.unsubscribe(sub_id, relay);
 			break;
 	}

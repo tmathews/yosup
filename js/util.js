@@ -56,7 +56,8 @@ function shuffle(arr) {
 }
 
 /* arr_bsearch_insert finds the point in the array that an item should be 
- * inserted at based on the 'cmp' function used.
+ * inserted at based on the 'cmp' function used. cmp function is same as sort
+ * cmp function.
  */
 function arr_bsearch_insert(arr, item, cmp) {
 	let start = 0;
@@ -111,6 +112,13 @@ function find_node(selector, parentEl) {
  */
 function find_nodes(selector, parentEl) {
 	return (parentEl || document).querySelectorAll(selector);
+}
+
+function find_parent(el, selector) {
+	while (el && !el.matches(selector)) {
+		el = el.parentNode;
+	}
+	return el;
 }
 
 /* uuidv4 returns a new uuid v4
@@ -225,7 +233,15 @@ function get_qs(loc=location.href) {
 	return new URL(loc).searchParams
 }
 
-function get_picture(pk, profile) {
+function get_profile_pic(profile) {
+	if (profile && profile.data && profile.data.picture)
+		return html`${profile.data.picture}`;
+	return IMG_NO_USER;
+}
+
+/* DEPRECATED use get_profile_picture
+ */
+function get_picture(profile) {
 	if (!profile || !profile.picture)
 		return IMG_NO_USER;
 	return html`${profile.picture}`; 
@@ -245,5 +261,38 @@ function debounce(f, interval) {
 
 function process_json_content(ev) {
 	ev.json_content = safe_parse_json(ev.content, "event json_content");
+}
+
+function dms_available() {
+	return window.nostr && window.nostr.nip04;
+}
+
+async function decrypt_dms(model) {
+	if (!dms_available()) {
+		log_warn("could not decrypt messages because nostr.nip04 is not available");
+		return false;
+	}
+	for (const item of model.dms) {
+		let dm = item[1];
+		if (!dm.needs_decryption)
+			continue;
+		for	(const ev of dm.events) {
+			if (ev.decrypted != undefined)
+				continue;
+			let str;
+			try {
+				str = await window.nostr.nip04.decrypt(dm.pubkey, ev.content);
+			} catch (err) {
+				log_error("unable to decrypt dm", ev.id, err);
+			}
+			if (!str)
+				continue;
+			ev.decrypted = str;
+			model.invalidated.push(ev.id);
+		}
+		dm.needs_decryption = false;
+		dm.needs_redraw = true;
+	}
+	return true;
 }
 

@@ -2,17 +2,18 @@
 
 :root {
 	/* Colors */
-	--clrBg:          #fff;
-	--clrPanel:       #f9f9f9;
-	--clrBorder:      #f2f2f2;
-	--clrBtn:         #202020;
-	--clrText:        #202020;
-	--clrTextLight:   #868686;
-	--clrTextLighter: #abb4ca;
-	--clrHeart:       #ff5050;
-	--clrWarn:        #fbc560;
-	--clrLink:        blue;
-	--clrLinkVisited: purple;
+	--clrBg:           #fff;
+	--clrPanel:        #f9f9f9;
+	--clrBorder:       #f2f2f2;
+	--clrBtn:          #202020;
+	--clrText:         #202020;
+	--clrTextLight:    #868686;
+	--clrTextLighter:  #abb4ca;
+	--clrHeart:        #ff5050;
+	--clrWarn:         #fbc560;
+	--clrLink:         blue;
+	--clrLinkVisited:  purple;
+	--clrNotification: #20ff00;
 	
 	/* TODO I don't like these and simply did it for dark mode. To rename. */
 	--clrEvMsg:       #f4f4f4; 

@@ -54,18 +54,21 @@ function render_shared_by(ev, opts) {
 }
 
 function render_event(model, ev, opts={}) {
-	if (ev.kind == KIND_SHARE) {
-		return render_share(model, ev, opts);
+	switch(ev.kind) {
+		case KIND_SHARE:
+			return render_share(model, ev, opts);
+		case KIND_DM:
+			return render_dm(model, ev, opts);
 	}
 
 	const profile = model_get_profile(model, ev.pubkey);
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
-	const border_bottom = opts.is_composing ? "" : "bottom-border";
-	let thread_btn = "";
-	return html`<div id="ev${ev.id}" class="event ${border_bottom}">
+	let classes = "event"
+	if (!opts.is_composing)
+		classes += " bottom-border";
+	return html`<div id="ev${ev.id}" class="${classes}">
 		<div class="userpic">
-			$${render_pfp(ev.pubkey, profile.data)}
-		</div>	
+		$${render_profile_img(profile)}</div>
 		<div class="event-content">
 			<div class="info">
 				$${render_name(ev.pubkey, profile.data)}
@@ -78,12 +81,43 @@ function render_event(model, ev, opts={}) {
 	</div>` 
 }
 
+function render_dm(model, ev, opts) {
+	let classes = "event"
+	if (ev.kind == KIND_DM) {
+		classes += " dm";
+		if (ev.pubkey == model.pubkey)
+			classes += " mine";
+	}
+	const profile = model_get_profile(model, ev.pubkey);
+	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
+	let show_media = event_shows_media(model, ev, model.embeds);
+	return html`<div id="ev${ev.id}" class="${classes}">
+		<div class="wrap">
+			<div class="body">
+			<p>$${format_content(ev, show_media)}</p>
+			</div>
+			<div class="timestamp" data-timestamp="${ev.created_at}">${delta}</div>
+		</div>
+	</div>`
+}
+
+function event_shows_media(model, ev, mode) {
+	if (mode == "friends")
+		return model.contacts.friends.has(ev.pubkey);
+	return true;
+}
+
+function rerender_dm(model, ev, el) {
+	let show_media = event_shows_media(model, ev, model.embeds);
+	find_node(".body > p", el).innerHTML = format_content(ev, show_media);
+}
+
 function render_event_nointeract(model, ev, opts={}) {
 	const profile = model_get_profile(model, ev.pubkey);
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
 	return html`<div class="event border-bottom">
 		<div class="userpic">
-			$${render_pfp(ev.pubkey, profile.data)}
+			$${render_profile_img(profile)}
 		</div>	
 		<div class="event-content">
 			<div class="info">
@@ -114,7 +148,7 @@ function render_event_body(model, ev, opts) {
 	${format_content(ev, show_media)}
 	</p>`;
 	str += render_reactions(model, ev);
-	str += opts.nobar ? "" : 
+	str += opts.nobar || ev.kind == KIND_DM ? "" : 
 		render_action_bar(model, ev, {can_delete, shared});
 	return str;
 }
@@ -237,7 +271,20 @@ function render_name(pk, profile, prefix="") {
 	// Beware of whitespace.
 	return html`<span>${prefix}<span class="username clickable" data-pubkey="${pk}" 
 		onclick="open_profile('${pk}')"
-		>${fmt_profile_name(profile, fmt_pubkey(pk))}</span></span>`
+		> ${fmt_profile_name(profile, fmt_pubkey(pk))}</span></span>`
+}
+
+function render_profile_img(profile, noclick=false) {
+	const name = fmt_name(profile);
+	let str = html`class="pfp clickable" onclick="open_profile('${profile.pubkey}')"`;
+	if (noclick)
+		str = "class='pfp'";
+	return html`<img 
+	$${str}
+	data-pubkey="${profile.pubkey}" 
+	title="${name}" 
+	onerror="this.onerror=null;this.src='${IMG_NO_USER}';" 
+	src="${get_profile_pic(profile)}"/>`
 }
 
 function render_pfp(pk, profile, opts={}) {

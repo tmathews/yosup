@@ -20,7 +20,9 @@
 		<script defer src="js/ui/render.js?v=15"></script>
 		<script defer src="js/ui/state.js?v=1"></script>
 		<script defer src="js/ui/fmt.js?v=1"></script>
+		<script defer src="js/ui/profile.js?v=1"></script>
 		<script defer src="js/ui/settings.js?v=1"></script>
+		<script defer src="js/ui/dm.js?v=1"></script>
 		<script defer src="js/noble-secp256k1.js?v=1"></script>
 		<script defer src="js/bech32.js?v=1"></script>
 		<script defer src="js/nostr.js?v=7"></script>
@@ -69,6 +71,9 @@
 			<button class="icon" role="explore" title="Explore" onclick="switch_view('explore')">
 				<img class="icon svg invert" src="icon/explore.svg"/>
 			</button>
+			<button class="icon" role="dm" title="Direct Messages" onclick="switch_view('dm')">
+				<img class="icon svg invert" src="icon/messages.svg"/>
+			</button>
 			<button class="icon" role="notifications" title="Notifications" onclick="switch_view('notifications')">
 				<img class="icon svg invert" src="icon/notifications.svg"/>
 				<div class="new-notifications hide"></div>
@@ -90,9 +95,13 @@
 						<img class="icon svg active" src="icon/home-active.svg"/>
 					</button>
 					<button role="explore" class="nav icon" 
-						title="Explore" onclick="switch_view('explore')">
-						<img class="icon svg inactive" src="icon/explore.svg"/>
+						title="Explore" onclick="switch_view('explore')"> <img class="icon svg inactive" src="icon/explore.svg"/>
 						<img class="icon svg active" src="icon/explore-active.svg"/>
+					</button>
+					<button role="dm" class="nav icon" 
+						title="Direct Messages" onclick="switch_view('dm')">
+						<img class="icon svg inactive" src="icon/messages.svg"/>
+						<img class="icon svg active" src="icon/messages-active.svg"/>
 					</button>
 					<button role="notifications" class="nav icon" 
 						title="Notifications" onclick="switch_view('notifications')">
@@ -112,44 +121,42 @@
 				<div>
 					<header>
 						<label>Home</label>
+						<img class="pfp" role="their-pfp" data-pubkey=""
+							src="icon/no-user.svg"/>
+						<img class="pfp" role="my-pfp" data-pubkey=""
+							src="icon/no-user.svg"/>
 					</header>
 					<div id="newpost">
-						<div class="my-userpic vertical-hide">
-							<!-- To be loaded dynamically. -->
-						</div>
-						<div>
-							<textarea placeholder="What's up?" 
-									  oninput="post_input_changed(this)" 
-									  class="post-input" id="post-input"></textarea>
-							<div class="post-tools">
-								<input id="content-warning-input" class="cw hide" type="text" placeholder="Reason"/>
-								<button title="Mark this message as sensitive." 
-									onclick="toggle_cw(this)" class="cw icon">
-									<img class="icon svg small" src="icon/content-warning.svg"/>
-								</button>
-								<button onclick="send_post(this)" class="action" 
-									role="send" id="post-button" disabled>Send</button>
-							</div>
+						<textarea placeholder="What's up?" 
+						class="post-input" id="post-input"></textarea>
+						<div class="post-tools">
+							<input id="content-warning-input" class="cw hide" 
+							type="text" placeholder="Reason"/>
+							<button class="cw icon" role="toggle-cw"
+							title="Mark this message as sensitive.">
+								<img class="icon svg small" 
+								src="icon/content-warning.svg"/>
+							</button>
+							<button class="action" role="send" 
+							id="post-button" disabled>Send</button>
 						</div>
 					</div>
-					<div role="profile-info" class="bottom-border hide">
+					<div id="profile-info" role="profile-info" class="bottom-border hide">
 						<div class="flex">
-							<img role="profile-image" class="pfp jumbo" 
-								src="./icon/no-user.svg" 
-								onerror="this.src='./icon/no-user.svg';"/>
+							<img role="profile-image" class="pfp jumbo"/>
 							<div class="profile-tools">
-								<!--
-								<button class="icon" title="Message User" role="message-user">
-									<img class="icon" src="icon/message-user.svg"/></button>
-								-->
+								<button class="icon" role="message-user"
+								title="Directly Message">
+									<img class="icon svg" src="icon/message-user.svg"/>
+								</button>
 								<button class="icon hide" role="edit-profile"
-									onclick="show_profile_editor()" title="Edit Profile">
+								title="Edit Profile">
 									<img class="icon svg" src="icon/edit-profile.svg"/></button>
 								<button class="icon" role="copy-pk"
-									data-pk="" onclick="click_copy_pk(this)" title="Copy Public Key">
+								data-pk="" title="Copy Public Key">
 									<img class="icon svg" src="icon/pubkey.svg"/></button>
-								<button class="action" role="follow-user" data-pk=""
-									onclick="click_toggle_follow_user(this)">Follow</button>
+								<button class="action" role="follow-user" 
+								data-pk="">Follow</button>
 							</div>
 						</div>
 						<div>
@@ -165,6 +172,13 @@
 					<div id="show-new" class="show-new bottom-border hide">
 						<button onclick="show_new()">
 							Show New (<span role="count">0</span>)</button>
+					</div>
+					<div id="dms-not-available" class="hide">
+						DMs could not be decrypted due to lack of nip04 
+						integration. Please use an extension such as nos2x or 
+						Alby.
+					</div>
+					<div id="dms" class="hide">
 					</div>
 					<div id="timeline" class="events"></div>
 					<div id="settings" class="hide">
