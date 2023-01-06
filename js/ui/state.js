@@ -16,10 +16,21 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 	const now = new Date().getTime();
 
 	// Don't do anything if we are already here
-	if (el.dataset.mode == mode && (el.dataset.pubkey == opts.pubkey || 
-		el.dataset.threadId == thread_id))
-		return;
-
+	if (el.dataset.mode == mode) {
+		switch (mode) {
+			case VM_USER:
+				if (el.dataset.pubkey == opts.pubkey)
+					return;
+				break;
+			case VM_THREAD:
+				if (el.dataset.threadId == thread_id)
+					return;
+				break;
+			default:
+				return;
+		}
+	}
+	
 	// Fetch history for certain views
 	if (mode == VM_THREAD) {
 		view_show_spinner(true);
