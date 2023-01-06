@@ -73,18 +73,17 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	let profile;
 
 	el.dataset.mode = mode;
+	delete el.dataset.threadId;
+	delete el.dataset.pubkey;
 	switch(mode) {
 		case VM_THREAD:
 			el.dataset.threadId = thread_id;
+			break;
 		case VM_USER:
 		case VM_DM_THREAD:
 			profile = model_get_profile(model, pubkey);
 			name = fmt_name(profile);
 			el.dataset.pubkey = pubkey;
-			break;
-		default:
-			delete el.dataset.threadId;
-			delete el.dataset.pubkey;
 			break;
 	}
 
