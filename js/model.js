@@ -463,9 +463,15 @@ function new_model() {
 		elements: {}, // map of evid > rendered element
 		relay_que: new Map(),
 		relays: new Set([
-			"wss://relay.damus.io",
 			"wss://nostr-relay.wlvs.space",
 			"wss://nostr-pub.wellorder.net",
+			"wss://nostr-relay.wlvs.space",
+			"wss://nostr-pub.wellorder.net",
+			"wss://nostr.fmt.wiz.biz",
+			"wss://nostr.v0l.io",
+			"wss://brb.io",
+			"wss://nostr.oxtr.dev",
+			"wss://relay.nostr.bg",
 		]),
 		embeds: "friends", // friends, everyone
 		
