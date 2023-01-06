@@ -9,7 +9,16 @@ function view_get_timeline_el() {
 	return find_node("#timeline");
 }
 
-function view_timeline_apply_mode(model, mode, opts={}) {
+// TODO clean up popstate listener (move to init method or such)
+window.addEventListener("popstate", function(event) {
+	if (event.state && event.state.mode) {
+		// Update the timeline mode.
+		// Pass pushState=false to avoid adding another state to the history
+		view_timeline_apply_mode(DAMUS, event.state.mode, event.state.opts, false);
+	}
+})
+
+function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	let xs;
 	const { pubkey, thread_id } = opts;
 	const el = view_get_timeline_el();
@@ -30,6 +39,10 @@ function view_timeline_apply_mode(model, mode, opts={}) {
 				return;
 		}
 	}
+
+	// Push a new state to the browser history stack
+	if (push_state)
+		history.pushState({mode, opts}, '');
 	
 	// Fetch history for certain views
 	if (mode == VM_THREAD) {
