@@ -308,7 +308,7 @@ async function model_load_settings(model) {
 			const settings = ev.target.result;
 			if (settings) {
 				model.notifications.last_viewed = settings.notifications_last_viewed;
-				if (settings.length) 
+				if (settings.relays.length) 
 					model.relays = new Set(settings.relays);
 				model.embeds = settings.embeds ? settings.embeds : "friends";
 			}
