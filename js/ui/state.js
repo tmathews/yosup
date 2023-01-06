@@ -64,7 +64,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	names[VM_FRIENDS] = "Home";
 	names[VM_EXPLORE] = "Explore";
 	names[VM_NOTIFICATIONS] = "Notifications";
-	names[VM_DM] = "Messages (Alpha)";
+	names[VM_DM] = "Messages";
 	names[VM_DM_THREAD] = "Messages";
 	names[VM_USER] = "Profile";
 	names[VM_THREAD] = "Thread";
