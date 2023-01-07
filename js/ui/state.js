@@ -117,8 +117,8 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 			el_their_pfp.dataset.pubkey = pubkey;
 			break;
 		case VM_DM:
-			decrypt_dms(model);
-			view_dm_update(model);
+			//decrypt_dms(model);
+			//view_dm_update(model);
 			break;
 		case VM_SETTINGS:
 			view_show_spinner(false);

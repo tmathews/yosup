@@ -121,9 +121,16 @@ function on_timer_timestamps() {
 }
 
 function on_timer_invalidations() {
-	setTimeout(() => {
-		if (DAMUS.invalidated.length > 0)
-			view_timeline_update(DAMUS);
+	const model = DAMUS;
+	setTimeout(async () => {
+		if (model.dms_need_redraw && view_get_timeline_el().dataset.mode == VM_DM) {
+			// if needs decryption do it
+			await decrypt_dms(model);
+			view_dm_update(model);
+			model.dms_need_redraw = false;
+		}
+		if (model.invalidated.length > 0)
+			view_timeline_update(model);
 		on_timer_invalidations();
 	}, 50);
 }
@@ -140,12 +147,6 @@ function on_timer_save() {
 function on_timer_tick() {
 	const model = DAMUS;
 	setTimeout(async () => {
-		if (model.dms_need_redraw && view_get_timeline_el().dataset.mode == VM_DM) {
-			// if needs decryption do it
-			await decrypt_dms(model);
-			view_dm_update(model);
-			model.dms_need_redraw = false;
-		}
 		update_notifications(model);
 		model.relay_que.forEach((que, relay) => {
 			model_fetch_next_profile(model, relay);
