@@ -170,7 +170,7 @@ function render_reaction_group(model, emoji, reactions, reacting_to) {
 		if (count > 5)
 			continue;
 		const pubkey = reactions[k].pubkey;
-		str += render_pfp(pubkey, model_get_profile(model, pubkey).data, 
+		str += render_profile_img(model_get_profile(model, pubkey), 
 			{noclick:true});
 	}
 	if (count > 5)
@@ -285,18 +285,5 @@ function render_profile_img(profile, noclick=false) {
 	title="${name}" 
 	onerror="this.onerror=null;this.src='${IMG_NO_USER}';" 
 	src="${get_profile_pic(profile)}"/>`
-}
-
-function render_pfp(pk, profile, opts={}) {
-	const name = fmt_profile_name(profile, fmt_pubkey(pk));
-	let str = html`class="pfp clickable" onclick="open_profile('${pk}')"`;
-	if (opts.noclick)
-		str = "class='pfp'";
-	return html`<img 
-	$${str}
-	data-pubkey="${pk}" 
-	title="${name}" 
-	onerror="this.onerror=null;this.src='${IMG_NO_USER}';" 
-	src="${get_picture(pk, profile)}"/>`
 }
 

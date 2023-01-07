@@ -126,13 +126,6 @@ function reply_all(evid) {
 	reply(evid, true);
 }
 
-/*function redraw_my_pfp(model) {
-	const p = model_get_profile(model, model.pubkey).data;
-	const html = render_pfp(model.pubkey, p || {});
-	const el = document.querySelector(".my-userpic");
-	el.innerHTML = html;
-}*/
-
 function update_favicon(path) {
 	let link = document.querySelector("link[rel~='icon']");
 	const head = document.getElementsByTagName('head')[0]

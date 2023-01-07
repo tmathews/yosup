@@ -319,8 +319,10 @@ function view_timeline_update_profiles(model, pubkey) {
 	const name = fmt_name(p);
 	const pic = get_profile_pic(p);
 	for (const evid in model.elements) {
-		if (!event_contains_pubkey(model.all_events[evid], pubkey))
-			continue;
+		// Omitting this because we want to update profiles and names on all 
+		// reactions
+		//if (!event_contains_pubkey(model.all_events[evid], pubkey))
+		//	continue;
 		update_el_profile(model.elements[evid], pubkey, name, pic);	
 	}
 	// Update the profile view if it's active
