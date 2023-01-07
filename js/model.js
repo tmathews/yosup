@@ -197,10 +197,9 @@ function model_process_event_dm(model, ev, update_view) {
 	dm.events.splice(i, 0, ev);
 
 	// Check if DM is new
-	const b = model.all_events[dm.last_viewed];
-	if (!b || b.created_at < ev.created_at) {
+	if (ev.created_at > dm.last_viewed) {
 		dm.new_count++;
-		// dirty hack
+		// dirty hack but works well
 		model.dms_need_redraw = true;
 	}
 }
@@ -213,8 +212,8 @@ function model_get_dm(model, target) {
 			// events is an ordered list (new to old) of events referenced from
 			// all_events. It should not be a copy to reduce memory.
 			events: [], 
-			// Last read event by the client/user
-			last_viewed: "", 
+			// Last read event time by the client/user
+			last_viewed: 0, 
 			new_count: 0,
 			// Notifies the renderer that this dm is out of date
 			needs_redraw: false,
@@ -224,9 +223,24 @@ function model_get_dm(model, target) {
 	return model.dms.get(target);
 }
 
+function model_get_dms_seen(model) {
+	const obj = {};
+	for (let item of model.dms) {
+		const dm = item[1];
+		obj[dm.pubkey] = dm.last_viewed;
+	}
+	return obj;
+}
+
+function model_set_dms_seen(model, obj={}) {
+	for (const pubkey in obj) {
+		model_get_dm(model, pubkey).last_viewed = obj[pubkey];
+	}
+}
+
 function model_dm_seen(model, target) {
 	const dm = model_get_dm(model, target);
-	dm.last_viewed = dm.events[0];
+	dm.last_viewed = dm.events[0].created_at;
 	dm.new_count = 0;
 	dm.needs_redraw = true;
 }
@@ -377,6 +391,7 @@ async function model_save_settings(model) {
 				notifications_last_viewed: model.notifications.last_viewed,
 				relays: Array.from(model.relays),
 				embeds: model.embeds,
+				dms_seen: model_get_dms_seen(model),
 			});
 		};
 	}
@@ -396,6 +411,7 @@ async function model_load_settings(model) {
 				if (settings.relays.length) 
 					model.relays = new Set(settings.relays);
 				model.embeds = settings.embeds ? settings.embeds : "friends";
+				model_set_dms_seen(model, settings.dms_seen);
 			}
 			db.close();
 			resolve();
