@@ -112,6 +112,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	switch (mode) {
 		case VM_DM_THREAD:
 			decrypt_dms(model);
+			model_dm_seen(model, pubkey);
 			el_their_pfp.src = get_profile_pic(profile);
 			el_their_pfp.dataset.pubkey = pubkey;
 			break;
@@ -234,16 +235,19 @@ function view_timeline_update(model) {
 
 	// If there are new things to show on our current view lets do it
 	if (count > 0) {
-		if (!latest_ev) {
+		if (!latest_ev || mode == VM_DM_THREAD) {
 			view_timeline_show_new(model);
 		}
-		view_set_show_count(count, true, false);	
+		if (mode == VM_DM_THREAD) {
+			model_mark_dms_seen(model, opts.pubkey);
+			view_dm_update(model);
+		}
+		view_set_show_count(count, true, false);
 	}
 	// Update notification markers and count
 	if (ncount > 0) {
-		log_debug(`new notis ${ncount}`);
+		//log_debug(`new notis ${ncount}`);
 		model.notifications.count += ncount;
-		update_notifications(model);
 	}
 	// Update the dms list view
 	if (decrypted) {

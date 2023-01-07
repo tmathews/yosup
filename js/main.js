@@ -138,10 +138,17 @@ function on_timer_save() {
 }
 
 function on_timer_tick() {
-	//return;
-	setTimeout(() => {
-		DAMUS.relay_que.forEach((que, relay) => {
-			model_fetch_next_profile(DAMUS, relay);
+	const model = DAMUS;
+	setTimeout(async () => {
+		if (model.dms_need_redraw && view_get_timeline_el().dataset.mode == VM_DM) {
+			// if needs decryption do it
+			await decrypt_dms(model);
+			view_dm_update(model);
+			model.dms_need_redraw = false;
+		}
+		update_notifications(model);
+		model.relay_que.forEach((que, relay) => {
+			model_fetch_next_profile(model, relay);
 		});
 		on_timer_tick();
 	}, 1 * 1000);

@@ -73,10 +73,11 @@
 			</button>
 			<button class="icon" role="dm" title="Direct Messages" onclick="switch_view('dm')">
 				<img class="icon svg invert" src="icon/messages.svg"/>
+				<div class="new-notifications hide" role="dm"></div>
 			</button>
 			<button class="icon" role="notifications" title="Notifications" onclick="switch_view('notifications')">
 				<img class="icon svg invert" src="icon/notifications.svg"/>
-				<div class="new-notifications hide"></div>
+				<div class="new-notifications hide" role="activity"></div>
 			</button>
 			<button class="icon" role="settings" title="Settings" onclick="switch_view('settings')">
 				<img class="icon svg invert" src="icon/settings.svg"/>
@@ -102,12 +103,13 @@
 						title="Direct Messages" onclick="switch_view('dm')">
 						<img class="icon svg inactive" src="icon/messages.svg"/>
 						<img class="icon svg active" src="icon/messages-active.svg"/>
+						<div class="new-notifications hide" role="dm"></div>
 					</button>
 					<button role="notifications" class="nav icon" 
 						title="Notifications" onclick="switch_view('notifications')">
 						<img class="icon svg inactive" src="icon/notifications.svg"/>
 						<img class="icon svg active" src="icon/notifications-active.svg"/>
-						<div class="new-notifications hide"></div>
+						<div class="new-notifications hide" role="activity"></div>
 					</button>
 					<button role="settings" title="Settings" class="nav icon"
 						onclick="switch_view('settings')">

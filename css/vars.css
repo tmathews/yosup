@@ -13,7 +13,8 @@
 	--clrWarn:         #fbc560;
 	--clrLink:         blue;
 	--clrLinkVisited:  purple;
-	--clrNotification: #20ff00;
+	--clrNotification: #0058ff;
+	--clrChatBlue:     #0058ff; 
 	
 	/* TODO I don't like these and simply did it for dark mode. To rename. */
 	--clrEvMsg:       #f4f4f4; 

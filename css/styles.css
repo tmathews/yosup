@@ -566,9 +566,9 @@ code {
 	font-size: var(--fsSmall);
 }
 .dm-group .count.active {
-	border: var(--clrNotification) solid 2px;
+	background: var(--clrChatBlue);
 	font-weight: bold;
-	background: transparent;
+	color: white;
 }
 .event.dm {
 	padding-bottom: 0;
@@ -585,7 +585,7 @@ code {
 	padding: 10px;
 }
 .event.dm.mine .wrap {
-	background: #0058ff;
+	background: var(--clrChatBlue);
 	margin-left: auto;
 }
 .event.dm.mine .timestamp {

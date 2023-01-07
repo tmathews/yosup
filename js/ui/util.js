@@ -28,8 +28,8 @@ function init_message_textareas() {
 // update_notification_markers will find all markers and hide or show them
 // based on the passed in state of 'active'. This applies to the navigation 
 // icons.
-function update_notification_markers(active) {
-	let els = document.querySelectorAll(".new-notifications")
+function update_notification_markers(active, type) {
+	let els = document.querySelectorAll(`.new-notifications[role='${type}']`)
 	for (const el of els) {
 		el.classList.toggle("hide", !active)
 	}
@@ -142,12 +142,20 @@ function update_favicon(path) {
 // update_notifications updates the document title & visual indicators based on if the
 // number of notifications that are unseen by the user.
 function update_notifications(model) {
+	let dm_count = 0;
+	for (const item of model.dms) {
+		if (item[1].new_count)
+			dm_count += item[1].new_count;
+	}
+	
 	const { count } = model.notifications;
 	const suffix = "Yo Sup";
-	document.title = count ? `(${count}) ${suffix}` : suffix;
-	// TODO I broke the favicons. I will fix with notications update
+	const total = count + dm_count;
+	document.title = total ? `(${total}) ${suffix}` : suffix;
+	// TODO I broke the favicons; I will fix with later.
 	//update_favicon(has_notes ? "img/damus_notif.svg" : "img/damus.svg");
-	update_notification_markers(count);
+	update_notification_markers(count, "activity");
+	update_notification_markers(dm_count, "dm");
 }
 
 async function get_pubkey(use_prompt=true) {

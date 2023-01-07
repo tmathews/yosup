@@ -197,10 +197,11 @@ function model_process_event_dm(model, ev, update_view) {
 	dm.events.splice(i, 0, ev);
 
 	// Check if DM is new
-	const b = model.all_events[dm.last_seen];
+	const b = model.all_events[dm.last_viewed];
 	if (!b || b.created_at < ev.created_at) {
-		// TODO update notification UI 
 		dm.new_count++;
+		// dirty hack
+		model.dms_need_redraw = true;
 	}
 }
 
@@ -213,7 +214,7 @@ function model_get_dm(model, target) {
 			// all_events. It should not be a copy to reduce memory.
 			events: [], 
 			// Last read event by the client/user
-			last_seen: "", 
+			last_viewed: "", 
 			new_count: 0,
 			// Notifies the renderer that this dm is out of date
 			needs_redraw: false,
@@ -221,6 +222,20 @@ function model_get_dm(model, target) {
 		});
 	}
 	return model.dms.get(target);
+}
+
+function model_dm_seen(model, target) {
+	const dm = model_get_dm(model, target);
+	dm.last_viewed = dm.events[0];
+	dm.new_count = 0;
+	dm.needs_redraw = true;
+}
+
+function model_mark_dms_seen(model) {
+	model.dms.forEach((dm) => {
+		model_dm_seen(model, dm.pubkey);
+	});
+	model.dms_need_redraw = true;
 }
 
 /* model_process_event_reaction updates the reactions dictionary

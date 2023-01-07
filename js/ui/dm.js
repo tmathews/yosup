@@ -1,6 +1,7 @@
 function view_dm_update(model) {
 	const el = find_node("#dms");
 	const order = [];
+	let reorder = false;
 	model.dms.forEach((dm, pubkey, m) => {
 		if (!dm.events.length)
 			return;
@@ -16,6 +17,7 @@ function view_dm_update(model) {
 		}
 		update_el_dmgroup(model, dm, gel);
 		dm.needs_redraw = false;
+		reorder = true;
 	});
 
 	// I'm not sure what is faster, doing a frag update all at once OR just
@@ -23,6 +25,7 @@ function view_dm_update(model) {
 	// chances of them all updating is is small and only garuenteed when it 
 	// draws the first time.
 	//const frag = new DocumentFragment();
+	if (!reorder) return;
 	for (let i = 0; i < order.length; i++) {
 		let dm = order[i];
 		let xel = el.children[i];
@@ -51,7 +54,7 @@ function update_el_dmgroup(model, dm, el) {
 	const message = ev.decrypted || ev.content || "No Message.";
 	const time = fmt_datetime(new Date(ev.created_at * 1000));
 	const cel = find_node(".count", el)
-	cel.innerText = dm.new_count;
+	cel.innerText = dm.new_count || dm.events.length;
 	cel.classList.toggle("active", dm.new_count > 0);
 	find_node(".time", el).innerText = time;
 	find_node(".message", el).innerText = message;
