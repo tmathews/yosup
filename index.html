@@ -257,18 +257,16 @@
 			<div id="reply-modal-content" class="modal-content">
 				<header>
 					<label>Reply To</label>
-					<button class="icon" onclick="close_reply()">
+					<button class="icon" onclick="close_modal(this)">
 						<img class="icon svg" src="icon/close-modal.svg"/>
 					</button>
 				</header>
 				<div id="replying-to"></div>
 				<div id="replybox">
-					<textarea id="reply-content" class="post-input" oninput="post_input_changed(this)"
-						placeholder="Write your reply here..."></textarea>
+					<textarea id="reply-content" class="post-input"
+						placeholder="Reply..."></textarea>
 					<div class="post-tools">
-						<button id="reply-button" class="action" onclick="do_send_reply()">
-							Reply
-						</button>
+						<button id="reply-button" class="action">Reply</button>
 					</div>
 				</div>
 			</div>

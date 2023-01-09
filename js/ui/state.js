@@ -488,6 +488,14 @@ function init_postbox(model) {
 	find_node("button[role='send']").addEventListener("click", onclick_send);
 	find_node("button[role='toggle-cw']")
 		.addEventListener("click", onclick_toggle_cw);
+	// Do reply box
+	// TODO refactor & cleanup reply modal init 
+	find_node("#reply-content").addEventListener("input", oninput_post);
+	find_node("#reply-button").addEventListener("click", onclick_reply);
+}
+async function onclick_reply(ev) {
+	// Temp method
+	do_send_reply();
 }
 async function onclick_send(ev) {
 	const el = view_get_timeline_el();

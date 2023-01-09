@@ -77,11 +77,6 @@ function close_media_preview() {
 	find_node("#media-preview").classList.add("closed");
 }
 
-function close_reply() {
-	const modal = document.querySelector("#reply-modal")
-	modal.classList.add("closed");
-}
-
 function delete_post_confirm(evid) {
 	if (!confirm("Are you sure you want to delete this post?"))
 		return;
@@ -100,7 +95,7 @@ async function do_send_reply() {
 	const content = reply_content_el.value;
 	await send_reply(content, evid, all);
 	reply_content_el.value = "";
-	close_reply();
+	close_modal(modal);
 }
 
 function reply(evid, all=false) {
@@ -204,7 +199,7 @@ function open_faqs() {
 }
 
 function close_modal(el) {
-	while (el.parentElement) {
+	while (el) {
 		if (el.classList.contains("modal")) {
 			el.classList.add("closed");
 			break;
