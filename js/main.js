@@ -72,6 +72,7 @@ async function webapp_init() {
 
 	// WARNING Order Matters!
 	init_message_textareas();
+	init_timeline(model);
 	init_my_pfp(model);
 	init_postbox(model);
 	init_profile();

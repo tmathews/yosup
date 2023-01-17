@@ -94,7 +94,7 @@ function render_dm(model, ev, opts) {
 	return html`<div id="ev${ev.id}" class="${classes}">
 		<div class="wrap">
 			<div class="body">
-			<p>$${format_content(ev, show_media)}</p>
+			<p>$${format_content(model, ev, show_media)}</p>
 			</div>
 			<div class="timestamp" data-timestamp="${ev.created_at}">${delta}</div>
 		</div>
@@ -109,7 +109,7 @@ function event_shows_media(model, ev, mode) {
 
 function rerender_dm(model, ev, el) {
 	let show_media = event_shows_media(model, ev, model.embeds);
-	find_node(".body > p", el).innerHTML = format_content(ev, show_media);
+	find_node(".body > p", el).innerHTML = format_content(model, ev, show_media);
 }
 
 function render_event_nointeract(model, ev, opts={}) {
@@ -145,7 +145,7 @@ function render_event_body(model, ev, opts) {
 	let str = "<div>";
 	str += shared ? render_shared_by(ev, opts) : render_replying_to(model, ev);
 	str += `</div><p>
-	${format_content(ev, show_media)}
+	${format_content(model, ev, show_media)}
 	</p>`;
 	str += render_reactions(model, ev);
 	str += opts.nobar || ev.kind == KIND_DM ? "" : 
@@ -258,8 +258,7 @@ function render_pubkey(pk) {
 	return fmt_pubkey(pk);
 }
 
-function render_username(pk, profile)
-{
+function render_username(pk, profile) {
 	return (profile && profile.name) || render_pubkey(pk)
 }
 
@@ -269,9 +268,9 @@ function render_mentioned_name(pk, profile) {
 
 function render_name(pk, profile, prefix="") {
 	// Beware of whitespace.
-	return html`<span>${prefix}<span class="username clickable" data-pubkey="${pk}" 
-		onclick="open_profile('${pk}')"
-		> ${fmt_profile_name(profile, fmt_pubkey(pk))}</span></span>`
+	return html`<span>${prefix}<span class="username clickable" 
+	role="open-profile" data-pubkey="${pk}"> 
+		${fmt_profile_name(profile, fmt_pubkey(pk))}</span></span>`
 }
 
 function render_profile_img(profile, noclick=false) {

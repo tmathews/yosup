@@ -25,12 +25,18 @@ function event_tags_pubkey(ev, pubkey) {
 	return false
 }
 
-function event_get_pubkeys(ev) {
-	const keys = [ev.pubkey];
+function event_get_tagged_pubkeys(ev) {
+	const keys = [];
 	for (const tag of ev.tags) {
 		if (tag.length >= 2 && tag[0] == "p")
 			keys.push(tag[1]);
 	}
+	return keys;
+}
+
+function event_get_pubkeys(ev) {
+	const keys = event_get_tagged_pubkeys(ev);
+	keys.splice(0, 0, ev.pubkey);
 	return keys;
 }
 

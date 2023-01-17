@@ -468,6 +468,16 @@ function html2el(html) {
 	return div.firstChild;
 }
 
+function init_timeline(model) {
+	const el = view_get_timeline_el();
+	el.addEventListener("click", onclick_timeline);
+}
+function onclick_timeline(ev) {
+	if (ev.target.matches(".username[data-pubkey]")) {
+		open_profile(ev.target.dataset.pubkey);
+	}
+}
+
 function init_my_pfp(model) {
 	find_nodes(`img[role='my-pfp']`).forEach((el)=> {
 		el.dataset.pubkey = model.pubkey;

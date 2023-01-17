@@ -24,7 +24,7 @@ function linkify(text="", show_media=false) {
 	})
 }
 
-function format_content(ev, show_media) {
+function format_content(model, ev, show_media) {
 	if (ev.kind === KIND_REACTION) {
 		if (ev.content === "" || ev.content === "+")
 			return "❤️"
@@ -32,7 +32,8 @@ function format_content(ev, show_media) {
 	}
 	const content = (ev.kind == KIND_DM ? ev.decrypted || ev.content : ev.content)
 		.trim();
-	const body = fmt_body(content, show_media);
+	const body = fmt_mentions(model, fmt_body(content, show_media), 
+		event_get_tagged_pubkeys(ev));
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
 		let cwHTML = "Content Warning"
@@ -48,6 +49,46 @@ function format_content(ev, show_media) {
 		</details>`;
 	}
 	return body;
+}
+
+function fmt_mentions(model, str, pubkeys) {
+	var buf = "";
+	for (var i = 0; i < str.length; i++) {
+		let c = str.charAt(i);
+		let peek = str.charAt(i+1);
+		if (!(c == "#" && peek == "[")) {
+			buf += c;
+			continue;
+		}
+		const start = i;
+		i += 2;
+		let x = "";
+		for(;;) {
+			c = str.charAt(i);
+			if (c >= '0' && c <= '9') {
+				x += c;
+				i++;
+			} else if (c == ']') {
+				break;	
+			} else {
+				buf += x;
+				x = "";
+				break;
+			}
+		}
+		if (x == "")
+			continue;
+		// Specification says it's 0-based, but everyone is doing 1-base
+		let pubkey = pubkeys[parseInt(x)];
+		if (!pubkey) {
+			buf += "(Invalid User Mentioned)"
+			continue;
+		}
+		let profile = model_get_profile(model, pubkey);
+		buf += `<span class="username clickable" data-pubkey="${pubkey}">
+			${fmt_name(profile)}</span>`;
+	}
+	return buf;
 }
 
 /* fmt_body will parse images, blockquotes, and sanitize the content.
