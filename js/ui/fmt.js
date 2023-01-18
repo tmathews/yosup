@@ -33,7 +33,7 @@ function format_content(model, ev, show_media) {
 	const content = (ev.kind == KIND_DM ? ev.decrypted || ev.content : ev.content)
 		.trim();
 	const body = fmt_mentions(model, fmt_body(content, show_media), 
-		event_get_tagged_pubkeys(ev));
+		event_get_tag_values(ev));
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
 		let cwHTML = "Content Warning"
@@ -51,7 +51,7 @@ function format_content(model, ev, show_media) {
 	return body;
 }
 
-function fmt_mentions(model, str, pubkeys) {
+function fmt_mentions(model, str, tags) {
 	var buf = "";
 	for (var i = 0; i < str.length; i++) {
 		let c = str.charAt(i);
@@ -78,14 +78,14 @@ function fmt_mentions(model, str, pubkeys) {
 		}
 		if (x == "")
 			continue;
-		// Specification says it's 0-based, but everyone is doing 1-base
-		let pubkey = pubkeys[parseInt(x)];
-		if (!pubkey) {
-			buf += "(Invalid User Mentioned)"
+		// Specification says it's 0-based
+		let ref = tags[parseInt(x)];
+		if (!ref) {
+			buf += `#[${x}]`
 			continue;
 		}
-		let profile = model_get_profile(model, pubkey);
-		buf += `<span class="username clickable" data-pubkey="${pubkey}">
+		let profile = model_get_profile(model, ref);
+		buf += `<span class="username clickable" data-pubkey="${ref}">
 			${fmt_name(profile)}</span>`;
 	}
 	return buf;

@@ -40,6 +40,15 @@ function event_get_pubkeys(ev) {
 	return keys;
 }
 
+function event_get_tag_values(ev) {
+	const keys = [];
+	for (const tag of ev.tags) {
+		if (tag.length >= 2)
+			keys.push(tag[1]);
+	}
+	return keys;
+}
+
 function event_calculate_pow(ev) {
 	const id_bits = leading_zero_bits(ev.id)
 	for (const tag of ev.tags) {
