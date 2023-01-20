@@ -32,8 +32,7 @@ function format_content(model, ev, show_media) {
 	}
 	const content = (ev.kind == KIND_DM ? ev.decrypted || ev.content : ev.content)
 		.trim();
-	const body = fmt_mentions(model, fmt_body(content, show_media), 
-		event_get_tag_values(ev));
+	const body = fmt_mentions(model, fmt_body(content, show_media), ev.tags);
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
 		let cwHTML = "Content Warning"
@@ -78,15 +77,20 @@ function fmt_mentions(model, str, tags) {
 		}
 		if (x == "")
 			continue;
-		// Specification says it's 0-based
-		let ref = tags[parseInt(x)];
-		if (!ref) {
+		let tag = tags[parseInt(x)];
+		if (!tag) {
 			buf += `#[${x}]`
 			continue;
 		}
-		let profile = model_get_profile(model, ref);
-		buf += `<span class="username clickable" data-pubkey="${ref}">
-			${fmt_name(profile)}</span>`;
+		let ref = tag[1];
+		if (tag[0] == 'e') {
+			buf += `<span class="clickable bold" action="open-thread"
+			data-thread-id="${ref}">note:${fmt_pubkey(ref)}</span>`;
+		} else if (tag[0] == 'p') {
+			let profile = model_get_profile(model, ref);
+			buf += `<span class="username clickable" data-pubkey="${ref}">
+				${fmt_name(profile)}</span>`;
+		}
 	}
 	return buf;
 }

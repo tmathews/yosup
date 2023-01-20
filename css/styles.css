@@ -32,6 +32,9 @@ th, td {
 	font-size: var(--fsNormal);
 }
 
+.bold {
+	font-weight: bold;
+}
 .row { 
 	margin: 15px 0;
 }

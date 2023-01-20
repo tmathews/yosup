@@ -599,7 +599,7 @@ function onclick_any(ev) {
 			show_new();
 			break;
 		case "open-thread":
-			open_trhead(el.dataset.threadId);
+			open_thread(el.dataset.threadId);
 			break;
 		case "reply":
 			send_reply(el.dataset.emoji, el.dataset.to);
