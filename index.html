@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="theme-color" content="#0f0f0f"/>
 		<meta http-equiv="Content-Security-Policy"
-			content="default-src 'none'; manifest-src 'self'; connect-src 'self' ws: wss:; script-src 'self'; script-src-elem 'self'; script-src-attr 'unsafe-inline'; style-src 'self' fonts.googleapis.com; img-src http: https: data:; media-src *; font-src 'self' fonts.gstatic.com; child-src 'none';" />
+			content="default-src 'none'; manifest-src 'self'; connect-src 'self' ws: wss:; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self' fonts.googleapis.com; img-src http: https: data:; media-src *; font-src 'self' fonts.gstatic.com; child-src 'none';" />
 		<title>Yo, Sup</title>
 		<link rel="manifest" href="pwa/manifest.json"/>
 		<link rel="icon" href="icon/icon.svg" type="image/svg+xml"/>
@@ -47,13 +47,13 @@
 						<img class="icon svg" src="icon/logo-inverted.svg"/>
 					</h1>
 					<p>The blue bird experience for Nostr.</p>
-					<button class="action" onclick="signin()">
+					<button class="action" action="sign-in">
 						Sign In with Key
 						<img src="./icon/key.svg" class="icon svg small invert"/>
 					</button>
 					<br/>
 					<br/>
-					<button class="btn-text" onclick="open_faqs()">
+					<button class="btn-text" action="open-faqs">
 						What's Nostr? 
 					</button>
 				</div>
@@ -61,25 +61,25 @@
 		</div>
 
 		<div id="container-app" class="hide">
-		<nav id="gnav" class="">
-			<button class="icon" role="open-gnav" title="Open Menu" onclick="toggle_gnav(this)">
+		<nav id="gnav">
+			<button class="icon" action="toggle-gnav" title="Open Menu">
 				<img class="icon svg invert" src="icon/logo.svg"/>
 			</button>
-			<button class="icon" role="home" title="Home" onclick="switch_view('friends')">
+			<button class="icon" action="open-view" data-view="friends" title="Home">
 				<img class="icon svg invert" src="icon/home.svg"/>
 			</button>
-			<button class="icon" role="explore" title="Explore" onclick="switch_view('explore')">
+			<button class="icon" action="open-view" data-view="explore" title="Explore">
 				<img class="icon svg invert" src="icon/explore.svg"/>
 			</button>
-			<button class="icon" role="dm" title="Direct Messages" onclick="switch_view('dm')">
+			<button class="icon" action="open-view" data-view="dm" title="Direct Messages">
 				<img class="icon svg invert" src="icon/messages.svg"/>
 				<div class="new-notifications hide" role="dm"></div>
 			</button>
-			<button class="icon" role="notifications" title="Notifications" onclick="switch_view('notifications')">
+			<button class="icon" action="open-view" data-view="notifications" title="Notifications">
 				<img class="icon svg invert" src="icon/notifications.svg"/>
 				<div class="new-notifications hide" role="activity"></div>
 			</button>
-			<button class="icon" role="settings" title="Settings" onclick="switch_view('settings')">
+			<button class="icon" action="open-view" data-view="settings" title="Settings">
 				<img class="icon svg invert" src="icon/settings.svg"/>
 			</button>
 		</nav>
@@ -90,29 +90,29 @@
 					<div id="app-icon-logo">
 						<img class="icon svg" title="Damus" src="icon/logo-inverted.svg"/>
 					</div>
-					<button role="home" class="nav icon" 
-						title="Home" onclick="switch_view('friends')">
+					<button action="open-view" data-view="friends" class="nav icon" 
+						title="Home">
 						<img class="icon svg inactive" src="icon/home.svg"/>
 						<img class="icon svg active" src="icon/home-active.svg"/>
 					</button>
-					<button role="explore" class="nav icon" 
-						title="Explore" onclick="switch_view('explore')"> <img class="icon svg inactive" src="icon/explore.svg"/>
+					<button action="open-view" data-view="explore" class="nav icon" 
+						title="Explore"> <img class="icon svg inactive" src="icon/explore.svg"/>
 						<img class="icon svg active" src="icon/explore-active.svg"/>
 					</button>
-					<button role="dm" class="nav icon" 
-						title="Direct Messages" onclick="switch_view('dm')">
+					<button action="open-view" data-view="dm" class="nav icon" 
+						title="Direct Messages">
 						<img class="icon svg inactive" src="icon/messages.svg"/>
 						<img class="icon svg active" src="icon/messages-active.svg"/>
 						<div class="new-notifications hide" role="dm"></div>
 					</button>
-					<button role="notifications" class="nav icon" 
-						title="Notifications" onclick="switch_view('notifications')">
+					<button action="open-view" data-view="notifications"
+						class="nav icon" title="Notifications">
 						<img class="icon svg inactive" src="icon/notifications.svg"/>
 						<img class="icon svg active" src="icon/notifications-active.svg"/>
 						<div class="new-notifications hide" role="activity"></div>
 					</button>
-					<button role="settings" title="Settings" class="nav icon"
-						onclick="switch_view('settings')">
+					<button action="open-view" data-view="settings" 
+						title="Settings" class="nav icon">
 						<img class="icon svg inactive" src="icon/settings.svg"/>
 						<img class="icon svg active" src="icon/settings-active.svg"/>
 					</button>
@@ -172,7 +172,7 @@
 						</div>
 					</div>
 					<div id="show-new" class="show-new bottom-border hide">
-						<button onclick="show_new()">
+						<button action="show-timeline-new">
 							Show New (<span role="count">0</span>)</button>
 					</div>
 					<div id="dms-not-available" class="hide">
@@ -248,7 +248,7 @@
 
 		<div class="modal closed" id="media-preview">
 			<div class="media-container">
-				<img onclick="close_media_preview()" src=""/>
+				<img action="close-media" src=""/>
 			</div>
 			<!-- TODO add loader to media preview -->
 		</div>
@@ -257,7 +257,7 @@
 			<div id="reply-modal-content" class="modal-content">
 				<header>
 					<label>Reply To</label>
-					<button class="icon" onclick="close_modal(this)">
+					<button class="icon" action="close-modal">
 						<img class="icon svg" src="icon/close-modal.svg"/>
 					</button>
 				</header>
@@ -276,7 +276,7 @@
 			<div class="modal-content">
 				<header>
 					<label>Update Profile</label>
-					<button class="icon" onclick="close_modal(this)">
+					<button class="icon" action="close-modal">
 						<img class="icon svg" src="icon/close-modal.svg"/>
 					</button>
 				</header>
@@ -285,7 +285,7 @@
 					<input type="text" class="block w100" name="picture" placeholder="Picture URL"/>
 					<input type="text" class="block w100" name="nip05" placeholder="nip05"/>
 					<textarea name="about" class="block w100" placeholder="A bit about you."></textarea>
-					<button class="action float-right" onclick="click_update_profile()">
+					<button class="action float-right" action="open-profile-editor">
 						Update
 					</button>
 				</div>
@@ -295,7 +295,7 @@
 			<div class="modal-content">
 				<header>
 					<label>Event Details</label>
-					<button class="icon modal-floating-close-btn" onclick="close_modal(this)">
+					<button class="icon modal-floating-close-btn" action="close-modal">
 						<img class="icon svg" src="icon/close-modal.svg"/>
 					</button>
 				</header>
@@ -306,7 +306,7 @@
 		</div>	
 
 		<div id="faqs" class="modal scrollable closed">
-			<button class="icon modal-floating-close-btn" onclick="close_modal(this)">
+			<button class="icon modal-floating-close-btn" action="close-modal">
 				<img class="icon svg" src="icon/close-modal.svg"/>
 			</button>
 			<div class="page-content">

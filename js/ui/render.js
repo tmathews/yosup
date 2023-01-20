@@ -13,8 +13,8 @@ function render_replying_to(model, ev) {
 		if (!replying_to) {
 			return html`<span class="replying-to small-txt">
 				replying in thread 
-				<span class="thread-id clickable" 
-				onclick="open_thread('${ev.refs.reply}')">
+				<span class="thread-id clickable" action="open-thread"
+				data-thread-id="${ev.refs.reply}">
 				${fmt_pubkey(ev.refs.reply)}</span></span>`;
 		} else {
 			pubkeys = [replying_to.pubkey];
@@ -156,9 +156,9 @@ function render_event_body(model, ev, opts) {
 function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
 	const reaction = reactions[our_pubkey]
 	if (!reaction) {
-		return html`onclick="send_reply('${emoji}', '${reacting_to}')"`
+		return html`action="reply" data-emoji="${emoji}" data-to="${reacting_to}"`;
 	} else {
-		return html`onclick="delete_post('${reaction.id}')"`
+		return html`action="delete" data-evid="${reaction.id}"`;
 	}
 }
 
@@ -196,14 +196,15 @@ function render_action_bar(model, ev, opts={}) {
 	const reaction_id = reaction ? reaction.id : "";
 	let str = html`<div class="action-bar">`;
 	if (!shared && event_can_reply(ev)) {
-		str += html`<button class="icon" title="Reply" onclick="reply_author('${ev.id}')">
+		str += html`
+		<button class="icon" title="Reply" action="reply-author" data-evid="${ev.id}">
 			<img class="icon svg small" src="icon/event-reply.svg"/>
 		</button>
-		<button class="icon" title="Reply All" onclick="reply_all('${ev.id}')">
+		<button class="icon" title="Reply All" action="reply-all" data-evid="${ev.id}">
 			<img class="icon svg small" src="icon/event-reply-all.svg"/>
 		</button>
 		<button class="icon react heart ${ab(liked, 'liked', '')}" 
-			onclick="click_toggle_like(this)"
+			action="react-like"
 			data-reaction-id="${reaction_id}"
 			data-reacting-to="${ev.id}"
 			title="$${ab(liked, 'Unlike', 'Like')}">
@@ -212,27 +213,29 @@ function render_action_bar(model, ev, opts={}) {
 		</button>`;
 	}
 	if (!shared) {
-		str += html`<button class="icon" title="Share" data-evid="${ev.id}" onclick="click_share(this)">
+		str += html`<button class="icon" title="Share" data-evid="${ev.id}" 
+			action="share">
 			<img class="icon svg small" src="icon/event-share.svg"/>
 		</button>`;
 	}
 	str += `
-	<button class="icon" title="View Thread" role="view-thread" 
-	onclick="open_thread('${thread_root}')">
+	<button class="icon" title="View Thread" action="open-thread" 
+	data-thread-id="${thread_root}">
 		<img class="icon svg small" src="icon/open-thread.svg"/>
 	</button>
-	<button class="icon" title="View Replies" role="view-replies" 
-	onclick="open_thread('${ev.id}')">
+	<button class="icon" title="View Replies" action="open-thread" 
+	data-thread-id="${ev.id}">
 		<img class="icon svg small" src="icon/open-thread-here.svg"/>
 	</button>
-	<button class="icon" title="View Event JSON" role="view-event-json" 
-	onclick="on_click_show_event_details('${ev.id}')">
+	<button class="icon" title="View Event JSON" action="show-event-json"
+	data-evid="${ev.id}">
 		<img class="icon svg small" src="icon/event-details.svg"/>
 	</button>`;
 	if (can_delete) {
 		const delete_id = shared ? shared.share_evid : ev.id;
 		str += html`
-	<button class="icon" title="Delete" onclick="delete_post_confirm('${delete_id}')">
+	<button class="icon" title="Delete" action="confirm-delete" 
+	data-evid="${delete_id}">
 		<img class="icon svg small" src="icon/event-delete.svg"/>
 	</button>` 
 	}
@@ -275,14 +278,14 @@ function render_name(pk, profile, prefix="") {
 
 function render_profile_img(profile, noclick=false) {
 	const name = fmt_name(profile);
-	let str = html`class="pfp clickable" onclick="open_profile('${profile.pubkey}')"`;
+	let str = html`class="pfp clickable" action="open-profile"`;
 	if (noclick)
 		str = "class='pfp'";
 	return html`<img 
 	$${str}
 	data-pubkey="${profile.pubkey}" 
 	title="${name}" 
-	onerror="this.onerror=null;this.src='${IMG_NO_USER}';" 
 	src="${get_profile_pic(profile)}"/>`
+	//onerror="this.onerror=null;this.src='${IMG_NO_USER}';" 
 }
 

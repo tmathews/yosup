@@ -11,7 +11,7 @@ function linkify(text="", show_media=false) {
 		if (show_media && is_img_url(parsed.pathname)) {
 			markup = html`
 			<img class="inline-img clickable" src="${url}" 
-			onclick="open_media_preview('${url}', 'image')"/>`;
+			action="open-media" data-type="image"/>`;
 		} else if (show_media && is_video_url(parsed.pathname)) {
 			markup = html`
 			<video controls class="inline-img" />

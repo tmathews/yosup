@@ -98,20 +98,21 @@ th, td {
 #nav > div[data-active] img.active {
 	display: none;
 }
-#nav > div[data-active="home"] [role="home"] img.inactive,
-#nav > div[data-active="explore"] [role="explore"] img.inactive,
-#nav > div[data-active="notifications"] [role="notifications"] img.inactive,
-#nav > div[data-active="settings"] [role="settings"] img.inactive,
-#nav > div[data-active="messages"] [role="dm"] img.inactive {
+#nav > div[data-active="home"] [data-view="friends"] img.inactive,
+#nav > div[data-active="explore"] [data-view="explore"] img.inactive,
+#nav > div[data-active="notifications"] [data-view="notifications"] img.inactive,
+#nav > div[data-active="settings"] [data-view="settings"] img.inactive,
+#nav > div[data-active="messages"] [data-view="dm"] img.inactive {
 	display: none;
 }
-#nav > div[data-active="home"] [role="home"] img.active,
-#nav > div[data-active="explore"] [role="explore"] img.active,
-#nav > div[data-active="notifications"] [role="notifications"] img.active,
-#nav > div[data-active="settings"] [role="settings"] img.active,
-#nav > div[data-active="messages"] [role="dm"] img.active {
+#nav > div[data-active="home"] [data-view="friends"] img.active,
+#nav > div[data-active="explore"] [data-view="explore"] img.active,
+#nav > div[data-active="notifications"] [data-view="notifications"] img.active,
+#nav > div[data-active="settings"] [data-view="settings"] img.active,
+#nav > div[data-active="messages"] [data-view="dm"] img.active {
 	display: block;
 }
+
 #app-icon-logo > img {
 	width: 36px;
 	height: 36px;
@@ -145,26 +146,26 @@ button.nav > img.icon {
 	width: 28px;
 	height: 28px;
 }
-#gnav button[role="open-gnav"] {
+#gnav button[action="toggle-gnav"] {
 	z-index: var(--zGlobal);
 	padding: 15px;
 }
-#gnav.open button[role="home"] {
+#gnav.open button[data-view="friends"] {
 	top: -375px;
 }
-#gnav.open button[role="explore"] {
+#gnav.open button[data-view="explore"] {
 	top: -300px;
 }
-#gnav.open button[role="dm"] {
+#gnav.open button[data-view="dm"] {
 	top: -225px;
 }
-#gnav.open button[role="notifications"] {
+#gnav.open button[data-view="notifications"] {
 	top: -150px;
 }
-#gnav.open button[role="notifications"] .new-notifications {
+#gnav.open button[data-view="notifications"] .new-notifications {
 	right: 9px;
 }
-#gnav.open button[role="settings"] {
+#gnav.open button[data-view="settings"] {
 	top: -75px;
 }
 
@@ -281,9 +282,6 @@ button.nav > img.icon {
 }
 .event-content > .info {
 	display: inline-block;
-}
-.event-content > .info button[role="view-event"] {
-	margin-left: 10px;
 }
 .username, .thread-id {
 	font-weight: 800;

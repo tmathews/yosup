@@ -19,6 +19,7 @@ const SID_FRIENDS       = "friends";
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
 addEventListener('DOMContentLoaded', (ev) => {
 	damus_web_init();
+	document.addEventListener("click", onclick_any);
 });
 
 async function damus_web_init() {
@@ -295,4 +296,3 @@ function fetch_friends_history(friends, pool, relay) {
 		limit: 500,
 	}], relay);
 }
-

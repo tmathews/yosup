@@ -566,3 +566,70 @@ function onclick_toggle_cw(ev) {
 	const input = el.parentElement.querySelector("input.cw");
 	input.classList.toggle("hide", !isOn);
 }
+
+function onclick_any(ev) {
+	const el = ev.target;
+	const action = el.getAttribute("action");
+	switch (action) {
+		case "open-faqs":
+			open_faqs();
+			break;
+		case "toggle-gnav":
+			toggle_gnav(el);
+			break;
+		case "sign-in":
+			signin();
+			break;
+		case "open-view":
+			switch_view(el.dataset.view);
+			break;
+		case "close-media":
+			close_media_preview();
+			break;
+		case "close-modal":
+			close_modal(el);
+			break;
+		case "open-profile":
+			open_profile(el.dataset.pubkey);
+			break;
+		case "open-profile-editor":
+			click_update_profile();
+			break;
+		case "show-timeline-new":
+			show_new();
+			break;
+		case "open-thread":
+			open_trhead(el.dataset.threadId);
+			break;
+		case "reply":
+			send_reply(el.dataset.emoji, el.dataset.to);
+			break;
+		case "delete":
+			delete_post(el.dataset.evid);
+			break;
+		case "reply-author":
+			reply_author(el.dataset.evid);
+			break;
+		case "reply-all":
+			reply_all(el.dataset.evid);
+			break;
+		case "react-like":
+			click_toggle_like(el);
+			break;
+		case "share":
+			click_share(el);
+			break;
+		case "open-thread":
+			open_thread(el.dataset.threadId);
+			break;
+		case "open-media":
+			open_media_preview(el.src, el.dataset.type);
+			break;
+		case "show-event-json":
+			on_click_show_event_details(el.dataset.evid);
+			break;
+		case "confirm-delete":
+			delete_post_confirm(el.dataset.evid);
+			break;
+	}
+}
