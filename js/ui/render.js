@@ -197,11 +197,8 @@ function render_action_bar(model, ev, opts={}) {
 	let str = html`<div class="action-bar">`;
 	if (!shared && event_can_reply(ev)) {
 		str += html`
-		<button class="icon" title="Reply" action="reply-author" data-evid="${ev.id}">
+		<button class="icon" title="Reply" action="reply-to" data-evid="${ev.id}">
 			<img class="icon svg small" src="icon/event-reply.svg"/>
-		</button>
-		<button class="icon" title="Reply All" action="reply-all" data-evid="${ev.id}">
-			<img class="icon svg small" src="icon/event-reply-all.svg"/>
 		</button>
 		<button class="icon react heart ${ab(liked, 'liked', '')}" 
 			action="react-like"

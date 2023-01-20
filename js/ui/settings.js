@@ -5,7 +5,6 @@ function init_settings(model) {
 	embeds_el.addEventListener("click", on_click_toggle_embeds);
 	embeds_el.checked = model.embeds != "friends";
 	find_node("[role='sign-out']", el).addEventListener("click", on_click_sign_out);
-	find_node("[role='about-nostr']", el).addEventListener("click", open_faqs);
 	const rlist = find_node("#relay-list tbody", el);
 	model.relays.forEach((str) => {
 		rlist.appendChild(new_relay_item(str));

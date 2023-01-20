@@ -51,11 +51,6 @@
 						Sign In with Key
 						<img src="./icon/key.svg" class="icon svg small invert"/>
 					</button>
-					<br/>
-					<br/>
-					<button class="btn-text" action="open-faqs">
-						What's Nostr? 
-					</button>
 				</div>
 			</div>
 		</div>
@@ -211,7 +206,6 @@
 								<label>
 							</div>
 							<div class="row">
-							<button class="action mr-some" role='about-nostr'>Read About Nostr</button>
 							<button class="action" role="sign-out">
 								Sign Out
 								<img class="icon svg small invert" src="icon/sign-out.svg"/>
@@ -246,15 +240,12 @@
 		</div>
 		</div>
 
-		<div class="modal closed" id="media-preview">
-			<div class="media-container">
-				<img action="close-media" src=""/>
-			</div>
+		<dialog id="media-preview">
+			<img action="close-media" src=""/>
 			<!-- TODO add loader to media preview -->
-		</div>
-
-		<div class="modal closed" id="reply-modal">
-			<div id="reply-modal-content" class="modal-content">
+		</dialog>
+		<dialog id="reply-modal">
+			<div class="container">
 				<header>
 					<label>Reply To</label>
 					<button class="icon" action="close-modal">
@@ -266,14 +257,14 @@
 					<textarea id="reply-content" class="post-input"
 						placeholder="Reply..."></textarea>
 					<div class="post-tools">
-						<button id="reply-button" class="action">Reply</button>
+						<button class="action" name="reply-all" data-all="1">Reply All</button>
+						<button class="action" name="reply">Reply</button>
 					</div>
 				</div>
 			</div>
-		</div>
-
-		<div id="profile-editor" class="modal closed">
-			<div class="modal-content">
+		</dialog>
+		<dialog id="profile-editor">
+			<div class="container">
 				<header>
 					<label>Update Profile</label>
 					<button class="icon" action="close-modal">
@@ -290,116 +281,21 @@
 					</button>
 				</div>
 			</div>
-		</div>
-		<div id="event-details" class="modal closed">
-			<div class="modal-content">
+		</dialog>
+		<dialog id="event-details">
+			<div class="container">
 				<header>
 					<label>Event Details</label>
 					<button class="icon modal-floating-close-btn" action="close-modal">
 						<img class="icon svg" src="icon/close-modal.svg"/>
 					</button>
 				</header>
-				<div>
+				<div class="max-content">
 					<pre><code></code></pre>
 				</div>
 			</div>
-		</div>	
+		</dialog>
 
-		<div id="faqs" class="modal scrollable closed">
-			<button class="icon modal-floating-close-btn" action="close-modal">
-				<img class="icon svg" src="icon/close-modal.svg"/>
-			</button>
-			<div class="page-content">
-			<h1>Welcome to Nostr</h1>
-			<p>The open social network for "literally" everyone.</p>
-
-			<h2>What is Nostr?</h2>
-			<p>
-			Nostr is a protocol, not a platform or an app. This means that
-			users can pick and choose which clients (apps) to use and which
-			relays (servers) they wish to connect to.
-			</p>
-			<p>Nostr uses encryption to validate content authors. This means
-			that there is no centralized account system. We use 
-			<a href="https://en.wikipedia.org/wiki/Public-key_cryptography"
-				target="_blank">public &amp; private</a> keys to sign our 
-			content when we post. Do not confuse this with blockchain
-			technology.
-			</p>
-			<p>
-			Nostr stands for "Notes and Other Stuff Transmitted by Relays".
-			</p>
-			<p>
-				Read more about the protocol <a
-				href="https://github.com/nostr-protocol/nostr"
-				target="_blank">here</a>.
-			</p>
-
-			<h2>Apps</h2>
-			<p>
-			You are using one right now! You just haven't signed in yet to see
-			the actual application. Close this modal to sign in with your key. 
-			</p>
-			<p>
-			A rich app ecosystem for Nostr. Anyone can build an app for the
-			protocol that fits their needs. This is the best option for users
-			as everyone has their own style. Another benifit is that you can
-			use multiple apps with the same account.
-			</p>
-			<p>
-			Since there are many apps for Nostr it allows developers to focus
-			on building certain experiences. Some apps may offer features that
-			others don't, such as direct messages, content viewing methods,
-			etc. You are allowed to choose how you want to interact with
-			Nostr.
-			</p>
-			<h3>Pick One</h3>
-			<p>
-			Here are a list of (trusted) apps that work with Nostr. Pick one
-			that fits you.
-			</p>
-			<ul>
-				<li><a href="https://damus.io" target="_blank">Damus</a> (iOS)</li>
-				<li><a href="https://github.com/fiatjaf/noscl" target="_blank">noscl</a> (Linux, Windows, MacOS)</li>
-			</ul>
-
-			<h3>Web Apps Warning</h3>
-			<p>
-			While the web is great for accessibility and is cross platform, it
-			is riddled with security implications you should be aware of. The
-			browser is susceptible to cross-site scripting (<a
-			href="https://en.wikipedia.org/wiki/Cross-site_scripting" 
-			target="_blank">XSS</a>) attacks and extension malware. Therefore 
-			you should be sure any web app you use is audited and trusted.
-			Additionally be aware of what apps you are using.
-			</p>
-			<p>
-			Secondly it is recommended you use a browser extension to handle
-			your Nostr key(s). This will delegate the signing process to an
-			extension that a XSS attack can't access. This is where native apps
-			have a stronger use case, but you should equally trust those as
-			well.
-			</p>
-
-			<h2>Relays</h2>
-			<p>
-			Relays are points of connection, a server. They allow you to read 
-			events (content) and write to it depending on it's configuration.
-			Some may be read only, others may require some sort of payment to 
-			use. Some may simply clone other relays. 
-			</p>
-			<p>
-			Relays allow for specific needs and niches. You can host your
-			own relay for your club or community (such as gaming, art, sciences,
-			etc.) Or you can build your own relay with your own logic that 
-			dictates who can access what and how. This is great for all kinds
-			of use cases for a range of users from individuals to businesses.
-			</p>
-
-			<h2>Account Creation</h2>
-			<p>You need to use a CLI tool. TODO fill this out.</p>
-
-			</div>
 		</div>
 	</body>
 </html>

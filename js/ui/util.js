@@ -65,7 +65,7 @@ function click_toggle_like(el) {
  */
 function open_media_preview(url, type) {
 	const el = find_node("#media-preview");
-	el.classList.remove("closed");
+	el.showModal();
 	find_node("img", el).src = url;
 	// TODO handle different medias such as audio and video
 	// TODO add loading state & error checking
@@ -74,7 +74,7 @@ function open_media_preview(url, type) {
 /* close_media_preview closes any present media modal.
  */
 function close_media_preview() {
-	find_node("#media-preview").classList.add("closed");
+	find_node("#media-preview").close();
 }
 
 function delete_post_confirm(evid) {
@@ -86,11 +86,10 @@ function delete_post_confirm(evid) {
 	delete_post(evid, reason)
 }
 
-async function do_send_reply() {
+async function do_send_reply(all=false) {
 	const modal = document.querySelector("#reply-modal");
 	const replying_to = modal.querySelector("#replying-to");
 	const evid = replying_to.dataset.evid;
-	const all = replying_to.dataset.toAll != "";
 	const reply_content_el = document.querySelector("#reply-content");
 	const content = reply_content_el.value;
 	await send_reply(content, evid, all);
@@ -98,27 +97,18 @@ async function do_send_reply() {
 	close_modal(modal);
 }
 
-function reply(evid, all=false) {
+function reply(evid) {
 	const ev = DAMUS.all_events[evid]
 	const modal = document.querySelector("#reply-modal")
 	const replybox = modal.querySelector("#reply-content")
 	const replying_to = modal.querySelector("#replying-to")
 	replying_to.dataset.evid = evid
-	replying_to.dataset.toAll = all ? "all" : "";
 	replying_to.innerHTML = render_event_nointeract(DAMUS, ev, {
 		is_composing: true, 
 		nobar: true
 	});
-	modal.classList.remove("closed")
+	modal.showModal();
 	replybox.focus()
-}
-
-function reply_author(evid) {
-	reply(evid);
-}
-
-function reply_all(evid) {
-	reply(evid, true);
 }
 
 function update_favicon(path) {
@@ -194,18 +184,8 @@ function open_thread(thread_id) {
 	view_timeline_apply_mode(DAMUS, VM_THREAD, { thread_id });
 }
 
-function open_faqs() {
-	find_node("#faqs").classList.remove("closed");
-}
-
 function close_modal(el) {
-	while (el) {
-		if (el.classList.contains("modal")) {
-			el.classList.add("closed");
-			break;
-		}
-		el = el.parentElement;
-	}
+	find_parent(el, "dialog").close();
 }
 
 function on_click_show_event_details(evid) {
@@ -214,7 +194,7 @@ function on_click_show_event_details(evid) {
 	if (!ev)
 		return;
 	const el = find_node("#event-details");
-	el.classList.remove("closed");
+	el.showModal();
 	find_node("code", el).innerText = JSON.stringify(ev, null, "\t");
 }
 

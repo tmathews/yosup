@@ -370,6 +370,11 @@ button.nav > img.icon {
 
 .action-bar button.icon {
 	transition:	opacity 0.3s linear;
+	padding: 5px;
+}
+.action-bar button.icon img.icon {
+	width: 16px;
+	height: 16px;
 }
 .action-bar button.icon:hover {
 	opacity: 1;
@@ -385,51 +390,45 @@ details.cw summary {
 }
 
 /* Modal */
-.modal {
-	position: fixed;
-	z-index: var(--zModal); 
-	left: 0;
-	top: 0;
-	width: 100%; 
-	height: 100%;
-	background: rgba(255,255,255,0.4);
-	opacity: 1;
-	transition: opacity 0.2s linear;
+dialog:modal {
+	width: 80%;
+	max-width: 700px;
+	padding: 20px;
+	border: none;
+	background: transparent;
+	color: var(--clrText);
+}
+dialog::backdrop {
 	backdrop-filter: blur(20px);
 	-webkit-backdrop-filter: blur(20px);
 }
-.modal.scrollable {
-	overflow-y: auto;
-}
-.modal.closed {
-	opacity: 0;
-	pointer-events: none;
-}
-.modal-content {
-	padding: 20px;
-	overflow: auto;
-	border-radius: 15px;
-	background: var(--clrPanel);
-	max-width: 700px;
-	margin: 0 auto;
-	margin-top: 35px;
-}
-.modal header {
+dialog header {
 	display: flex;
 }
-.modal header label {
+dialog header label {
+	flex: 1;
 	font-weight: 800;
 	font-size: var(--fsEnlarged);
-	flex: 1;
 	word-break: break-word;
 }
-.modal header button {
+dialog header button {
 	font-size: 24px;
 }
-.modal .modal-floating-close-btn {
-	position: sticky;
-	top: 20px;
-	left: 20px;
+dialog > img {
+	/* fix for media preview */
+	max-width: 100%;
+	max-height: 100%;
+}
+dialog > .container {
+	display: flex;
+	flex-direction: column;
+	background: var(--clrPanel);
+	border-radius: 15px;
+	padding: 20px;
+}
+dialog > .container .max-content {
+	max-height: min(100vh/2, 500px);
+	overflow: auto;	
 }
 
 /* Post & Reply */
@@ -440,6 +439,7 @@ details.cw summary {
 textarea.post-input {
 	display: block;
 	width: 100%;
+	min-height: 25px;
 }
 
 .post-tools {
@@ -451,6 +451,9 @@ textarea.post-input {
 }
 .post-tools > button.icon.cw.active {
 	opacity: 1.0;
+}
+.post-tools > button[name='reply-all'] {
+	margin-right: 5px;
 }
 input[type="text"].cw {
 	border: none;
@@ -488,21 +491,6 @@ label[role="profile-nip5"] {
 	margin-top: 15px;
 	font-weight: 800;
 	display: block;
-}
-
-/* Media Preview */
-
-.modal .media-container {
-	text-align: center;
-	position: absolute;
-	width: 100%;
-	height: 100%;
-}
-.modal .media-container > img {
-	object-fit: scale-down;
-	object-position: center;
-	width: 100%;
-	height: 100%;
 }
 
 /* Profile Editor */

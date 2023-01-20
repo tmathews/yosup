@@ -501,11 +501,13 @@ function init_postbox(model) {
 	// Do reply box
 	// TODO refactor & cleanup reply modal init 
 	find_node("#reply-content").addEventListener("input", oninput_post);
-	find_node("#reply-button").addEventListener("click", onclick_reply);
+	find_node("button[name='reply']")
+		.addEventListener("click", onclick_reply);
+	find_node("button[name='reply-all']")
+		.addEventListener("click", onclick_reply);
 }
 async function onclick_reply(ev) {
-	// Temp method
-	do_send_reply();
+	do_send_reply(ev.target.dataset.all == "1");
 }
 async function onclick_send(ev) {
 	const el = view_get_timeline_el();
@@ -571,9 +573,6 @@ function onclick_any(ev) {
 	const el = ev.target;
 	const action = el.getAttribute("action");
 	switch (action) {
-		case "open-faqs":
-			open_faqs();
-			break;
 		case "toggle-gnav":
 			toggle_gnav(el);
 			break;
@@ -607,11 +606,8 @@ function onclick_any(ev) {
 		case "delete":
 			delete_post(el.dataset.evid);
 			break;
-		case "reply-author":
-			reply_author(el.dataset.evid);
-			break;
-		case "reply-all":
-			reply_all(el.dataset.evid);
+		case "reply-to":
+			reply(el.dataset.evid);
 			break;
 		case "react-like":
 			click_toggle_like(el);
