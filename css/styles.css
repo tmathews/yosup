@@ -416,6 +416,7 @@ dialog header button {
 }
 #media-preview {
 	height: 100%;
+	max-width: inherit;
 }
 #media-preview > img {
 	max-width: 100%;
