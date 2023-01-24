@@ -7,6 +7,16 @@ const VM_THREAD        = "thread"; // all events in response to target event
 const VM_USER          = "user"; // all events by pubkey 
 const VM_SETTINGS      = "settings";
 
+const VIEW_NAMES= {};
+VIEW_NAMES[VM_FRIENDS] = "Home";
+VIEW_NAMES[VM_EXPLORE] = "Explore";
+VIEW_NAMES[VM_NOTIFICATIONS] = "Notifications";
+VIEW_NAMES[VM_DM] = "Messages";
+VIEW_NAMES[VM_DM_THREAD] = "DM";
+VIEW_NAMES[VM_USER] = "Profile";
+VIEW_NAMES[VM_THREAD] = "Thread";
+VIEW_NAMES[VM_SETTINGS] = "Settings";
+
 function view_get_timeline_el() {
 	return find_node("#timeline");
 }
@@ -48,10 +58,6 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 		}
 	}
 	
-	// Push a new state to the browser history stack
-	if (push_state)
-		history.pushState({mode, opts}, '');
-	
 	// Fetch history for certain views
 	if (mode == VM_THREAD) {
 		view_show_spinner(true);
@@ -65,17 +71,27 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 		reset_notifications(model);
 	}
 
-	const names = {};
-	names[VM_FRIENDS] = "Home";
-	names[VM_EXPLORE] = "Explore";
-	names[VM_NOTIFICATIONS] = "Notifications";
-	names[VM_DM] = "Messages";
-	names[VM_DM_THREAD] = "Messages";
-	names[VM_USER] = "Profile";
-	names[VM_THREAD] = "Thread";
-	names[VM_SETTINGS] = "Settings";
+	const names = VIEW_NAMES;
 	let name = names[mode];
 	let profile;
+
+	// Push a new state to the browser history stack
+	if (push_state) {
+		let pieces = [name.toLowerCase()];
+		switch (mode) {
+			case VM_FRIENDS:
+				pieces = [];
+				break;
+			case VM_THREAD:
+				pieces.push(thread_id);
+				break;
+			case VM_USER:
+			case VM_DM_THREAD:
+				pieces.push(pubkey);
+				break;
+		}
+		history.pushState({mode, opts}, "", "/"+pieces.join("/"));
+	}
 
 	el.dataset.mode = mode;
 	delete el.dataset.threadId;

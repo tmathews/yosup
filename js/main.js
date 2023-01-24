@@ -1,9 +1,9 @@
 let DAMUS = new_model();
 
 // TODO autogenerate these constants with a bash script
-const IMG_EVENT_LIKED = "icon/event-liked.svg";
-const IMG_EVENT_LIKE  = "icon/event-like.svg";
-const IMG_NO_USER     = "icon/no-user.svg";
+const IMG_EVENT_LIKED = "/icon/event-liked.svg";
+const IMG_EVENT_LIKE  = "/icon/event-like.svg";
+const IMG_NO_USER     = "/icon/no-user.svg";
 
 const SID_META          = "meta";
 const SID_HISTORY       = "history";
@@ -103,16 +103,46 @@ async function webapp_init() {
 		model_process_event(model, undefined, ev);
 	});
 	log_debug("loaded events", Object.keys(model.all_events).length);
+	*/
 
-	// Update our view and apply timer methods once all data is ready to go.
-	view_timeline_update(model);*/
-	view_timeline_apply_mode(model, VM_FRIENDS, {hide_replys: true});
+	var { mode, opts, valid } = parse_url_mode();
+	view_timeline_apply_mode(model, mode, opts, !valid);
 	on_timer_timestamps();
 	on_timer_invalidations();
 	on_timer_save();
 	on_timer_tick();
 	
 	return pool;
+}
+
+function parse_url_mode() {
+	var mode;
+	var valid = true;
+	var opts = {};
+	var parts = window.location.pathname.split("/").slice(1);
+	for (var key in VIEW_NAMES) {
+		if (VIEW_NAMES[key].toLowerCase() == parts[0]) {
+			mode = key;
+			break;
+		}
+	}
+	if (!mode) {
+		mode = VM_FRIENDS;
+		valid = false;
+	}
+	switch (mode) {
+		case VM_FRIENDS:
+			opts.hide_replys = true;
+			break;
+		case VM_THREAD:
+			opts.thread_id = parts[1];
+			break;
+		case VM_DM_THREAD:
+		case VM_USER:
+			opts.pubkey = parts[1];
+			break;
+	}
+	return { mode, opts, valid };
 }
 
 function on_timer_timestamps() {

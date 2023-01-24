@@ -198,7 +198,7 @@ function render_action_bar(model, ev, opts={}) {
 	if (!shared && event_can_reply(ev)) {
 		str += html`
 		<button class="icon" title="Reply" action="reply-to" data-evid="${ev.id}">
-			<img class="icon svg small" src="icon/event-reply.svg"/>
+			<img class="icon svg small" src="/icon/event-reply.svg"/>
 		</button>
 		<button class="icon react heart ${ab(liked, 'liked', '')}" 
 			action="react-like"
@@ -212,28 +212,28 @@ function render_action_bar(model, ev, opts={}) {
 	if (!shared) {
 		str += html`<button class="icon" title="Share" data-evid="${ev.id}" 
 			action="share">
-			<img class="icon svg small" src="icon/event-share.svg"/>
+			<img class="icon svg small" src="/icon/event-share.svg"/>
 		</button>`;
 	}
 	str += `
 	<button class="icon" title="View Thread" action="open-thread" 
 	data-thread-id="${thread_root}">
-		<img class="icon svg small" src="icon/open-thread.svg"/>
+		<img class="icon svg small" src="/icon/open-thread.svg"/>
 	</button>
 	<button class="icon" title="View Replies" action="open-thread" 
 	data-thread-id="${ev.id}">
-		<img class="icon svg small" src="icon/open-thread-here.svg"/>
+		<img class="icon svg small" src="/icon/open-thread-here.svg"/>
 	</button>
 	<button class="icon" title="View Event JSON" action="show-event-json"
 	data-evid="${ev.id}">
-		<img class="icon svg small" src="icon/event-details.svg"/>
+		<img class="icon svg small" src="/icon/event-details.svg"/>
 	</button>`;
 	if (can_delete) {
 		const delete_id = shared ? shared.share_evid : ev.id;
 		str += html`
 	<button class="icon" title="Delete" action="confirm-delete" 
 	data-evid="${delete_id}">
-		<img class="icon svg small" src="icon/event-delete.svg"/>
+		<img class="icon svg small" src="/icon/event-delete.svg"/>
 	</button>` 
 	}
 	return str + "</div>";
