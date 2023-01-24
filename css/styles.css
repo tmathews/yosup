@@ -208,12 +208,18 @@ button.nav > img.icon {
 	font-weight: 800;
 	display: block;
 }
-#view > div > header > .pfp {
-	width: 32px;
-	height: 32px;
+#header-tools {
+	display: flex;
 	position: absolute;
 	top: 15px;
 	right: 15px;
+}
+#header-tools > * {
+	margin-left: 15px;
+}
+#header-tools .pfp {
+	width: 32px;
+	height: 32px;
 }
 
 /* Events & Content */
@@ -328,21 +334,19 @@ button.nav > img.icon {
 .comment {
 	word-break: break-word;
 }
-
 .inline-img {
 	width: 100%;
 	max-height: 300px;
 	object-fit: contain;
 }
-
 .action-bar > button {
 	margin-right: 25px;
 	opacity: 0.5;
 }
+
 .reactions {
 	margin-bottom: 15px;
 }
-
 .reaction-group {
 	display: inline-flex;
 	align-items: center;

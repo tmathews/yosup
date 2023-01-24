@@ -153,14 +153,6 @@ function model_process_event_following(model, ev, update_view) {
 //	load_our_relays(model.pubkey, model.pool, ev)
 }
 
-function event_is_dm(ev, mykey) {
-	if (ev.kind != KIND_DM)
-		return false;
-	if (ev.pubkey != mykey && event_tags_pubkey(ev, mykey))
-		return true;
-	return ev.pubkey == mykey;
-}
-
 /* model_process_event_dm updates the internal dms hash map based on dms
  * targeted at the user.
  */
@@ -240,6 +232,8 @@ function model_set_dms_seen(model, obj={}) {
 
 function model_dm_seen(model, target) {
 	const dm = model_get_dm(model, target);
+	if (!dm.events[0])
+		return;
 	dm.last_viewed = dm.events[0].created_at;
 	dm.new_count = 0;
 	dm.needs_redraw = true;

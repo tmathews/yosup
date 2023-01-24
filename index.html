@@ -118,10 +118,20 @@
 				<div>
 					<header>
 						<label>Home</label>
-						<img class="pfp" role="their-pfp" data-pubkey=""
+						<div id="header-tools">
+							<button class="action small bordered"
+							action="toggle-hide-replys">
+								Show Replys
+							</button>
+							<button class="action small bordered hide"
+							disabled action="mark-all-read">
+								Mark All Read
+							</button>
+							<img class="pfp hide" role="their-pfp" data-pubkey=""
 							src="icon/no-user.svg"/>
-						<img class="pfp" role="my-pfp" data-pubkey=""
+							<img class="pfp hide" role="my-pfp" data-pubkey=""
 							src="icon/no-user.svg"/>
+						</div>
 					</header>
 					<div id="newpost">
 						<textarea placeholder="What's up?" 

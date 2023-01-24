@@ -16,7 +16,7 @@
 
 button.action:disabled {
 	cursor: default;
-	background-color: var(--clrTextLight);
+	opacity: 0.5;
 }
 button {
 	background: #171717;
@@ -38,9 +38,18 @@ button.action {
 	border-radius: 50px;
 	background: var(--clrBgAction);
 	padding: 10px 15px;
-	font-size: 16px;
+	font-size: var(--fsNormal); 
 	color: var(--clrTextAction);
 	font-weight: 800;
+}
+button.action.small {
+	padding: 5px 15px;
+	font-size: var(--fsReduced);
+}
+button.action.bordered {
+	background: transparent;
+	border: solid 2px var(--clrBgAction);
+	color: var(--clrBgAction);
 }
 
 img.icon {

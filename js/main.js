@@ -106,7 +106,7 @@ async function webapp_init() {
 
 	// Update our view and apply timer methods once all data is ready to go.
 	view_timeline_update(model);*/
-	view_timeline_apply_mode(model, VM_FRIENDS);
+	view_timeline_apply_mode(model, VM_FRIENDS, {hide_replys: true});
 	on_timer_timestamps();
 	on_timer_invalidations();
 	on_timer_save();

@@ -155,3 +155,14 @@ function event_parse_reaction(ev) {
 	}
 }
 
+function event_is_dm(ev, mykey) {
+	if (ev.kind != KIND_DM)
+		return false;
+	if (ev.pubkey != mykey && event_tags_pubkey(ev, mykey))
+		return true;
+	return ev.pubkey == mykey;
+}
+
+function event_is_reply(ev) {
+	return !!ev.refs.reply;
+}

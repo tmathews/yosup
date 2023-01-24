@@ -29,6 +29,11 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	// Don't do anything if we are already here
 	if (el.dataset.mode == mode) {
 		switch (mode) {
+			case VM_FRIENDS:
+				if ((el.dataset.hideReplys == "true") == opts.hide_replys)
+					return;
+				push_state = false;
+				break;
 			case VM_DM_THREAD:
 			case VM_USER:
 				if (el.dataset.pubkey == opts.pubkey)
@@ -75,7 +80,11 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	el.dataset.mode = mode;
 	delete el.dataset.threadId;
 	delete el.dataset.pubkey;
+	delete el.dataset.hideReplys;
 	switch(mode) {
+		case VM_FRIENDS:
+			el.dataset.hideReplys = opts.hide_replys;
+			break;
 		case VM_THREAD:
 			el.dataset.threadId = thread_id;
 			break;
@@ -100,11 +109,15 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	find_node("#dms-not-available")
 		.classList.toggle("hide", mode == VM_DM_THREAD || mode == VM_DM ? 
 			dms_available() : true);
+	find_node("#header-tools button[action='mark-all-read']")
+		.classList.toggle("hide", mode != VM_DM);
+	find_node("#header-tools button[action='toggle-hide-replys']")
+		.classList.toggle("hide", mode != VM_FRIENDS);
 
 	// Show/hide different profile image in header
-	el_their_pfp = find_node("#view header > img.pfp[role='their-pfp']");
+	el_their_pfp = find_node("#view header img.pfp[role='their-pfp']");
 	el_their_pfp.classList.toggle("hide", mode != VM_DM_THREAD);
-	find_node("#view header > img.pfp[role='my-pfp']")
+	find_node("#view header img.pfp[role='my-pfp']")
 		.classList.toggle("hide", mode == VM_DM_THREAD);
 
 	view_timeline_refresh(model, mode, opts);
@@ -138,6 +151,7 @@ function view_timeline_refresh(model, mode, opts={}) {
 		mode = el.dataset.mode;
 		opts.thread_id = el.dataset.threadId;
 		opts.pubkey = el.dataset.pubkey;
+		opts.hide_replys = el.dataset.hideReplys == "true";
 	}
 	// Remove all 
 	// This is faster than removing one by one
@@ -410,6 +424,8 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 		case VM_USER:
 			return opts.pubkey && ev.pubkey == opts.pubkey;
 		case VM_FRIENDS:
+			if (opts.hide_replys && event_is_reply(ev))
+				return false;
 			return ev.pubkey == model.pubkey || contact_is_friend(model.contacts, ev.pubkey);
 		case VM_THREAD:
 			if (ev.kind == KIND_SHARE) return false;
@@ -454,6 +470,12 @@ function get_thread_root_id(damus, id) {
 function switch_view(mode, opts) {
 	view_timeline_apply_mode(DAMUS, mode, opts);
 	close_gnav();
+}
+
+function toggle_hide_replys(el) {
+	const hide = el.innerText == "Hide Replys";
+	switch_view(VM_FRIENDS, {hide_replys: hide});
+	el.innerText = hide ? "Show Replys" : "Hide Replys";
 }
 
 function reset_notifications(model) {
@@ -627,5 +649,12 @@ function onclick_any(ev) {
 		case "confirm-delete":
 			delete_post_confirm(el.dataset.evid);
 			break;
+		case "mark-all-read":
+			model_mark_dms_seen(DAMUS);
+			break;
+		case "toggle-hide-replys":
+			toggle_hide_replys(el);
+			break;
 	}
 }
+

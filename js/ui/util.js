@@ -141,6 +141,9 @@ function update_notifications(model) {
 	//update_favicon(has_notes ? "img/damus_notif.svg" : "img/damus.svg");
 	update_notification_markers(count, "activity");
 	update_notification_markers(dm_count, "dm");
+	// slight hack :)
+	find_node("#header-tools button[action='mark-all-read']")
+		.disabled = dm_count == 0;
 }
 
 async function get_pubkey(use_prompt=true) {

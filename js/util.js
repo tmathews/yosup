@@ -284,6 +284,7 @@ async function decrypt_dms(model) {
 				str = await window.nostr.nip04.decrypt(dm.pubkey, ev.content);
 			} catch (err) {
 				log_error("unable to decrypt dm", ev.id, err);
+				str = "(Unable to decrypt)"
 			}
 			if (!str)
 				continue;
