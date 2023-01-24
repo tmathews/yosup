@@ -329,6 +329,9 @@ function view_render_event(model, ev, force=false) {
 	div.innerHTML = html;
 	const el = div.firstChild;
 	model.elements[ev.id] = el;
+	const pfp = find_node("img.pfp", el)
+	if (pfp)
+		pfp.addEventListener("error", onerror_pfp);
 	return el;
 }
 

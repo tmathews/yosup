@@ -13,6 +13,7 @@ function view_dm_update(model) {
 		if (!gel) {
 			gel = new_el_dmgroup(model, dm);
 			gel.addEventListener("click", onclick_dm);
+			find_node("img.pfp", gel).addEventListener("error", onerror_pfp);
 			el.appendChild(gel);
 		}
 		update_el_dmgroup(model, dm, gel);
