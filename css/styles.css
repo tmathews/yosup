@@ -350,7 +350,9 @@ button.nav > img.icon {
 	padding: 4px;
 	border-radius: 5px;
 }
-
+.reaction-group > * {
+	pointer-events: none;
+}
 .reaction-group img {
 	width: 18px;
 	height: 18px;
@@ -359,11 +361,9 @@ button.nav > img.icon {
 	margin-left: -8px;
 	vertical-align: top;
 }
-
 .reaction-group img:first-of-type {
 	margin-left: 0px;
 }
-
 .reaction-emoji {
 	margin-right: 4px;
 }
