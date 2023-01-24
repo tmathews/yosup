@@ -93,7 +93,7 @@ function view_update_profile(model, pubkey) {
 function onclick_edit_profile() {
 	const p = model_get_profile(DAMUS, DAMUS.pubkey);
 	const el = find_node("#profile-editor");
-	el.classList.remove("closed");
+	el.showModal();
 	for (const key of PROFILE_FIELDS) {
 		find_node(`[name='${key}']`, el).value = p.data[key];
 	}
