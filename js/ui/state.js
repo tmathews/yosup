@@ -212,6 +212,7 @@ function view_timeline_update(model) {
 	const opts = {
 		thread_id: el.dataset.threadId,
 		pubkey: el.dataset.pubkey,
+		hide_replys: el.dataset.hideReplys == "true",
 	};
 
 	let count = 0;
