@@ -36,6 +36,10 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	const el = view_get_timeline_el();
 	const now = new Date().getTime();
 
+	if (opts.hide_replys == undefined) {
+		opts.hide_replys = el.dataset.hideReplys == "true";
+	}
+
 	// Don't do anything if we are already here
 	if (el.dataset.mode == mode) {
 		switch (mode) {
@@ -96,7 +100,6 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	el.dataset.mode = mode;
 	delete el.dataset.threadId;
 	delete el.dataset.pubkey;
-	delete el.dataset.hideReplys;
 	switch(mode) {
 		case VM_FRIENDS:
 			el.dataset.hideReplys = opts.hide_replys;
