@@ -187,7 +187,7 @@ function view_timeline_refresh(model, mode, opts={}) {
 		model_get_dm(model, opts.pubkey).events.concat().reverse() : 
 		model_events_arr(model);
 	const fragment = new DocumentFragment();
-	for (let i = evs.length - 1; i >= 0 && count < 1000; i--) {
+	for (let i = evs.length - 1; i >= 0 && count < 200; i--) {
 		const ev = evs[i];
 		if (!view_mode_contains_event(model, ev, mode, opts))
 			continue;
