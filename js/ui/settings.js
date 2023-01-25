@@ -18,7 +18,7 @@ function new_relay_item(str) {
 	<button class="remove-relay btn-text" 
 		data-address="${str}"
 		role="remove-relay">
-		<img class="icon svg small" src="icon/event-delete.svg"/>
+		<img class="icon svg small" src="/icon/event-delete.svg"/>
 	</button>
 	</td>`;
 	find_node("button", tr).addEventListener("click", on_click_remove_relay);
