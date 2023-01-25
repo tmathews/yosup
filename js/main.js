@@ -219,7 +219,7 @@ function on_pool_open(relay) {
 	// explore views
 	relay.subscribe(SID_EXPLORE, [{
 		kinds: STANDARD_KINDS,
-		limit: 500,
+		limit: 5000,
 	}]);
 
 	// Grab our friends history so our default timeline looks loaded 

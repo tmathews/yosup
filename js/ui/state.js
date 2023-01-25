@@ -183,11 +183,12 @@ function view_timeline_refresh(model, mode, opts={}) {
 	el.innerHTML = "";
 	// Build DOM fragment and render it 
 	let count = 0;
+	const limit = 200;
 	const evs = mode == VM_DM_THREAD ? 
 		model_get_dm(model, opts.pubkey).events.concat().reverse() : 
 		model_events_arr(model);
 	const fragment = new DocumentFragment();
-	for (let i = evs.length - 1; i >= 0 && count < 200; i--) {
+	for (let i = evs.length - 1; i >= 0 && count < limit; i--) {
 		const ev = evs[i];
 		if (!view_mode_contains_event(model, ev, mode, opts))
 			continue;
@@ -203,10 +204,24 @@ function view_timeline_refresh(model, mode, opts={}) {
 		view_timeline_update_timestamps();
 		view_show_spinner(false);
 	}
+	// If we reached the limit there is "probably" more to show so show
+	// the more button
+	if (count == limit) {
+		find_node("#show-more").classList.remove("hide");
+	}
 }
 
 function view_show_spinner(show=true) {
 	find_node("#view .loading-events").classList.toggle("hide", !show);
+}
+
+function view_get_el_opts(el) {
+	const mode = el.dataset.mode;
+	return {
+		thread_id: el.dataset.threadId,
+		pubkey: el.dataset.pubkey,
+		hide_replys: mode == VM_FRIENDS && el.dataset.hideReplys == "true",
+	};
 }
 
 /* view_timeline_update iterates through invalidated event ids and updates the
@@ -215,12 +230,7 @@ function view_show_spinner(show=true) {
 function view_timeline_update(model) {
 	const el = view_get_timeline_el();
 	const mode = el.dataset.mode;
-	const opts = {
-		thread_id: el.dataset.threadId,
-		pubkey: el.dataset.pubkey,
-		hide_replys: el.dataset.hideReplys == "true",
-	};
-
+	const opts = view_get_el_opts(el);
 	let count = 0;
 	let ncount = 0;
 	let decrypted = false;
@@ -309,10 +319,7 @@ function view_set_show_count(count, add=false, hide=false) {
 function view_timeline_show_new(model) {
 	const el = view_get_timeline_el();
 	const mode = el.dataset.mode;
-	const opts = {
-		thread_id: el.dataset.threadId,
-		pubkey: el.dataset.pubkey,
-	};
+	const opts = view_get_el_opts(el);
 	const latest_evid = el.firstChild ? el.firstChild.id.slice(2) : undefined;
 
 	let count = 0;
@@ -341,6 +348,43 @@ function view_timeline_show_new(model) {
 	view_set_show_count(-count, true);
 	view_timeline_update_timestamps();
 	if (mode == VM_DM_THREAD) decrypt_dms(model);
+}
+
+function view_timeline_show_more(model) {
+	const el = view_get_timeline_el();
+	const mode = el.dataset.mode;
+	const opts = view_get_el_opts(el);
+	const oldest_evid = el.lastElementChild ? el.lastElementChild.id.slice(2) : undefined;
+	const oldest = model.all_events[oldest_evid];
+	const evs = model_events_arr(model);
+	const fragment = new DocumentFragment();
+	let i = arr_bsearch(evs, oldest, (a, b) => {
+		if (a.id == b.id || a.created_at == b.created_at)
+			return 0;
+		if (a.created_at > b.created_at)
+			return 1;
+		return -1;
+	});
+	const limit = 200;
+	let count = 0;
+	for (; i >= 0 && count < limit; i--){
+		const ev = evs[i];
+		if (!view_mode_contains_event(model, ev, mode, opts))
+			continue;
+		let ev_el = model.elements[ev.id];
+		if (!ev_el || ev_el.parentElement)
+			continue;
+		fragment.appendChild(ev_el);
+		count++;
+	}
+	if (count > 0) {
+		el.append(fragment);
+	}
+	if (count < limit) {
+		// No more to show, hide the button
+		find_node("#show-more").classList.add("hide");
+	}
+	view_timeline_update_timestamps();
 }
 
 function view_render_event(model, ev, force=false) {
@@ -647,6 +691,9 @@ function onclick_any(ev) {
 			break;
 		case "show-timeline-new":
 			show_new();
+			break;
+		case "show-timeline-more":
+			view_timeline_show_more(DAMUS);
 			break;
 		case "open-thread":
 			open_thread(el.dataset.threadId);

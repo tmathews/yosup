@@ -261,9 +261,10 @@ button.nav > img.icon {
         transform: rotate(360deg); 
     } 
 }
-.show-new {
+.show-new, .show-more {
 	text-align: center;
 }
+.show-more > button,
 .show-new > button {
 	color: var(--clrText);
 	border: none;

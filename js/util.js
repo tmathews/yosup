@@ -55,6 +55,22 @@ function shuffle(arr) {
 	return arr;
 }
 
+function arr_bsearch(arr, item, cmp) {
+	let start = 0;
+	let end = arr.length - 1;
+	while (start <= end) {
+		let middle = parseInt((start + end) / 2);
+		let x = cmp(item, arr[middle]);
+		if (x > 0)
+			start = middle + 1;
+		else if (x < 0)
+			end = middle - 1;
+		else
+			return middle;
+	}
+	return -1;
+}
+
 /* arr_bsearch_insert finds the point in the array that an item should be 
  * inserted at based on the 'cmp' function used. cmp function is same as sort
  * cmp function.
