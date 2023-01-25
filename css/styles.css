@@ -231,8 +231,6 @@ button.nav > img.icon {
 	flex-direction: column-reverse;
 }
 .event {
-	display: flex;
-	flex-direction: row;
 	padding: 15px;
 	transition: background-color 0.2s linear;
 }
@@ -328,7 +326,12 @@ button.nav > img.icon {
 	border-top: 1px solid var(--clrBorder);
 }
 
-.timestamp, .replying-to, .shared-by {
+.shared-by {
+	font-size: var(--fsReduced);
+	color: var(--clrTextLight);
+	margin-bottom: 15px;
+}
+.timestamp, .replying-to {
 	font-size: var(--fsSmall);
 	color: var(--clrTextLight);
 }
@@ -586,6 +589,7 @@ code {
 }
 .event.dm {
 	padding-bottom: 0;
+	display: flex;
 }
 .event.dm:hover { 
 	background: transparent;

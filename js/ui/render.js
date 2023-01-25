@@ -67,6 +67,8 @@ function render_event(model, ev, opts={}) {
 	if (!opts.is_composing)
 		classes += " bottom-border";
 	return html`<div id="ev${ev.id}" class="${classes}">
+		$${render_shared_by(ev, opts)}
+		<div class="flex">
 		<div class="userpic">
 		$${render_profile_img(profile)}</div>
 		<div class="event-content">
@@ -77,6 +79,7 @@ function render_event(model, ev, opts={}) {
 			<div class="comment">
 				$${render_event_body(model, ev, opts)}
 			</div>
+		</div>
 		</div>
 	</div>` 
 }
@@ -116,6 +119,7 @@ function render_event_nointeract(model, ev, opts={}) {
 	const profile = model_get_profile(model, ev.pubkey);
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
 	return html`<div class="event border-bottom">
+		<div class="flex">
 		<div class="userpic">
 			$${render_profile_img(profile)}
 		</div>	
@@ -127,6 +131,7 @@ function render_event_nointeract(model, ev, opts={}) {
 			<div class="comment">
 				$${render_event_body(model, ev, opts)}
 			</div>
+		</div>
 		</div>
 	</div>`
 }
@@ -143,7 +148,7 @@ function render_event_body(model, ev, opts) {
 		show_media = model.contacts.friends.has(ev.pubkey);
 	}
 	let str = "<div>";
-	str += shared ? render_shared_by(ev, opts) : render_replying_to(model, ev);
+	str += render_replying_to(model, ev);
 	str += `</div><p>
 	${format_content(model, ev, show_media)}
 	</p>`;
