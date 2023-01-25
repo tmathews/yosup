@@ -489,6 +489,7 @@ input[type="text"].cw {
 	height: 200px;
 	background-color: #1a1a1a;
 	background-size: cover;
+	background-position: center;
 }
 #profile-info > div {
 	padding: 15px;
