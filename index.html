@@ -149,26 +149,35 @@
 						</div>
 					</div>
 					<div id="profile-info" role="profile-info" class="bottom-border hide">
+						<div class="profile-banner" name="profile-banner"></div>
 						<div class="flex">
-							<img role="profile-image" class="pfp jumbo"/>
+							<img name="profile-image" class="pfp jumbo hide"/>
+							<label name="profile-nip05"></label>
 							<div class="profile-tools">
-								<button class="icon" role="message-user"
+								<button class="icon link hide"
+								name="profile-website" action="open-link">
+									<img class="icon svg" src="/icon/profile-website.svg"/>
+								</button>
+								<button class="icon link hide"
+								name="profile-lud06" action="open-lud06">
+									<img class="icon svg" src="/icon/profile-zap.svg"/>
+								</button>
+								<button class="icon" name="message-user"
 								title="Directly Message">
 									<img class="icon svg" src="/icon/message-user.svg"/>
 								</button>
-								<button class="icon hide" role="edit-profile"
+								<button class="icon hide" name="edit-profile"
 								title="Edit Profile">
 									<img class="icon svg" src="/icon/edit-profile.svg"/></button>
-								<button class="icon" role="copy-pk"
+								<button class="icon" name="copy-pk"
 								data-pk="" title="Copy Public Key">
 									<img class="icon svg" src="/icon/pubkey.svg"/></button>
-								<button class="action" role="follow-user" 
+								<button class="action" name="follow-user" 
 								data-pk="">Follow</button>
 							</div>
 						</div>
 						<div>
-							<label role="profile-nip5"></label>
-							<p role="profile-desc"></p>
+							<p name="profile-about"></p>
 						</div>
 					</div>
 					<div class="loading-events">
@@ -284,7 +293,11 @@
 				</header>
 				<div>
 					<input type="text" class="block w100" name="name" placeholder="Name"/>
+					<input type="text" class="block w100" name="display_name" placeholder="Display Name"/>
 					<input type="text" class="block w100" name="picture" placeholder="Picture URL"/>
+					<input type="text" class="block w100" name="banner" placeholder="Banner URL"/>
+					<input type="text" class="block w100" name="website" placeholder="Website"/>
+					<input type="text" class="block w100" name="lud06" placeholder="lud06"/>
 					<input type="text" class="block w100" name="nip05" placeholder="nip05"/>
 					<textarea name="about" class="block w100" placeholder="A bit about you."></textarea>
 					<button class="action float-right" action="open-profile-editor">

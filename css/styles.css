@@ -482,8 +482,19 @@ input[type="text"].cw {
 	width: 128px;
 	height: 128px;
 }
-[role="profile-info"] {
+#profile-info > .profile-banner {
+	display: block;
+	padding: 0;
+	width: 100%;
+	height: 200px;
+	background-color: #1a1a1a;
+	background-size: cover;
+}
+#profile-info > div {
 	padding: 15px;
+	position: relative;
+}
+#profile-info > div:last-child {
 	padding-top: 0;
 }
 .profile-tools {
@@ -496,13 +507,13 @@ input[type="text"].cw {
 .profile-tools > button.icon {
 	margin-right: 20px;
 }
-p[role="profile-desc"] {
-	margin-bottom: 0;
+p[name="profile-about"] {
+	margin: 0;
 }
-label[role="profile-nip5"] {
-	margin-top: 15px;
+label[name="profile-nip05"] {
 	font-weight: 800;
 	display: block;
+	font-size: var(--fsEnlarged);
 }
 
 /* Profile Editor */

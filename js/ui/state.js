@@ -134,10 +134,11 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 		.classList.toggle("hide", mode != VM_FRIENDS);
 
 	// Show/hide different profile image in header
-	el_their_pfp = find_node("#view header img.pfp[role='their-pfp']");
-	el_their_pfp.classList.toggle("hide", mode != VM_DM_THREAD);
+	const show_mypfp = mode != VM_DM_THREAD && mode != VM_USER;
+	const el_their_pfp = find_node("#view header img.pfp[role='their-pfp']");
+	el_their_pfp.classList.toggle("hide", show_mypfp);
 	find_node("#view header img.pfp[role='my-pfp']")
-		.classList.toggle("hide", mode == VM_DM_THREAD);
+		.classList.toggle("hide", !show_mypfp);
 
 	view_timeline_refresh(model, mode, opts);
 
@@ -156,6 +157,11 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 		case VM_SETTINGS:
 			view_show_spinner(false);
 			view_set_show_count(0, true, true);
+			break;
+		case VM_USER:
+			el_their_pfp.src = get_profile_pic(profile);
+			el_their_pfp.dataset.pubkey = pubkey;
+			view_update_profile(model, pubkey);
 			break;
 	}
 	
@@ -665,6 +671,12 @@ function onclick_any(ev) {
 			break;
 		case "open-media":
 			open_media_preview(el.src, el.dataset.type);
+			break;
+		case "open-link":
+			window.open(el.dataset.url, "_blank");
+			break;
+		case "open-lud06":
+			open_lud06(el.dataset.lud06);
 			break;
 		case "show-event-json":
 			on_click_show_event_details(el.dataset.evid);
