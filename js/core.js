@@ -137,20 +137,21 @@ function new_reply_tags(ev) {
 }
 
 async function create_reply(pubkey, content, ev, all=true) {
-	const tags = all ? gather_reply_tags(pubkey, ev) : new_reply_tags(ev);
-	const created_at = new_creation_time();
 	let kind = ev.kind;
-
 	// convert emoji replies into reactions
-	if (is_valid_reaction_content(content))
-		kind = 7;
+	if (is_valid_reaction_content(content)) {
+		kind = KIND_REACTION;
+	}
+	const tags = kind != KIND_REACTION && all 
+		? gather_reply_tags(pubkey, ev) : new_reply_tags(ev);
+	const created_at = new_creation_time();
 	let reply = { 
 		pubkey, 
 		tags, 
 		content, 
 		created_at, 
 		kind 
-	}
+	};
 	reply.id = await nostrjs.calculate_id(reply)
 	reply = await sign_event(reply)
 	return reply
