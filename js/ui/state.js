@@ -116,6 +116,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	}
 
 	// Do some visual updates
+	find_node("#show-more").classList.add("hide");
 	find_node("#view header > label").innerText = name;
 	find_node("#nav > div[data-active]").dataset.active = names[mode].toLowerCase();
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
@@ -188,7 +189,9 @@ function view_timeline_refresh(model, mode, opts={}) {
 		model_get_dm(model, opts.pubkey).events.concat().reverse() : 
 		model_events_arr(model);
 	const fragment = new DocumentFragment();
-	for (let i = evs.length - 1; i >= 0 && count < limit; i--) {
+	let show_more = true;
+	let i = evs.length - 1;
+	for (; i >= 0 && count < limit; i--) {
 		const ev = evs[i];
 		if (!view_mode_contains_event(model, ev, mode, opts))
 			continue;
@@ -204,9 +207,19 @@ function view_timeline_refresh(model, mode, opts={}) {
 		view_timeline_update_timestamps();
 		view_show_spinner(false);
 	}
+	// Reduce i to 0 if there are no more events to show, otherwise exit at 
+	// first instance. Determine show_more base on these facts
+	for (; i > 0; i--) {
+		if (view_mode_contains_event(model, evs[i], mode, opts))
+			break;
+	}
+	if (i < 0 || count < limit)
+		show_more = false;
 	// If we reached the limit there is "probably" more to show so show
 	// the more button
-	if (count == limit) {
+	const is_more_mode = mode == VM_FRIENDS || mode == VM_NOTIFICATIONS ||
+		mode == VM_EXPLORE;
+	if (is_more_mode && show_more) {
 		find_node("#show-more").classList.remove("hide");
 	}
 }
