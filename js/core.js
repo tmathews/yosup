@@ -12,6 +12,7 @@ const TAG_P = "#p";
 const TAG_E = "#e";
 
 const R_HEART = "❤️";
+const R_SHAKA = "🤙";
 
 const STANDARD_KINDS = [
 	KIND_NOTE,

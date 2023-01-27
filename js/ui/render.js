@@ -196,7 +196,7 @@ function render_action_bar(model, ev, opts={}) {
 	let { can_delete, shared } = opts;
 	// TODO rewrite all of the toggle heart code. It's mine & I hate it.
 	const thread_root = (ev.refs && ev.refs.root) || ev.id;
-	const reaction = model_get_reacts_to(model, pubkey, ev.id, R_HEART);
+	const reaction = model_get_reacts_to(model, pubkey, ev.id, R_SHAKA);
 	const liked = !!reaction;
 	const reaction_id = reaction ? reaction.id : "";
 	let str = html`<div class="action-bar">`;

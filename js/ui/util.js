@@ -58,7 +58,7 @@ function click_toggle_like(el) {
 		delete_post(el.dataset.reactionId);
 		return;
 	}
-	send_reply(R_HEART, el.dataset.reactingTo);
+	send_reply(R_SHAKA, el.dataset.reactingTo);
 }
 
 /* open_media_preview presents a modal to display an image via "url".

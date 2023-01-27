@@ -486,7 +486,7 @@ function view_timeline_update_reaction(model, ev) {
 
 	// Update like button
 	if (ev.pubkey == model.pubkey) {
-		const reaction = model_get_reacts_to(model, model.pubkey, ev_id, R_HEART);
+		const reaction = model_get_reacts_to(model, model.pubkey, ev_id, R_SHAKA);
 		const liked = !!reaction;
 		const img = find_node("button.icon.heart > img", root);
 		const btn = find_node("button.icon.heart", root)
