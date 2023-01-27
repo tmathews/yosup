@@ -152,6 +152,8 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 			break;
 		case VM_DM:
 			model.dms_need_redraw = true;
+			view_show_spinner(true);
+			view_set_show_count(0, true, true);
 			//decrypt_dms(model);
 			//view_dm_update(model);
 			break;

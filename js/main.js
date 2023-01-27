@@ -160,6 +160,7 @@ function on_timer_invalidations() {
 			await decrypt_dms(model);
 			view_dm_update(model);
 			model.dms_need_redraw = false;
+			view_show_spinner(false);
 		}
 		if (model.invalidated.length > 0)
 			view_timeline_update(model);
