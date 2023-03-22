@@ -115,17 +115,14 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 
 	// Do some visual updates
 	find_node("#show-more").classList.add("hide");
-	find_node("#view header > label").innerText = name;
-	find_node("#nav > div[data-active]").dataset.active = names[mode].toLowerCase();
+	find_node("#view header > label").innerText = name;	
+	view_update_navs(mode);
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
 	const timeline_el = find_node("#timeline");
 	timeline_el.classList.toggle("reverse", mode == VM_THREAD);
 	timeline_el.classList.toggle("hide", mode == VM_SETTINGS || mode == VM_DM);
 	find_node("#settings").classList.toggle("hide", mode != VM_SETTINGS);
 	find_node("#dms").classList.toggle("hide", mode != VM_DM);
-	find_node("#dms-not-available")
-		.classList.toggle("hide", mode == VM_DM_THREAD || mode == VM_DM ? 
-			dms_available() : true);
 	find_node("#header-tools button[action='mark-all-read']")
 		.classList.toggle("hide", mode != VM_DM);
 
@@ -218,6 +215,12 @@ function view_timeline_refresh(model, mode, opts={}) {
 	if (is_more_mode && show_more) {
 		find_node("#show-more").classList.remove("hide");
 	}
+}
+
+function view_update_navs(mode) {
+	find_nodes("nav.nav button[data-view]").forEach((el)=> {
+		el.classList.toggle("active", el.dataset.view == mode)
+	});
 }
 
 function view_show_spinner(show=true) {
@@ -546,7 +549,6 @@ function get_thread_root_id(damus, id) {
 
 function switch_view(mode, opts) {
 	view_timeline_apply_mode(DAMUS, mode, opts);
-	close_gnav();
 }
 
 function toggle_hide_replys(el) {
@@ -668,9 +670,6 @@ function onclick_any(ev) {
 	const el = ev.target;
 	const action = el.getAttribute("action");
 	switch (action) {
-		case "toggle-gnav":
-			toggle_gnav(el);
-			break;
 		case "sign-in":
 			signin();
 			break;

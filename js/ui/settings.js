@@ -1,19 +1,10 @@
 function init_settings(model) {
 	const el = find_node("#settings");
 	find_node("#add-relay", el).addEventListener("click", on_click_add_relay);
-	find_node("[role='sign-out']", el).addEventListener("click", on_click_sign_out);
 	const rlist = find_node("#relay-list tbody", el);
 	model.relays.forEach((str) => {
 		rlist.appendChild(new_relay_item(str));
 	});
-}
-
-async function on_click_sign_out(ev) {
-	if (confirm("Are you sure you want to sign out?")) {
-		localStorage.clear();
-		await dbclear();
-		window.location.reload();
-	}
 }
 
 function new_relay_item(str) {

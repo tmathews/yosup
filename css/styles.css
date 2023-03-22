@@ -45,13 +45,6 @@ th, td {
 	text-align: right;
 }
 
-#gsticker {
-	position: absolute;
-	top: 0;
-	left: 0;
-	padding: 15px;
-}
-
 /* Welcome */
 
 #container-busy .loader {
@@ -83,98 +76,53 @@ th, td {
 }
 
 /* Navigation */
-#nav {
+.nav.full {
 	border-right: 1px solid var(--clrBorder);
 	padding: 10px;
 }
-#nav > div {
+.nav.full > div {
 	position: sticky;
 	top: 16px;
 	display: flex;
 	flex-flow: column;
 }
-#nav > div > * {
+.nav.full > div > * {
 	margin-bottom: 20px;
 	padding: 10px;
 	position: relative;
 }
-#nav > div[data-active] img.active {
+.nav.mobile {
+	display: none;
+	background: var(--clrBg);
+	position: sticky;
+	bottom: 0;
+	z-index: var(--zHeader);
+	flex-direction: row;
+	border-top: var(--clrBorder) 1px solid;
+}
+.nav.mobile button {
+	padding: 18px;
+	flex: 1;
+}
+.nav [data-view].active img.inactive,
+.nav [data-view] img.active {
 	display: none;
 }
-#nav > div[data-active="home"] [data-view="friends"] img.inactive,
-#nav > div[data-active="explore"] [data-view="explore"] img.inactive,
-#nav > div[data-active="notifications"] [data-view="notifications"] img.inactive,
-#nav > div[data-active="settings"] [data-view="settings"] img.inactive,
-#nav > div[data-active="messages"] [data-view="dm"] img.inactive {
-	display: none;
-}
-#nav > div[data-active="home"] [data-view="friends"] img.active,
-#nav > div[data-active="explore"] [data-view="explore"] img.active,
-#nav > div[data-active="notifications"] [data-view="notifications"] img.active,
-#nav > div[data-active="settings"] [data-view="settings"] img.active,
-#nav > div[data-active="messages"] [data-view="dm"] img.active {
+.nav [data-view].active img.active {
 	display: block;
-}
-#new-note {
-	background: white;
-	height: 56px;
-	border-radius: 38px;
-}
-
-#app-icon-logo > img {
-	width: 36px;
-	height: 36px;
 }
 button.nav > img.icon {
 	width: 28px;
 	height: 28px;
 }
-#gnav {
-	display: none;
-	position: fixed;
-	bottom: 55px;
-	right: 55px;
-	z-index: var(--zGlobal);
+.nav button.new-note {
+	background: white;
+	height: 56px;
+	border-radius: 38px;
 }
-#gnav button {
-	position: absolute;
-	top: 0;
-	left: 0;
-	font-size: 24px;
-	border-radius: 50%;
-	background: var(--clrText);
-	color: var(--clrBg);	
-	padding: 10px;
-	border: transparent 5px solid;
-	transition: top 0.05s linear;
-	transform: translateX(-50%) translateY(-50%);
-	z-index: calc(var(--zGlobal) - 1);
-}
-#gnav button > .icon {
-	width: 28px;
-	height: 28px;
-}
-#gnav button[action="toggle-gnav"] {
-	z-index: var(--zGlobal);
-	padding: 15px;
-}
-#gnav.open button[data-view="friends"] {
-	top: -375px;
-}
-#gnav.open button[data-view="explore"] {
-	top: -300px;
-}
-#gnav.open button[data-view="dm"] {
-	top: -225px;
-}
-#gnav.open button[data-view="notifications"] {
-	top: -150px;
-}
-#gnav.open button[data-view="notifications"] .new-notifications {
-	right: 9px;
-}
-#gnav.open button[data-view="settings"] {
-	top: -75px;
+#app-icon-logo > img {
+	width: 36px;
+	height: 36px;
 }
 
 .new-notifications {
@@ -195,23 +143,28 @@ button.nav > img.icon {
 	flex-flow: row;
 }
 #view {
+	display: flex;
+	flex-direction: column;
 	flex-shrink: 0;
 	border-right: 1px solid var(--clrBorder);
 	width: 750px;
 	min-height: 100vh;
 }
-#view > div > header {
+#view > header {
 	position: sticky;
 	top: 0;
 	z-index: var(--zHeader);
 	backdrop-filter: blur(20px);
 	-webkit-backdrop-filter: blur(20px);
 }
-#view > div > header > label {
+#view > header > label {
 	padding: 15px;
 	font-size: 22px;
 	font-weight: 800;
 	display: block;
+}
+#timeline, #settings, #dms {
+	flex: 1;
 }
 #header-tools {
 	display: flex;
@@ -551,7 +504,7 @@ code {
 }
 #settings header > label {
 	font-weight: bold;
-	font-size: var(--fsEnlarged);
+	font-size: var(--fsLarge);
 }
 
 /* Messaging */

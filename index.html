@@ -44,39 +44,18 @@
 						Yo, Sup? 
 						<img class="icon svg" src="/icon/logo-inverted.svg"/>
 					</h1>
-					<p>The blue bird experience for Nostr.</p>
-					<button class="action" action="sign-in">
-						Sign In with Key
-						<img src="/icon/key.svg" class="icon svg small invert"/>
-					</button>
+					<p>A minimal experience for Nostr.</p>
+					<p>Please access with a nos2x compatible browser.</p>
 				</div>
 			</div>
 		</div>
 
 		<div id="container-app" class="hide">
-		<nav id="gnav">
-			<button class="icon" action="toggle-gnav" title="Open Menu">
-				<img class="icon svg invert" src="/icon/logo.svg"/>
-			</button>
-			<button class="icon" action="open-view" data-view="friends" title="Home">
-				<img class="icon svg invert" src="/icon/home.svg"/>
-			</button>
-			<button class="icon" action="open-view" data-view="dm" title="Direct Messages">
-				<img class="icon svg invert" src="/icon/messages.svg"/>
-				<div class="new-notifications hide" role="dm"></div>
-			</button>
-			<button class="icon" action="open-view" data-view="notifications" title="Notifications">
-				<img class="icon svg invert" src="/icon/notifications.svg"/>
-				<div class="new-notifications hide" role="activity"></div>
-			</button>
-			<button class="icon" action="open-view" data-view="settings" title="Settings">
-				<img class="icon svg invert" src="/icon/settings.svg"/>
-			</button>
-		</nav>
+		
 		<div id="container">
 			<div class="flex-fill vertical-hide"></div>
-			<div id="nav" class="flex-noshrink vertical-hide">
-				<div data-active="home">
+			<nav id="nav" class="nav full flex-noshrink vertical-hide">
+				<div>
 					<div id="app-icon-logo">
 						<img class="icon svg" title="Damus" src="/icon/logo-inverted.svg"/>
 					</div>
@@ -102,18 +81,17 @@
 						<img class="icon svg inactive" src="/icon/settings.svg"/>
 						<img class="icon svg active" src="/icon/settings-active.svg"/>
 					</button>
-					<button id="new-note" action="new-note" title="New Note" class="nav icon">
+					<button action="new-note" title="New Note" class="nav icon new-note">
 						<img class="icon svg invert" src="/icon/new-note.svg"/>
 					</button>
 				</div>
-			</div>
+			</nav>
 
 			<div id="view">
-				<div>
 					<header>
 						<label>Home</label>
 						<div id="header-tools">
-							<button class="action small bordered hide"
+							<button class="action small hide"
 							disabled action="mark-all-read">
 								Mark All Read
 							</button>
@@ -167,11 +145,6 @@
 						<button action="show-timeline-new">
 							Show New (<span role="count">0</span>)</button>
 					</div>
-					<div id="dms-not-available" class="hide">
-						DMs could not be decrypted due to lack of nip04 
-						integration. Please use an extension such as nos2x or 
-						Alby.
-					</div>
 					<div id="dms" class="hide">
 					</div>
 					<div id="timeline" class="events"></div>
@@ -198,35 +171,41 @@
 							</table>
 						</section>
 						<section>
-							<header><label>About</label></header>
+							<header><label>Info</label></header>
 							<p>
-							Yo, Sup? was originally Damus Web
-							written by <span action="open-profile" class="username clickable" 
-							data-pubkey="32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245">
-							jb55</span>. It was rewritten by in order to bring 
-							it up to date.
+							<a href="https://git.sr.ht/~tomtom/damus">Source Code</a> 
+							<a href="https://todo.sr.ht/~tomtom/damus-web-issues">Bug Tracker</a> 
+							<a href="mailto:thomas.c.mathews@gmail.com">Email Me</a> 
 							</p>
-							<p>
-							Yo is open source under the AGPL-3 license. You can
-							find the source code <a 
-							href="https://git.sr.ht/~tomtom/damus">here</a>.
-							</p>
-							<p>
-							Bugs and feature requests can be emailed to <a
-							href="mailto:thomas.c.mathews@gmail.com">thomas.c.mathews@gmail.com</a>
-							or submitted to the <a
-							href="https://todo.sr.ht/~tomtom/damus-web-issues">
-							tracker</a>.
-							</p>
-						</section>
-						<section>
-							<button class="action" role="sign-out">
-								Sign Out
-								<img class="icon svg small invert" src="/icon/sign-out.svg"/>
-							</button>
 						</section>
 					</div>
-				</div>
+					<nav class="nav mobile">
+					<button action="open-view" data-view="friends" class="icon" 
+						title="Home">
+						<img class="icon svg inactive" src="/icon/home.svg"/>
+						<img class="icon svg active" src="/icon/home-active.svg"/>
+					</button>
+					<button action="open-view" data-view="dm" class="icon" 
+						title="Direct Messages">
+						<img class="icon svg inactive" src="/icon/messages.svg"/>
+						<img class="icon svg active" src="/icon/messages-active.svg"/>
+						<div class="new-notifications hide" role="dm"></div>
+					</button>
+					<button action="open-view" data-view="notifications"
+						class="icon" title="Notifications">
+						<img class="icon svg inactive" src="/icon/notifications.svg"/>
+						<img class="icon svg active" src="/icon/notifications-active.svg"/>
+						<div class="new-notifications hide" role="activity"></div>
+					</button>
+					<button action="open-view" data-view="settings" 
+						title="Settings" class="icon">
+						<img class="icon svg inactive" src="/icon/settings.svg"/>
+						<img class="icon svg active" src="/icon/settings-active.svg"/>
+					</button>
+					<button action="new-note" title="New Note" class="nav icon new-note">
+						<img class="icon svg invert" src="/icon/new-note.svg"/>
+					</button>
+					</nav>
 			</div>
 			<div class="flex-fill vertical-hide"></div>
 		</div>

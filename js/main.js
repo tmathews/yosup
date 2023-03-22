@@ -81,10 +81,6 @@ async function webapp_init() {
 
 	// Load data from storage 
 	await model_load_settings(model);
-	/*err = await contacts_load(model);
-	if (err) {
-		window.alert("Unable to load contacts.");
-	}*/
 	init_settings(model);
 
 	// Create our pool so that event processing functions can work
@@ -95,14 +91,6 @@ async function webapp_init() {
 	pool.on("notice", on_pool_notice);
 	pool.on("eose", on_pool_eose);
 	pool.on("ok", on_pool_ok);
-
-	// Load all events from storage and re-process them so that apply correct
-	// effects.
-	/*await model_load_events(model, (ev)=> {
-		model_process_event(model, undefined, ev);
-	});
-	log_debug("loaded events", Object.keys(model.all_events).length);
-	*/
 
 	var { mode, opts, valid } = parse_url_mode();
 	view_timeline_apply_mode(model, mode, opts, !valid);
@@ -171,7 +159,7 @@ function on_timer_save() {
 	setTimeout(() => {
 		const model = DAMUS;
 		//model_save_events(model);
-		model_save_settings(model);
+		//model_save_settings(model);
 		on_timer_save();
 	}, 1 * 1000);
 }
@@ -300,6 +288,7 @@ function fetch_profile(pubkey, pool, relay) {
 }
 
 function fetch_thread_history(evid, pool) {
+	// TODO look up referenced relays for thread history 
 	const sid = `${SID_THREAD}:${evid}`
 	pool.subscribe(sid, [{
 		kinds: PUBLIC_KINDS,
@@ -309,8 +298,7 @@ function fetch_thread_history(evid, pool) {
 }
 
 function fetch_friends_history(friends, pool, relay) {
-	// TODO only fetch friends history from their desired relay instead of 
-	// pinging all of the relays
+	// TODO fetch history of each friend by their desired relay 
 	pool.subscribe(SID_FRIENDS, [{
 		kinds: PUBLIC_KINDS,
 		authors: friends,

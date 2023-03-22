@@ -3,17 +3,6 @@
  * this file grows specific UI area code should be migrated to its own file.
  */
 
-/* toggle_gnav hides or shows the global navigation's additional buttons based
- * on its opened state.
- */
-function toggle_gnav(el) {
-	el.parentElement.classList.toggle("open");
-}
-
-function close_gnav() {
-	find_node("#gnav").classList.remove("open");
-}
-
 /* init_message_textareas finds all message textareas and updates their initial
  * height based on their content (0). This is so there is no jaring affect when
  * the page loads.
