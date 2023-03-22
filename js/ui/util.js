@@ -168,40 +168,16 @@ function update_notifications(model) {
 }
 
 async function get_pubkey(use_prompt=true) {
-	let pubkey = get_local_state('pubkey')
-	if (pubkey)
-		return pubkey
-	if (window.nostr && window.nostr.getPublicKey) {
-		log_debug("calling window.nostr.getPublicKey()...")
-		try {
-			pubkey = await window.nostr.getPublicKey()
-			return await handle_pubkey(pubkey)
-		} catch (err) {
-			return;
-		}
-		log_debug("got %s pubkey from nos2x", pubkey)
-	}
-	if (!use_prompt)
+	if (!(window.nostr && window.nostr.getPublicKey)) {
+		console.error("window.nostr.getPublicKey is unsupported");
 		return;
-	pubkey = prompt("Enter Nostr ID (eg: jb55@jb55.com) or public key (hex or npub).")
-	if (!pubkey.trim())
-		return;
-	return await handle_pubkey(pubkey)
-}
-
-function get_privkey() {
-	let privkey = get_local_state('privkey')
-	if (privkey)
-		return privkey
-	if (!privkey)
-		privkey = prompt("Enter private key")
-	if (!privkey)
-		throw new Error("can't get privkey")
-	if (privkey[0] === "n") {
-		privkey = bech32_decode(privkey)
 	}
-	set_local_state('privkey', privkey)
-	return privkey
+	try {
+		return await window.nostr.getPublicKey()
+	} catch (err) {
+		console.error(err);
+		return;
+	}
 }
 
 function open_thread(thread_id) {

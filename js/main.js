@@ -23,18 +23,18 @@ addEventListener('DOMContentLoaded', (ev) => {
 
 async function damus_web_init() {
 	let tries = 0;
-	const max_wait = 500;
 	const interval = 20;
-	async function init() {
-		if (window.nostr || tries >= (max_wait/interval)) {
+	function init() {
+		if (window.nostr) {
 			log_info("init after", tries);
-			await damus_web_init_ready();
+			damus_web_init_ready();
 			return;
 		}
+		// TODO if tries is too many say window.nostr not found.
 		tries++;
-		await init();
+		setTimeout(init, interval);
 	}
-	setTimeout(init, interval);
+	init();
 }
 
 async function damus_web_init_ready() {

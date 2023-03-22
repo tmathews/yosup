@@ -28,23 +28,6 @@ const PUBLIC_KINDS = [
 	KIND_SHARE,
 ];
 
-function get_local_state(key) {
-	if (DAMUS[key] != null)
-		return DAMUS[key]
-	return localStorage.getItem(key)
-}
-
-function set_local_state(key, val) {
-	DAMUS[key] = val
-	localStorage.setItem(key, val)
-}
-
-async function sign_id(privkey, id) {
-	//const digest = nostrjs.hex_decode(id)
-	const sig = await nobleSecp256k1.schnorr.sign(id, privkey)
-	return nostrjs.hex_encode(sig)
-}
-
 async function broadcast_related_events(ev) {
 	ev.tags.reduce((evs, tag) => {
 		// cap it at something sane
@@ -120,18 +103,16 @@ async function update_contacts() {
 }
 
 async function sign_event(ev) {
-	if (window.nostr && window.nostr.signEvent) {
-		const signed = await window.nostr.signEvent(ev)
-		if (typeof signed === 'string') {
-			ev.sig = signed
-			return ev
-		}
-		return signed
+	if (!(window.nostr && window.nostr.signEvent)) {
+		console.error("window.nostr.signEvent is unsupported");
+		return;
 	}
-
-	const privkey = get_privkey()
-	ev.sig = await sign_id(privkey, ev.id)
-	return ev
+	const signed = await window.nostr.signEvent(ev)
+	if (typeof signed === 'string') {
+		ev.sig = signed
+		return ev
+	}
+	return signed
 }
 
 function new_reply_tags(ev) {
@@ -301,7 +282,6 @@ function get_content_warning(tags) {
 async function get_nip05_pubkey(email) {
 	const [user, host] = email.split("@")
 	const url = `https://${host}/.well-known/nostr.json?name=${user}`
-
 	try {
 		const res = await fetch(url)
 		const json = await res.json()
@@ -312,14 +292,3 @@ async function get_nip05_pubkey(email) {
 		throw e
 	}
 }
-
-// TODO rename handle_pubkey to fetch_pubkey
-async function handle_pubkey(pubkey) {
-	if (pubkey[0] === "n")
-		pubkey = bech32_decode(pubkey)
-	if (pubkey.includes("@"))
-		pubkey = await get_nip05_pubkey(pubkey)
-	set_local_state('pubkey', pubkey)
-	return pubkey
-}
-
