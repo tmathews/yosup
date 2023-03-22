@@ -1,14 +1,19 @@
 function init_settings(model) {
 	const el = find_node("#settings");
 	find_node("#add-relay", el).addEventListener("click", on_click_add_relay);
-	const embeds_el = find_node("input[name='show_embeds']", el);
-	embeds_el.addEventListener("click", on_click_toggle_embeds);
-	embeds_el.checked = model.embeds != "friends";
 	find_node("[role='sign-out']", el).addEventListener("click", on_click_sign_out);
 	const rlist = find_node("#relay-list tbody", el);
 	model.relays.forEach((str) => {
 		rlist.appendChild(new_relay_item(str));
 	});
+}
+
+async function on_click_sign_out(ev) {
+	if (confirm("Are you sure you want to sign out?")) {
+		localStorage.clear();
+		await dbclear();
+		window.location.reload();
+	}
 }
 
 function new_relay_item(str) {
@@ -35,21 +40,6 @@ function on_click_add_relay(ev) {
 	model.relays.add(address);
 	find_node("#relay-list tbody").appendChild(new_relay_item(address));
 	model_save_settings(model);
-}
-
-function on_click_toggle_embeds(ev) {
-	const model = DAMUS;
-	model.embeds = ev.target.checked ? "everyone" : "friends";
-	window.alert("You will need to refresh to see changes.");
-	model_save_settings(model);
-}
-
-async function on_click_sign_out(ev) {
-	if (confirm("Are you sure you want to sign out?")) {
-		localStorage.clear();
-		await dbclear();
-		window.location.reload();
-	}
 }
 
 function on_click_remove_relay(ev) {
