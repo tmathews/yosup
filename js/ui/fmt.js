@@ -1,4 +1,4 @@
-function linkify(text="", show_media=false) {
+function linkify(text="") {
 	return text.replace(URL_REGEX, function(match, p1, p2, p3) {
 		const url = p2+p3;
 		let parsed;
@@ -7,24 +7,17 @@ function linkify(text="", show_media=false) {
 		} catch (err) {
 			return match;
 		}
-		let markup;
-		if (show_media && is_img_url(parsed.pathname)) {
-			markup = html`
-			<img class="inline-img clickable" src="${url}" 
-			action="open-media" data-type="image"/>`;
-		} else if (show_media && is_video_url(parsed.pathname)) {
-			markup = html`
-			<video controls class="inline-img" />
-			  <source src="${url}">
-			</video>`;
-		} else {
-			markup = html`<a target="_blank" rel="noopener noreferrer" href="${url}">${url}</a>`;
+		let markup = html`<a target="_blank" rel="noopener noreferrer" href="${url}">${url}</a>`;
+		if (is_img_url(parsed.pathname)) {
+			//markup += `<button action="open-attachments">Open Img</button>`;
+		} else if (is_video_url(parsed.pathname)) {
+			//markup += `<button action="open-attachments">Open Video</button>`;
 		}
 		return p1+markup;
 	})
 }
 
-function format_content(model, ev, show_media) {
+function format_content(model, ev) {
 	if (ev.kind === KIND_REACTION) {
 		if (ev.content === "" || ev.content === "+")
 			return "❤️"
@@ -32,7 +25,7 @@ function format_content(model, ev, show_media) {
 	}
 	const content = (ev.kind == KIND_DM ? ev.decrypted || ev.content : ev.content)
 		.trim();
-	const body = fmt_mentions(model, fmt_body(content, show_media), ev.tags);
+	const body = fmt_mentions(model, fmt_body(content), ev.tags);
 	let cw = get_content_warning(ev.tags)
 	if (cw !== null) {
 		let cwHTML = "Content Warning"
@@ -97,25 +90,8 @@ function fmt_mentions(model, str, tags) {
 
 /* fmt_body will parse images, blockquotes, and sanitize the content.
  */
-function fmt_body(content, show_media) {
-	const split = content.split("\n")
-	let blockin = false
-	return split.reduce((str, line) => {
-		if (line !== "" && line[0] === '>') {
-			if (!blockin) {
-				str += "<span class='quote'>"
-				blockin = true
-			}
-			str += linkify(html`${line.slice(1)}`, show_media)
-		} else {
-			if (blockin) {
-				blockin = false
-				str += "</span>"
-			}
-			str += linkify(html`${line}`, show_media)
-		}
-		return str + "<br/>"
-	}, "")
+function fmt_body(content) {
+	return newlines_to_br(linkify(content))
 }
 
 /* DEPRECATED: use fmt_name

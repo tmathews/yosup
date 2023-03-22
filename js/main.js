@@ -6,14 +6,13 @@ const IMG_EVENT_LIKE  = "/icon/event-like.svg";
 const IMG_NO_USER     = "/icon/no-user.svg";
 
 const SID_META          = "meta";
-const SID_HISTORY       = "history";
-const SID_NOTIFICATIONS = "notifications";
-const SID_DMS_OUT       = "dms_out";
-const SID_DMS_IN        = "dms_in";
-const SID_EXPLORE       = "explore";
-const SID_PROFILES      = "profiles";
-const SID_THREAD        = "thread";
-const SID_FRIENDS       = "friends";
+const SID_HISTORY       = "hist";
+const SID_NOTIFICATIONS = "noti";
+const SID_DMS_OUT       = "dout";
+const SID_DMS_IN        = "din";
+const SID_PROFILES      = "prof";
+const SID_THREAD        = "thrd";
+const SID_FRIENDS       = "frds";
 
 // This is our main entry.
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
@@ -69,6 +68,7 @@ async function signin() {
 }
 
 async function webapp_init() {
+	let err;
 	const model = DAMUS;
 
 	// WARNING Order Matters!
@@ -81,11 +81,10 @@ async function webapp_init() {
 
 	// Load data from storage 
 	await model_load_settings(model);
-	let err;
-	err = await contacts_load(model);
+	/*err = await contacts_load(model);
 	if (err) {
 		window.alert("Unable to load contacts.");
-	}
+	}*/
 	init_settings(model);
 
 	// Create our pool so that event processing functions can work
@@ -132,7 +131,7 @@ function parse_url_mode() {
 	}
 	switch (mode) {
 		case VM_FRIENDS:
-			opts.hide_replys = true;
+			//opts.hide_replys = true;
 			break;
 		case VM_THREAD:
 			opts.thread_id = parts[1];
@@ -201,7 +200,7 @@ function on_pool_open(relay) {
 
 	// Get our notifications
 	relay.subscribe(SID_NOTIFICATIONS, [{
-		kinds: STANDARD_KINDS,
+		kinds: PUBLIC_KINDS,
 		"#p": [pubkey],
 		limit: 5000,
 	}]);
@@ -215,19 +214,6 @@ function on_pool_open(relay) {
 		kinds: [KIND_DM],
 		authors: [pubkey],
 	}]);
-
-	// Subscribe to the world as it will serve our friends, notifications, and 
-	// explore views
-	relay.subscribe(SID_EXPLORE, [{
-		kinds: STANDARD_KINDS,
-		limit: 5000,
-	}]);
-
-	// Grab our friends history so our default timeline looks loaded 
-	if (model.contacts.friends.size > 0) {
-		model_get_relay_que(model, relay).contacts_init = true;
-		fetch_friends_history(Array.from(model.contacts.friends), model.pool, relay);
-	}
 }
 
 function on_pool_notice(relay, notice) {
@@ -246,15 +232,19 @@ async function on_pool_eose(relay, sub_id) {
 	switch (sid) {
 		case SID_HISTORY:
 		case SID_THREAD:
-		case SID_FRIENDS:
 			view_timeline_refresh(model); 
 			pool.unsubscribe(sub_id, relay);
+			break
+		case SID_FRIENDS:
+			view_timeline_refresh(model); 
+			//pool.unsubscribe(sub_id, relay);
 			break
 		case SID_META:
 			// if sid is ours and we did not init properly (must be login) then 
 			// we will fetch our friends history now
-			if (model.pubkey == identifier && 
-				!model_get_relay_que(model, relay).contacts_init) {
+			//if (model.pubkey == identifier && 
+			//	!model_get_relay_que(model, relay).contacts_init) {
+			if (model.pubkey == identifier) {
 				fetch_friends_history(Array.from(model.contacts.friends), 
 					pool, relay);
 				log_debug("Got our friends after no init & fetching our friends");
@@ -296,7 +286,6 @@ function fetch_profile_info(pubkey, pool, relay) {
 	pool.subscribe(sid, [{
 		kinds: [KIND_METADATA, KIND_CONTACT, KIND_RELAY],
 		authors: [pubkey],
-		limit: 1,
 	}], relay);
 	return sid;
 }
@@ -304,7 +293,7 @@ function fetch_profile_info(pubkey, pool, relay) {
 function fetch_profile(pubkey, pool, relay) {
 	fetch_profile_info(pubkey, pool, relay);	
 	pool.subscribe(`${SID_HISTORY}:${pubkey}`, [{
-		kinds: STANDARD_KINDS,
+		kinds: PUBLIC_KINDS,
 		authors: [pubkey],
 		limit: 1000,
 	}], relay);
@@ -313,17 +302,19 @@ function fetch_profile(pubkey, pool, relay) {
 function fetch_thread_history(evid, pool) {
 	const sid = `${SID_THREAD}:${evid}`
 	pool.subscribe(sid, [{
-		kinds: STANDARD_KINDS,
-		limit: 1000,
+		kinds: PUBLIC_KINDS,
 		"#e": [evid],
 	}]);
 	log_debug(`fetching thread ${sid}`);
 }
 
 function fetch_friends_history(friends, pool, relay) {
+	// TODO only fetch friends history from their desired relay instead of 
+	// pinging all of the relays
 	pool.subscribe(SID_FRIENDS, [{
-		kinds: STANDARD_KINDS,
+		kinds: PUBLIC_KINDS,
 		authors: friends,
-		limit: 500,
+		limit: 5000,
 	}], relay);
+	log_debug(`fetching friends history`);
 }

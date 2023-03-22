@@ -63,9 +63,6 @@
 			<button class="icon" action="open-view" data-view="friends" title="Home">
 				<img class="icon svg invert" src="/icon/home.svg"/>
 			</button>
-			<button class="icon" action="open-view" data-view="explore" title="Explore">
-				<img class="icon svg invert" src="/icon/explore.svg"/>
-			</button>
 			<button class="icon" action="open-view" data-view="dm" title="Direct Messages">
 				<img class="icon svg invert" src="/icon/messages.svg"/>
 				<div class="new-notifications hide" role="dm"></div>
@@ -90,10 +87,6 @@
 						<img class="icon svg inactive" src="/icon/home.svg"/>
 						<img class="icon svg active" src="/icon/home-active.svg"/>
 					</button>
-					<button action="open-view" data-view="explore" class="nav icon" 
-						title="Explore"> <img class="icon svg inactive" src="/icon/explore.svg"/>
-						<img class="icon svg active" src="/icon/explore-active.svg"/>
-					</button>
 					<button action="open-view" data-view="dm" class="nav icon" 
 						title="Direct Messages">
 						<img class="icon svg inactive" src="/icon/messages.svg"/>
@@ -111,6 +104,9 @@
 						<img class="icon svg inactive" src="/icon/settings.svg"/>
 						<img class="icon svg active" src="/icon/settings-active.svg"/>
 					</button>
+					<button id="new-note" action="new-note" title="New Note" class="nav icon">
+						<img class="icon svg invert" src="/icon/new-note.svg"/>
+					</button>
 				</div>
 			</div>
 
@@ -119,10 +115,6 @@
 					<header>
 						<label>Home</label>
 						<div id="header-tools">
-							<button class="action small bordered"
-							action="toggle-hide-replys">
-								Show Replys
-							</button>
 							<button class="action small bordered hide"
 							disabled action="mark-all-read">
 								Mark All Read
@@ -133,21 +125,6 @@
 							src="/icon/no-user.svg"/>
 						</div>
 					</header>
-					<div id="newpost">
-						<textarea placeholder="What's up?" 
-						class="post-input" id="post-input"></textarea>
-						<div class="post-tools">
-							<input id="content-warning-input" class="cw hide" 
-							type="text" placeholder="Reason"/>
-							<button class="cw icon" role="toggle-cw"
-							title="Mark this message as sensitive.">
-								<img class="icon svg small" 
-								src="/icon/content-warning.svg"/>
-							</button>
-							<button class="action" role="send" 
-							id="post-button" disabled>Send</button>
-						</div>
-					</div>
 					<div id="profile-info" role="profile-info" class="bottom-border hide">
 						<div class="profile-banner" name="profile-banner"></div>
 						<div class="flex">
@@ -199,7 +176,7 @@
 					</div>
 					<div id="dms" class="hide">
 					</div>
-					<div id="timeline" class="events" data-hide-replys="true"></div>
+					<div id="timeline" class="events"></div>
 					<div id="show-more" class="show-more">
 						<button action="show-timeline-more">Show More</button>
 					</div>
@@ -266,7 +243,7 @@
 		</div>
 		</div>
 
-		<dialog id="media-preview">
+		<dialog id="media-preview" action="close-media">
 			<img action="close-media" src=""/>
 			<!-- TODO add loader to media preview -->
 		</dialog>
@@ -282,7 +259,10 @@
 				<div id="replybox">
 					<textarea id="reply-content" class="post-input"
 						placeholder="Reply..."></textarea>
-					<div class="post-tools">
+					<div class="post-tools new">
+						<button class="action" name="send">Send</button>
+					</div>
+					<div class="post-tools reply">
 						<button class="action" name="reply-all" data-all="1">Reply All</button>
 						<button class="action" name="reply">Reply</button>
 					</div>

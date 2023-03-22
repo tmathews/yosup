@@ -21,6 +21,12 @@ const STANDARD_KINDS = [
 	KIND_REACTION,
 	KIND_SHARE,
 ];
+const PUBLIC_KINDS = [
+	KIND_NOTE,
+	KIND_DELETE,
+	KIND_REACTION,
+	KIND_SHARE,
+];
 
 function get_local_state(key) {
 	if (DAMUS[key] != null)

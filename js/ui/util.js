@@ -97,18 +97,39 @@ async function do_send_reply(all=false) {
 	close_modal(modal);
 }
 
+function update_reply_box(state="new") {
+	const isnew = state == "new";
+	const modal = document.querySelector("#reply-modal");
+	modal.querySelector("#replying-to").classList.toggle("hide", isnew);
+	modal.querySelector("header label").textContent = isnew ? "New Note" : "Replying To";
+	modal.querySelector(".post-tools.new").classList.toggle("hide", !isnew);
+	modal.querySelector(".post-tools.reply").classList.toggle("hide", isnew);
+}
+
+function new_note() {
+	const modal = document.querySelector("#reply-modal");
+	const inputbox = modal.querySelector("#reply-content");
+	update_reply_box("new");
+	inputbox.placeholder = "What's up?";
+	modal.showModal();
+	inputbox.focus();
+}
+
 function reply(evid) {
 	const ev = DAMUS.all_events[evid]
 	const modal = document.querySelector("#reply-modal")
 	const replybox = modal.querySelector("#reply-content")
 	const replying_to = modal.querySelector("#replying-to")
+	update_reply_box("reply");
 	replying_to.dataset.evid = evid
+	replying_to.classList.remove("hide");
 	replying_to.innerHTML = render_event_nointeract(DAMUS, ev, {
 		is_composing: true, 
 		nobar: true
 	});
+	replybox.placeholder = "Reply...";
 	modal.showModal();
-	replybox.focus()
+	replybox.focus();
 }
 
 function update_favicon(path) {

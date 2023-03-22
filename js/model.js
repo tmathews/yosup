@@ -7,6 +7,7 @@ function model_process_event(model, relay, ev) {
 		return;
 	}
 
+	let fetch_profile = false;
 	model.all_events[ev.id] = ev;
 	ev.refs = event_get_tag_refs(ev.tags);
 	ev.pow = event_calculate_pow(ev);
@@ -15,6 +16,10 @@ function model_process_event(model, relay, ev) {
 	// integers can't be used.
 	let fn;
 	switch(ev.kind) {
+		case KIND_NOTE:
+		case KIND_SHARE:
+			fetch_profile = true;
+			break;
 		case KIND_METADATA:
 			fn = model_process_event_metadata;
 			break;
@@ -43,11 +48,13 @@ function model_process_event(model, relay, ev) {
 		return;
 
 	// Request new profiles for unseen pubkeys of the event
-	event_get_pubkeys(ev).forEach((pubkey) => {
-		if (!model_has_profile(model, pubkey)) {
-			model_que_profile(model, relay, pubkey);
-		}
-	});
+	if (fetch_profile) {
+		event_get_pubkeys(ev).forEach((pubkey) => {
+			if (!model_has_profile(model, pubkey)) {
+				model_que_profile(model, relay, pubkey);
+			}
+		});
+	}
 }
 
 function model_get_relay_que(model, relay) {

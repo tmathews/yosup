@@ -115,6 +115,11 @@ th, td {
 #nav > div[data-active="messages"] [data-view="dm"] img.active {
 	display: block;
 }
+#new-note {
+	background: white;
+	height: 56px;
+	border-radius: 38px;
+}
 
 #app-icon-logo > img {
 	width: 36px;

@@ -1,5 +1,4 @@
 const VM_FRIENDS       = "friends"; // mine + only events that are from my contacts
-const VM_EXPLORE       = "explore"; // all events
 const VM_NOTIFICATIONS = "notifications";  // reactions & replys
 const VM_DM            = "dm"; // all events of KIND_DM aimmed at user 
 const VM_DM_THREAD     = "dmthread"; // all events from a user of KIND_DM 
@@ -9,7 +8,6 @@ const VM_SETTINGS      = "settings";
 
 const VIEW_NAMES= {};
 VIEW_NAMES[VM_FRIENDS] = "Home";
-VIEW_NAMES[VM_EXPLORE] = "Explore";
 VIEW_NAMES[VM_NOTIFICATIONS] = "Notifications";
 VIEW_NAMES[VM_DM] = "Messages";
 VIEW_NAMES[VM_DM_THREAD] = "DM";
@@ -120,7 +118,6 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	find_node("#view header > label").innerText = name;
 	find_node("#nav > div[data-active]").dataset.active = names[mode].toLowerCase();
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
-	find_node("#newpost").classList.toggle("hide", mode != VM_FRIENDS && mode != VM_DM_THREAD);
 	const timeline_el = find_node("#timeline");
 	timeline_el.classList.toggle("reverse", mode == VM_THREAD);
 	timeline_el.classList.toggle("hide", mode == VM_SETTINGS || mode == VM_DM);
@@ -131,8 +128,6 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 			dms_available() : true);
 	find_node("#header-tools button[action='mark-all-read']")
 		.classList.toggle("hide", mode != VM_DM);
-	find_node("#header-tools button[action='toggle-hide-replys']")
-		.classList.toggle("hide", mode != VM_FRIENDS);
 
 	// Show/hide different profile image in header
 	const show_mypfp = mode != VM_DM_THREAD && mode != VM_USER;
@@ -219,8 +214,7 @@ function view_timeline_refresh(model, mode, opts={}) {
 		show_more = false;
 	// If we reached the limit there is "probably" more to show so show
 	// the more button
-	const is_more_mode = mode == VM_FRIENDS || mode == VM_NOTIFICATIONS ||
-		mode == VM_EXPLORE;
+	const is_more_mode = mode == VM_FRIENDS || mode == VM_NOTIFICATIONS;
 	if (is_more_mode && show_more) {
 		find_node("#show-more").classList.remove("hide");
 	}
@@ -426,10 +420,8 @@ function view_timeline_update_profiles(model, pubkey) {
 	const name = fmt_name(p);
 	const pic = get_profile_pic(p);
 	for (const evid in model.elements) {
-		// Omitting this because we want to update profiles and names on all 
-		// reactions
-		//if (!event_contains_pubkey(model.all_events[evid], pubkey))
-		//	continue;
+		// XXX if possible update profile pics in a smarter way
+		// this may be perhaps a micro optimization tho
 		update_el_profile(model.elements[evid], pubkey, name, pic);	
 	}
 	// Update the profile view if it's active
@@ -446,7 +438,6 @@ function view_timeline_update_profiles(model, pubkey) {
 	// be caught by the process above.
 	update_el_profile(find_node("#dms"), pubkey, name, pic);
 	update_el_profile(find_node("#view header"), pubkey, name, pic);
-	update_el_profile(find_node("#newpost"), pubkey, name, pic);
 }
 
 function update_el_profile(el, pubkey, name, pic) {
@@ -507,8 +498,6 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 		return false;
 	}
 	switch(mode) {
-		case VM_EXPLORE:
-			return ev.kind != KIND_REACTION;
 		case VM_USER:
 			return opts.pubkey && ev.pubkey == opts.pubkey;
 		case VM_FRIENDS:
@@ -603,35 +592,39 @@ function init_my_pfp(model) {
 }
 
 function init_postbox(model) {
-	const el = find_node("#newpost");
-	find_node("textarea", el).addEventListener("input", oninput_post);
-	find_node("button[role='send']").addEventListener("click", onclick_send);
-	find_node("button[role='toggle-cw']")
-		.addEventListener("click", onclick_toggle_cw);
-	// Do reply box
-	// TODO refactor & cleanup reply modal init 
 	find_node("#reply-content").addEventListener("input", oninput_post);
 	find_node("button[name='reply']")
 		.addEventListener("click", onclick_reply);
 	find_node("button[name='reply-all']")
 		.addEventListener("click", onclick_reply);
+	find_node("button[name='send']")
+		.addEventListener("click", onclick_send);
 }
 async function onclick_reply(ev) {
 	do_send_reply(ev.target.dataset.all == "1");
 }
 async function onclick_send(ev) {
-	const el = view_get_timeline_el();
-	const mode = el.dataset.mode;
+	const el = find_node("#reply-modal");
 	const pubkey = await get_pubkey();
-	const el_input = document.querySelector("#post-input");
-	const el_cw = document.querySelector("#content-warning-input");
+	const el_input = el.querySelector("#reply-content");
 	let post = {
 		pubkey,
 		kind: KIND_NOTE,
 		created_at: new_creation_time(),
 		content: el_input.value,
-		tags: el_cw.value ? [["content-warning", el_cw.value]] : [],
-	}
+		tags: [],
+	};
+	post.id = await nostrjs.calculate_id(post);
+	post = await sign_event(post);
+	broadcast_event(post);
+
+	// Reset UI
+	el_input.value = "";
+	trigger_postbox_assess(el_input);	
+
+	/*
+	const el_cw = document.querySelector("#content-warning-input");
+	//tags: el_cw.value ? [["content-warning", el_cw.value]] : [],
 
 	// Handle DM type post
 	if (mode == VM_DM_THREAD) {
@@ -645,15 +638,7 @@ async function onclick_send(ev) {
 		post.content = await window.nostr.nip04.encrypt(target, post.content);
 	}
 
-	// Send it
-	post.id = await nostrjs.calculate_id(post)
-	post = await sign_event(post)
-	broadcast_event(post);
-
-	// Reset UI
-	el_input.value = "";
-	el_cw.value = "";
-	trigger_postbox_assess(el_input);	
+	el_cw.value = "";*/
 }
 /* oninput_post checks the content of the textarea and updates the size
  * of it's element. Additionally I will toggle the enabled state of the sending
@@ -752,6 +737,8 @@ function onclick_any(ev) {
 		case "toggle-hide-replys":
 			toggle_hide_replys(el);
 			break;
+		case "new-note":
+			new_note();
 	}
 }
 

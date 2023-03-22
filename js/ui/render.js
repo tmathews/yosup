@@ -169,17 +169,9 @@ function render_react_onclick(our_pubkey, reacting_to, emoji, reactions) {
 
 function render_reaction_group(model, emoji, reactions, reacting_to) {
 	let count = 0;
-	let str = "";
 	for (const k in reactions) {
 		count++;
-		if (count > 5)
-			continue;
-		const pubkey = reactions[k].pubkey;
-		str += render_profile_img(model_get_profile(model, pubkey), 
-			{noclick:true});
 	}
-	if (count > 5)
-		str = `${count}`;
 	let onclick = render_react_onclick(model.pubkey, 
 		reacting_to.id, emoji, reactions);
 	return html`
@@ -187,7 +179,7 @@ function render_reaction_group(model, emoji, reactions, reacting_to) {
 		<span class="reaction-emoji">
 		${emoji}
 		</span>
-		$${str}
+		${count}
 	</span>`;
 }
 
