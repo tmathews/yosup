@@ -184,7 +184,7 @@ function on_pool_open(relay) {
 	const { pubkey } = model;
 
 	// Get all our info & history, well close this after we get  it
-	fetch_profile(pubkey, model.pool, relay);
+	fetch_profile_info(pubkey, model.pool, relay);
 
 	// Get our notifications
 	relay.subscribe(SID_NOTIFICATIONS, [{
@@ -225,23 +225,20 @@ async function on_pool_eose(relay, sub_id) {
 			break
 		case SID_FRIENDS:
 			view_timeline_refresh(model); 
-			//pool.unsubscribe(sub_id, relay);
 			break
 		case SID_META:
-			// if sid is ours and we did not init properly (must be login) then 
-			// we will fetch our friends history now
-			//if (model.pubkey == identifier && 
-			//	!model_get_relay_que(model, relay).contacts_init) {
 			if (model.pubkey == identifier) {
-				fetch_friends_history(Array.from(model.contacts.friends), 
-					pool, relay);
+				friends = Array.from(model.contacts.friends);
+				friends.push(identifier);
+				fetch_friends_history(friends, pool, relay);
 				log_debug("Got our friends after no init & fetching our friends");
 			}
 		case SID_NOTIFICATIONS:
 		case SID_PROFILES:
+			pool.unsubscribe(sub_id, relay);
+			break;
 		case SID_DMS_OUT:
 		case SID_DMS_IN:
-			pool.unsubscribe(sub_id, relay);
 			break;
 	}
 }

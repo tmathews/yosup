@@ -179,33 +179,42 @@
 							</p>
 						</section>
 					</div>
-					<nav class="nav mobile">
-					<button action="open-view" data-view="friends" class="icon" 
-						title="Home">
-						<img class="icon svg inactive" src="/icon/home.svg"/>
-						<img class="icon svg active" src="/icon/home-active.svg"/>
-					</button>
-					<button action="open-view" data-view="dm" class="icon" 
-						title="Direct Messages">
-						<img class="icon svg inactive" src="/icon/messages.svg"/>
-						<img class="icon svg active" src="/icon/messages-active.svg"/>
-						<div class="new-notifications hide" role="dm"></div>
-					</button>
-					<button action="open-view" data-view="notifications"
-						class="icon" title="Notifications">
-						<img class="icon svg inactive" src="/icon/notifications.svg"/>
-						<img class="icon svg active" src="/icon/notifications-active.svg"/>
-						<div class="new-notifications hide" role="activity"></div>
-					</button>
-					<button action="open-view" data-view="settings" 
-						title="Settings" class="icon">
-						<img class="icon svg inactive" src="/icon/settings.svg"/>
-						<img class="icon svg active" src="/icon/settings-active.svg"/>
-					</button>
-					<button action="new-note" title="New Note" class="nav icon new-note">
-						<img class="icon svg invert" src="/icon/new-note.svg"/>
-					</button>
-					</nav>
+					<footer>
+						<div id="dm-post" class="hide">
+							<textarea class="post-input dm" name="message"></textarea>
+							<div class="post-tools">
+								<button name="send-dm" class="action">Send</button>
+							</div>
+						</div>
+						<nav class="nav mobile">
+							<button action="open-view" data-view="friends" class="icon" 
+								title="Home">
+								<img class="icon svg inactive" src="/icon/home.svg"/>
+								<img class="icon svg active" src="/icon/home-active.svg"/>
+							</button>
+							<button action="open-view" data-view="dm" class="icon" 
+								title="Direct Messages">
+								<img class="icon svg inactive" src="/icon/messages.svg"/>
+								<img class="icon svg active" src="/icon/messages-active.svg"/>
+								<div class="new-notifications hide" role="dm"></div>
+							</button>
+							<button action="open-view" data-view="notifications"
+								class="icon" title="Notifications">
+								<img class="icon svg inactive" src="/icon/notifications.svg"/>
+								<img class="icon svg active" src="/icon/notifications-active.svg"/>
+								<div class="new-notifications hide" role="activity"></div>
+							</button>
+							<button action="open-view" data-view="settings" 
+								title="Settings" class="icon">
+								<img class="icon svg inactive" src="/icon/settings.svg"/>
+								<img class="icon svg active" src="/icon/settings-active.svg"/>
+							</button>
+							<button id="new-note-mobile" action="new-note" 
+								title="New Note" class="nav icon new-note">
+								<img class="icon svg invert" src="/icon/new-note.svg"/>
+							</button>
+						</nav>
+					</footer>
 			</div>
 			<div class="flex-fill vertical-hide"></div>
 		</div>

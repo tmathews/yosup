@@ -119,10 +119,12 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	view_update_navs(mode);
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
 	const timeline_el = find_node("#timeline");
-	timeline_el.classList.toggle("reverse", mode == VM_THREAD);
+	timeline_el.classList.toggle("reverse", mode == VM_THREAD || mode == VM_DM_THREAD);
 	timeline_el.classList.toggle("hide", mode == VM_SETTINGS || mode == VM_DM);
 	find_node("#settings").classList.toggle("hide", mode != VM_SETTINGS);
 	find_node("#dms").classList.toggle("hide", mode != VM_DM);
+	find_node("#dm-post").classList.toggle("hide", mode != VM_DM_THREAD);
+	find_node("#new-note-mobile").classList.toggle("hide", mode == VM_DM_THREAD);
 	find_node("#header-tools button[action='mark-all-read']")
 		.classList.toggle("hide", mode != VM_DM);
 
@@ -595,12 +597,15 @@ function init_my_pfp(model) {
 
 function init_postbox(model) {
 	find_node("#reply-content").addEventListener("input", oninput_post);
+	find_node("#dm-post textarea").addEventListener("input", oninput_post);
 	find_node("button[name='reply']")
 		.addEventListener("click", onclick_reply);
 	find_node("button[name='reply-all']")
 		.addEventListener("click", onclick_reply);
 	find_node("button[name='send']")
 		.addEventListener("click", onclick_send);
+	find_node("button[name='send-dm']")
+		.addEventListener("click", onclick_send_dm);
 }
 async function onclick_reply(ev) {
 	do_send_reply(ev.target.dataset.all == "1");
@@ -622,25 +627,32 @@ async function onclick_send(ev) {
 
 	// Reset UI
 	el_input.value = "";
-	trigger_postbox_assess(el_input);	
+	trigger_postbox_assess(el_input);
+	close_modal(el);
 
 	/*
 	const el_cw = document.querySelector("#content-warning-input");
 	//tags: el_cw.value ? [["content-warning", el_cw.value]] : [],
-
-	// Handle DM type post
-	if (mode == VM_DM_THREAD) {
-		if (!dms_available()) {
-			window.alert("DMing not available.");
-			return;
-		}
-		post.kind = KIND_DM;
-		const target = el.dataset.pubkey;
-		post.tags.splice(0, 0, ["p", target]);
-		post.content = await window.nostr.nip04.encrypt(target, post.content);
-	}
-
 	el_cw.value = "";*/
+}
+async function onclick_send_dm(ev) {
+	const pubkey = await get_pubkey();
+	const el = find_node("#dm-post");
+	const el_input = el.querySelector("textarea");
+	const target = view_get_timeline_el().dataset.pubkey;
+	let post = {
+		pubkey,
+		kind: KIND_DM,
+		created_at: new_creation_time(),
+		content: await window.nostr.nip04.encrypt(target, el_input.value),
+		tags: [["p", target]],
+	};
+	post.id = await nostrjs.calculate_id(post);
+	post = await sign_event(post);
+	broadcast_event(post);
+
+	el_input.value = "";
+	trigger_postbox_assess(el_input);
 }
 /* oninput_post checks the content of the textarea and updates the size
  * of it's element. Additionally I will toggle the enabled state of the sending
@@ -738,6 +750,7 @@ function onclick_any(ev) {
 			break;
 		case "new-note":
 			new_note();
+			break;
 	}
 }
 

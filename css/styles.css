@@ -76,6 +76,11 @@ th, td {
 }
 
 /* Navigation */
+#view footer {
+	position: sticky;
+	bottom: 0;
+	z-index: var(--zHeader);
+}
 .nav.full {
 	border-right: 1px solid var(--clrBorder);
 	padding: 10px;
@@ -94,15 +99,13 @@ th, td {
 .nav.mobile {
 	display: none;
 	background: var(--clrBg);
-	position: sticky;
-	bottom: 0;
-	z-index: var(--zHeader);
 	flex-direction: row;
 	border-top: var(--clrBorder) 1px solid;
 }
 .nav.mobile button {
 	padding: 18px;
 	flex: 1;
+	position: relative;
 }
 .nav [data-view].active img.inactive,
 .nav [data-view] img.active {
@@ -415,6 +418,13 @@ textarea.post-input {
 	width: 100%;
 	min-height: 25px;
 }
+textarea.post-input.dm {
+  background: var(--clrBtn);
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 45px;
+  margin-top: 0;
+}
 
 .post-tools {
 	text-align: right;
@@ -509,11 +519,10 @@ code {
 
 /* Messaging */
 
-#dms-not-available {
-    background: #ffd559;
-    display: inline-block;
-    color: #090909;
-    padding: 15px;
+#dm-post {
+	padding: 15px;
+	background: var(--clrBg);
+	border-top: 1px solid var(--clrBorder);
 }
 .dm-group {
 	display: flex;
@@ -546,7 +555,7 @@ code {
 	color: white;
 }
 .event.dm {
-	padding-bottom: 0;
+	padding-top: 0;
 	display: flex;
 }
 .event.dm:hover { 

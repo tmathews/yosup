@@ -33,6 +33,7 @@ function model_process_event(model, relay, ev) {
 			fn = model_process_event_reaction;
 			break;
 		case KIND_DM:
+			fetch_profile = true;
 			fn = model_process_event_dm;
 			break;
 	}
