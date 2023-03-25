@@ -13,6 +13,7 @@ const SID_DMS_IN        = "din";
 const SID_PROFILES      = "prof";
 const SID_THREAD        = "thrd";
 const SID_FRIENDS       = "frds";
+const SID_EVENT         = "evnt";
 
 // This is our main entry.
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
@@ -235,6 +236,7 @@ async function on_pool_eose(relay, sub_id) {
 			}
 		case SID_NOTIFICATIONS:
 		case SID_PROFILES:
+		case SID_EVENT:
 			pool.unsubscribe(sub_id, relay);
 			break;
 		case SID_DMS_OUT:
@@ -284,8 +286,17 @@ function fetch_profile(pubkey, pool, relay) {
 	}], relay);
 }
 
+function fetch_event(evid, pool) {
+	const sid = `${SID_EVENT}:${evid}`;
+	pool.subscribe(sid, [{
+		ids: [evid]
+	}]);
+	log_debug(`fetching event ${sid}`);
+}
+
 function fetch_thread_history(evid, pool) {
 	// TODO look up referenced relays for thread history 
+	fetch_event(evid, pool);
 	const sid = `${SID_THREAD}:${evid}`
 	pool.subscribe(sid, [{
 		kinds: PUBLIC_KINDS,

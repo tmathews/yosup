@@ -56,13 +56,11 @@ function event_calculate_pow(ev) {
 			const target = +tag[2]
 			if (isNaN(target))
 				return 0
-
 			// if our nonce target is smaller than the difficulty,
 			// then we use the nonce target as the actual difficulty
 			return min(target, id_bits)
 		}
 	}
-
 	// not a valid pow if we don't have a difficulty target
 	return 0
 }

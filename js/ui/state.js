@@ -119,7 +119,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 	view_update_navs(mode);
 	find_node("#view [role='profile-info']").classList.toggle("hide", mode != VM_USER);
 	const timeline_el = find_node("#timeline");
-	timeline_el.classList.toggle("reverse", mode == VM_THREAD || mode == VM_DM_THREAD);
+	timeline_el.classList.toggle("reverse", mode == VM_DM_THREAD);
 	timeline_el.classList.toggle("hide", mode == VM_SETTINGS || mode == VM_DM);
 	find_node("#settings").classList.toggle("hide", mode != VM_SETTINGS);
 	find_node("#dms").classList.toggle("hide", mode != VM_DM);
@@ -181,9 +181,11 @@ function view_timeline_refresh(model, mode, opts={}) {
 	// Build DOM fragment and render it 
 	let count = 0;
 	const limit = 200;
-	const evs = mode == VM_DM_THREAD ? 
+	let evs = mode == VM_DM_THREAD ? 
 		model_get_dm(model, opts.pubkey).events.concat().reverse() : 
 		model_events_arr(model);
+	if (mode == VM_THREAD)
+		evs = evs.reverse();
 	const fragment = new DocumentFragment();
 	let show_more = true;
 	let i = evs.length - 1;
@@ -334,7 +336,10 @@ function view_timeline_show_new(model) {
 	const el = view_get_timeline_el();
 	const mode = el.dataset.mode;
 	const opts = view_get_el_opts(el);
-	const latest_evid = el.firstChild ? el.firstChild.id.slice(2) : undefined;
+	let latest_evid = el.firstChild ? el.firstChild.id.slice(2) : undefined;
+	if (mode == VM_THREAD) {
+		latest_evid = el.lastElementChild ? el.lastElementChild.id.slice(2) : undefined;
+	}
 
 	let count = 0;
 	const evs = model_events_arr(model)
@@ -353,7 +358,11 @@ function view_timeline_show_new(model) {
 		count++;
 	}
 	if (count > 0) {
-		el.prepend(fragment);
+		if (mode == VM_THREAD) {
+			el.appendChild(fragment);
+		} else {
+			el.prepend(fragment);
+		}
 		view_show_spinner(false);
 		if (mode == VM_NOTIFICATIONS) {
 			reset_notifications(model);
@@ -511,9 +520,8 @@ function view_mode_contains_event(model, ev, mode, opts={}) {
 			return ev.pubkey == model.pubkey || contact_is_friend(model.contacts, ev.pubkey);
 		case VM_THREAD:
 			if (ev.kind == KIND_SHARE) return false;
-			return ev.id == opts.thread_id || (ev.refs && ( 
-				ev.refs.root == opts.thread_id ||
-				ev.refs.reply == opts.thread_id));
+			return ev.id == opts.thread_id || 
+				event_refs_event(ev, {id:opts.thread_id});
 		case VM_NOTIFICATIONS:
 			return event_tags_pubkey(ev, model.pubkey);
 		case VM_DM_THREAD:
@@ -629,11 +637,6 @@ async function onclick_send(ev) {
 	el_input.value = "";
 	trigger_postbox_assess(el_input);
 	close_modal(el);
-
-	/*
-	const el_cw = document.querySelector("#content-warning-input");
-	//tags: el_cw.value ? [["content-warning", el_cw.value]] : [],
-	el_cw.value = "";*/
 }
 async function onclick_send_dm(ev) {
 	const pubkey = await get_pubkey();
@@ -679,8 +682,20 @@ function onclick_toggle_cw(ev) {
 }
 
 function onclick_any(ev) {
-	const el = ev.target;
-	const action = el.getAttribute("action");
+	let el = ev.target;
+	let action = el.getAttribute("action");
+	if (action == null && el.tagName != "A") {
+		const parent = find_parent(el, "[action]");
+		if (parent) {
+			const parent_action = parent.getAttribute("action")
+			// This is a quick hijack for propogating clicks; further extending
+			// this should be obvious.
+			if (parent_action == "open-thread") {
+				el = parent;
+				action = parent_action;
+			}
+		}
+	}
 	switch (action) {
 		case "sign-in":
 			signin();

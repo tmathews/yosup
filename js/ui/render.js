@@ -63,10 +63,12 @@ function render_event(model, ev, opts={}) {
 
 	const profile = model_get_profile(model, ev.pubkey);
 	const delta = fmt_since_str(new Date().getTime(), ev.created_at*1000)
+	const target_thread_id = ev.refs.root || ev.id;
 	let classes = "event"
 	if (!opts.is_composing)
 		classes += " bottom-border";
-	return html`<div id="ev${ev.id}" class="${classes}">
+	return html`<div id="ev${ev.id}" class="${classes}" action="open-thread"
+	data-thread-id="${target_thread_id}">
 		$${render_shared_by(ev, opts)}
 		<div class="flex">
 		<div class="userpic">
@@ -213,26 +215,9 @@ function render_action_bar(model, ev, opts={}) {
 		</button>`;
 	}
 	str += `
-	<button class="icon" title="View Thread" action="open-thread" 
-	data-thread-id="${thread_root}">
-		<img class="icon svg small" src="/icon/open-thread.svg"/>
-	</button>
-	<button class="icon" title="View Replies" action="open-thread" 
-	data-thread-id="${ev.id}">
-		<img class="icon svg small" src="/icon/open-thread-here.svg"/>
-	</button>
-	<button class="icon" title="View Event JSON" action="show-event-json"
-	data-evid="${ev.id}">
-		<img class="icon svg small" src="/icon/event-details.svg"/>
+	<button class="icon" title="More Options" action="open-event-options">
+		<img class="icon svg small" src="/icon/event-options.svg"/>
 	</button>`;
-	if (can_delete) {
-		const delete_id = shared ? shared.share_evid : ev.id;
-		str += html`
-	<button class="icon" title="Delete" action="confirm-delete" 
-	data-evid="${delete_id}">
-		<img class="icon svg small" src="/icon/event-delete.svg"/>
-	</button>` 
-	}
 	return str + "</div>";
 }
 

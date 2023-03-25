@@ -133,6 +133,8 @@ function find_nodes(selector, parentEl) {
 function find_parent(el, selector) {
 	while (el && !el.matches(selector)) {
 		el = el.parentNode;
+		if (!el.matches)
+			return undefined;
 	}
 	return el;
 }

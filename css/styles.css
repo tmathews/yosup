@@ -304,9 +304,12 @@ button.nav > img.icon {
 	max-height: 300px;
 	object-fit: contain;
 }
+.action-bar {
+	display: flex;
+}
 .action-bar > button {
-	margin-right: 25px;
 	opacity: 0.5;
+	flex: 1;
 }
 
 .reactions {
@@ -339,7 +342,6 @@ button.nav > img.icon {
 
 .action-bar button.icon {
 	transition:	opacity 0.3s linear;
-	padding: 5px;
 }
 .action-bar button.icon img.icon {
 	width: 16px;
