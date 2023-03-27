@@ -251,7 +251,7 @@ function render_mentioned_name(pk, profile) {
 function render_name(pk, profile, prefix="") {
 	// Beware of whitespace.
 	return html`<span>${prefix}<span class="username clickable" 
-	role="open-profile" data-pubkey="${pk}"> 
+	action="open-profile" data-pubkey="${pk}"> 
 		${fmt_profile_name(profile, fmt_pubkey(pk))}</span></span>`
 }
 

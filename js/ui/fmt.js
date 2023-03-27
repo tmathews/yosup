@@ -81,8 +81,8 @@ function fmt_mentions(model, str, tags) {
 			data-thread-id="${ref}">note:${fmt_pubkey(ref)}</span>`;
 		} else if (tag[0] == 'p') {
 			let profile = model_get_profile(model, ref);
-			buf += `<span class="username clickable" data-pubkey="${ref}">
-				${fmt_name(profile)}</span>`;
+			buf += `<span class="username clickable" action="open-profile" 
+			data-pubkey="${ref}">${fmt_name(profile)}</span>`;
 		}
 	}
 	return buf;

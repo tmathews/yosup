@@ -683,6 +683,12 @@ function onclick_toggle_cw(ev) {
 
 function onclick_any(ev) {
 	let el = ev.target;
+	// Check if we have a selection and don't bother with anything
+	let selection = document.getSelection();
+	if (selection && selection.isCollapsed == false && 
+		view_get_timeline_el().contains(selection.anchorNode)) {
+		return;
+	}
 	let action = el.getAttribute("action");
 	if (action == null && el.tagName != "A") {
 		const parent = find_parent(el, "[action]");
