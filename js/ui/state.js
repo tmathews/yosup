@@ -92,7 +92,7 @@ function view_timeline_apply_mode(model, mode, opts={}, push_state=true) {
 				pieces.push(pubkey);
 				break;
 		}
-		history.pushState({mode, opts}, "", "/"+pieces.join("/"));
+		window.history.pushState({mode, opts}, "", "/"+pieces.join("/"));
 	}
 
 	el.dataset.mode = mode;
