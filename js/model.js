@@ -392,7 +392,6 @@ async function model_save_settings(model) {
 				pubkey: model.pubkey,
 				notifications_last_viewed: model.notifications.last_viewed,
 				relays: Array.from(model.relays),
-				embeds: model.embeds,
 				dms_seen: model_get_dms_seen(model),
 			});
 		};
@@ -496,16 +495,13 @@ function new_model() {
 		elements: {}, // map of evid > rendered element
 		relay_que: new Map(),
 		relays: new Set([
-			"wss://nostr-pub.wellorder.net",
-			"wss://nostr-relay.wlvs.space",
 			"wss://nostr.oxtr.dev",
-			"wss://brb.io",
-			"wss://sg.qemura.xyz",
-			"wss://nostr.v0l.io",
-			"wss://relay.nostr.bg",
-			"wss://nostr.mom",
+			"wss://relay.damus.io",
+			"wss://no.str.cr",
+			"wss://relay.snort.social",
+			"wss://nos.lol",
+			"wss://relay.nostr.lucentlabs.co",
 		]),
-		embeds: "friends", // friends, everyone
 		
 		max_depth: 2,
 		reactions_to: {},

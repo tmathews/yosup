@@ -160,7 +160,7 @@ function on_timer_save() {
 	setTimeout(() => {
 		const model = DAMUS;
 		//model_save_events(model);
-		//model_save_settings(model);
+		model_save_settings(model);
 		on_timer_save();
 	}, 1 * 1000);
 }
