@@ -8,8 +8,8 @@ So fast it works over 3G with a fresh page load. It has no goals to fulfill any
 other NIPs, please use other clients such as Snort, Coracle, or Iris.
 
 It's written in plain JavaScript, HTML, and CSS for ease of development and
-building, see the example Dockerfile. Small features and optimizations will be
-added as needed, but the application is considered "complete".
+building. Small features and optimizations will be added as needed, but the
+application is considered "complete".
 
 Patches are welcomed via email.
 
