@@ -119,7 +119,7 @@ button.nav > img.icon {
 	height: 28px;
 }
 .nav button.new-note {
-	background: white;
+	background: var(--clrBgAction);
 	height: 56px;
 	border-radius: 38px;
 }
