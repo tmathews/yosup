@@ -421,7 +421,7 @@ textarea.post-input {
 	min-height: 25px;
 }
 textarea.post-input.dm {
-  background: var(--clrBtn);
+  background: var(--clrBorder);
   border-radius: 12px;
   padding: 10px;
   min-height: 45px;
@@ -572,6 +572,7 @@ code {
 	padding: 10px;
 }
 .event.dm.mine .wrap {
+	color: white;
 	background: var(--clrChatBlue);
 	margin-left: auto;
 }
